@@ -1,0 +1,13 @@
+<!--Time to Click
+Measures the time from hovering over an element to actually clicking it-->
+
+<eql>
+    <event id="x1" pre="null">
+        <eventList> mouseover </eventList>
+    </event>
+    <event id="x2" pre="x1">
+        <eventList> mousedown </eventList>
+        <context type="nodeid" value="x1.context.nodeid"/>
+        <context type="class" value="x1.context.class"/>
+    </event>
+</eql>

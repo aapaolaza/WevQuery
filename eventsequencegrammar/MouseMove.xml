@@ -1,0 +1,8 @@
+<!--Mouse move
+ Records all mouse movement-->
+
+<eql>
+    <event id="x1" pre="null">
+        <eventList> mousemove mouseover mouseout </eventList>
+    </event>
+</eql>

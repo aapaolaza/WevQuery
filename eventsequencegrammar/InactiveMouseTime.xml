@@ -1,0 +1,21 @@
+<!-- Inactive Mouse Time
+Records inactivity higher than 5 seconds and smaller than 2 minutes -->
+
+<eql>
+    <event id="x1" pre="null">
+        <eventList> mousedown mouseup mousemove mouseover mouseout</eventList>
+    </event>
+    <event id="x2" pre="x1">
+        <eventList> mousedown mouseup mousemove mouseover mouseout</eventList>
+    </event>
+    <temporalconstraintList>
+        <temporalconstraint type="within" value="2" unit="min">
+            <eventref id="x1"/>
+            <eventref id="x2"/>
+        </temporalconstraint>
+      <temporalconstraint type="between" value="5" unit="sec">
+            <eventref id="x1"/>
+            <eventref id="x2"/>
+        </temporalconstraint>
+    </temporalconstraintList>
+</eql>

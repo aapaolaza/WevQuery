@@ -1,0 +1,21 @@
+<!--Lack of mouse precision
+Repeated hovering preceding a click over an element-->
+
+<eql>
+    <event id="x1" pre="null" occurrences="n">
+        <eventList> mouseover </eventList>
+        <context type="nodeid" value="x1.context.nodeid"/>
+        <context type="class" value="x1.context.class"/>
+    </event>
+    <event id="x2" pre="x1">
+        <eventList>mousedown </eventList>
+        <context type="nodeid" value="x1.context.nodeid"/>
+        <context type="class" value="x1.context.class"/>
+    </event>
+    <temporalconstraintList>
+        <temporalconstraint type="within" value="10" unit="sec">
+            <eventref id="x1"/>
+            <eventref id="x2"/>
+        </temporalconstraint>
+    </temporalconstraintList>
+</eql>

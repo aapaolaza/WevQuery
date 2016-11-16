@@ -1,0 +1,17 @@
+<!--Controlled Scroll
+ First mouse after the page is loaded-->
+
+<eql>
+    <event id="x1" pre="null" occurrences="n">
+        <eventList> mousewheel </eventList>
+    </event>
+    <event id="x2" pre="x1">
+        <eventList> mousewheel </eventList>
+    </event>
+    <temporalconstraintList>
+        <temporalconstraint type="within" value="10" unit="sec">
+            <eventref id="x1"/>
+            <eventref id="x2"/>
+        </temporalconstraint>
+    </temporalconstraintList>
+</eql>

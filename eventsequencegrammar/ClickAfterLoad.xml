@@ -1,0 +1,11 @@
+<!--Click After Load 
+ First mouse after the page is loaded-->
+
+<eql>
+    <event id="x1" pre="null">
+        <eventList> load </eventList>
+    </event>
+    <event id="x2" pre="x1">
+        <eventList> mousedown </eventList>
+    </event>
+</eql>

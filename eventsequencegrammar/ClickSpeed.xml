@@ -1,0 +1,17 @@
+<!--Click Speed
+Measures the time taken to click, discarding clicks longer than 10 seconds-->
+
+<eql>
+    <event id="x1" pre="null">
+        <eventList> mousedown</eventList>
+    </event>
+    <event id="x2" pre="x1">
+        <eventList> mouseup</eventList>
+    </event>
+    <temporalconstraintList>
+        <temporalconstraint type="within" value="10" unit="sec">
+            <eventref id="x1"/>
+            <eventref id="x2"/>
+        </temporalconstraint>
+    </temporalconstraintList>
+</eql>

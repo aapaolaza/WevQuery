@@ -1,0 +1,26 @@
+<!--Fast Mouse Scroll Cycle
+ Consecutive scroll events indicating a scroll down and up again.-->
+<eql>
+    <event id="x1" pre="null" occurrences="n">
+        <eventList> mousewheel </eventList>
+    </event>
+    <event id="x2" pre="x1">
+        <eventList> mousewheel </eventList>
+    </event>
+    <temporalconstraintList>
+        <temporalconstraint type="within" value="2" unit="sec">
+            <eventref id="x1"/>
+            <eventref id="x2"/>
+        </temporalconstraint>
+    </temporalconstraintList>
+    <candidateconstraintList>
+        <candidateconstraint type="add" condition="gte" value="7">
+            <operator id="op1" pre="null" field="positiveDelta"/>
+            <operator id="op2" pre="op1" field="negativeDelta" operation="abs"/>
+        </candidateconstraint>
+        <candidateconstraint type="subtract" condition="sm" value="3">
+            <operator id="op1" pre="null" field="negativeDelta" operation="abs"/>
+            <operator id="op2" pre="op1" field="positiveDelta"/>
+        </candidateconstraint>
+    </candidateconstraintList>
+</eql>

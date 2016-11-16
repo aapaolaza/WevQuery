@@ -1,0 +1,25 @@
+<eql>
+    <event id="x1" pre="null">
+        <eventList> scroll mouse</eventList>
+        <context type="nodeid" value="checkbox1"/>
+    </event>
+    <event id="x2" pre="x1">
+        <eventList> scroll</eventList>
+        <context type="nodeid" value="checkbox1"/>
+        <context type="class" value="div"/>
+    </event>
+    <event id="x3" pre="x2">
+        <eventList> mouse</eventList>
+        <context type="nodeid" value="checkbox1"/>
+    </event>
+    <temporalconstraintList>
+        <temporalconstraint type="within" value="10" unit="sec">
+            <eventref id="x1"/>
+            <eventref id="x2"/>
+        </temporalconstraint>
+        <temporalconstraint type="within" value="20" unit="sec">
+            <eventref id="x1"/>
+            <eventref id="x3"/>
+        </temporalconstraint>
+    </temporalconstraintList>
+</eql>
