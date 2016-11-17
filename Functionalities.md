@@ -62,3 +62,20 @@ Once these workflows are defined, they can be detected in real time during users
   * Explain graph
   * Detail the pattern mining
   * Detail the live detection of workflows.
+
+
+----
+
+## UseLogQAL interface
+
+### Event Palette
+
+Provide the means to design "event templates". These templates will match events from the interaction database. Templates can be really specific (Mouse clicks on the "Submit" button") or generic (find any mouse hover, regardless of the interface element). Templates can also match various events at once (find any mouseover or mouseout). The number of occurrences can also be defined, but the use of unbounded repetitions ('n') triggers additional restrictions, to make computation of the query possible. When selecting the context for the event, a list of possible attributes is displayed. Many attributes can be added, allowing for more specific events. Available attributes include Web page node attributes, to match interaction with particular interface elements (useful to extract higher level events), as well as custom attributes. The Window context type would provide window states, as in "focused" or "blurred". Scroll state has the custom values top, medium, and bottom indicating if the page scroll was at the top, medium, or bottom of the page. The value can be selected from a series of given values (a list of NodeIDs can be extracted from the Web site), or can be set in relation to an existing template. In the example, Event 2 describes a click in the same node that was hovered over 10 seconds before.
+
+
+*Possible restriction, not clearly explained yet*:
+For example, each time an 'n' occurrence event is designed, a 'limited occurrence' event need to be designed with a temporal relation to it, so the algorithm can find that event and then backtrack to find the 'n' occurrences that match the restriction.
+
+### Event order
+
+Once an event template is created, a template sequence can be designed, matching a sequence of event templates. Temporal relations can be defined between the templates, indicating if the matching events should occur within, or separated by a period of time. These temporal relations can only affect 2 templates.
