@@ -1,0 +1,110 @@
+<!DOCTYPE HTML>
+<html>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="./jquery-ui-1.12.1/jquery-ui.min.css">
+<script src="./jquery-ui-1.12.1/external/jquery/jquery.js"></script>
+<script src="./jquery-ui-1.12.1/jquery-ui.min.js"></script>
+
+<head>
+
+  <script>
+
+  var $eventPaletteArea = $( "#eventPaletteArea" ),
+      $eventOrderArea = $( "#eventOrderArea" );
+
+    $( function() {
+      $( ".eventTemplate" ).draggable({
+        handle: "img.handle", //The template will only be draggable using the anchor
+        revert: "invalid", // when not dropped, the item will revert back to its initial position
+        containment: "document",
+        helper: "clone",//a clone of the template will appear when dragged
+        cursor: "move"//when dragged the cursor changes.
+        });
+
+      $eventOrderArea.droppable({
+        accept: ".eventTemplate",
+        drop: function( event, ui ) { // Function to run when an element is dropped in this area
+          //moveToOrderArea( ui.draggable );
+        }
+      });
+    
+      $eventPaletteArea.droppable({
+        accept: ".eventTemplate",
+        drop: function( event, ui ) {
+          //moveToPalette( ui.draggable );
+        }
+      });
+        // Image deletion function
+    var recycle_icon = "<a href='link/to/recycle/script/when/we/have/js/off' title='Recycle this image' class='ui-icon ui-icon-refresh'>Recycle image</a>";
+    function moveToOrderArea( $item ) {
+      $item.fadeOut(function() {
+        var $list = $( "ul", $trash ).length ?
+          $( "ul", $trash ) :
+          $( "<ul class='gallery ui-helper-reset'/>" ).appendTo( $trash );
+ 
+        $item.find( "a.ui-icon-trash" ).remove();
+        $item.append( recycle_icon ).appendTo( $list ).fadeIn(function() {
+          $item
+            .animate({ width: "48px" })
+            .find( "img" )
+              .animate({ height: "36px" });
+        });
+      });
+    }
+
+    // Image recycle function
+    var trash_icon = "<a href='link/to/trash/script/when/we/have/js/off' title='Delete this image' class='ui-icon ui-icon-trash'>Delete image</a>";
+    function moveToPalette( $item ) {
+      $item.fadeOut(function() {
+        $item
+          .find( "a.ui-icon-refresh" )
+            .remove()
+          .end()
+          .css( "width", "96px")
+          .append( trash_icon )
+          .find( "img" )
+            .css( "height", "72px" )
+          .end()
+          .appendTo( $gallery )
+          .fadeIn();
+      });
+    }
+    });
+  </script>
+
+</head>
+
+<body>
+  <h1> Interaction Dashboard </h1>
+  <h2> Event Sequence </h2>
+  
+  <div id="exampleEventTemplate" class="eventTemplate">
+
+      <p id="title"> New Event</p>
+      <img class="handle" src="./res/drag.png"/>
+      <p> Events:</p>
+      <p>mouseover,mouseout</p>
+      <p> Occurrence:</p>
+      <p> Context</p>
+      <p> ndoeID:"submit"</p>
+    </div>
+
+  <div id="eventPaletteArea">
+    <div id="exampleEventTemplate" class="eventTemplate">
+      <p id="title"> New Event</p>
+      <p id="handle">Press here to handle me</p>
+      <p> Events:</p>
+      <p>mouseover,mouseout</p>
+      <p> Occurrence:</p>
+      <p> Context</p>
+      <p> ndoeID:"submit"</p>
+    </div>
+  </div>
+
+  <div id="eventOrderArea">
+    <p></p>
+  </div>
+
+</body>
+
+</html>

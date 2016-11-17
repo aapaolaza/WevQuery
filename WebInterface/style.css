@@ -1,0 +1,30 @@
+
+.eventTemplate{
+  position: relative;
+  border: 1px solid #aaaaaa;
+  width: 200px;
+}
+.eventTemplate img.handle{
+  position:absolute;
+     top:0;
+    right:0;
+    height: 20px;
+    width: 20px;
+}
+
+#eventPaletteArea{
+  min-height: 150px;
+  width:100%;
+  border: 5px solid #aaaaaa;
+  float: left;
+  margin-left: 300px;
+}
+
+#eventOrderArea{
+  min-height: 150px;
+  width:100%;
+  border: 5px solid #aaaaaa;
+  float: left;
+  margin-left: 300px;
+}
+
