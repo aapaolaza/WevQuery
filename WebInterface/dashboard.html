@@ -6,13 +6,14 @@
 <script src="./jquery-ui-1.12.1/jquery-ui.min.js"></script>
 
 <head>
+  <title>User log query abstraction language</title>
 
   <script>
 
-  var $eventPaletteArea = $( "#eventPaletteArea" ),
+  $( function() {
+     var $eventPaletteArea = $( "#eventPaletteArea" ),
       $eventOrderArea = $( "#eventOrderArea" );
 
-    $( function() {
       $( ".eventTemplate" ).draggable({
         handle: "img.handle", //The template will only be draggable using the anchor
         revert: "invalid", // when not dropped, the item will revert back to its initial position
@@ -22,54 +23,33 @@
         });
 
       $eventOrderArea.droppable({
-        accept: ".eventTemplate",
-        drop: function( event, ui ) { // Function to run when an element is dropped in this area
-          //moveToOrderArea( ui.draggable );
-        }
+        accept: ".eventTemplate",//what elements can be dropped here
+        drop: function( event, ui ) {//what to do when an element is dropped here
+        addTemplateToOrderArea( ui.draggable );
+      }
       });
     
       $eventPaletteArea.droppable({
-        accept: ".eventTemplate",
-        drop: function( event, ui ) {
-          //moveToPalette( ui.draggable );
-        }
+        accept: ".eventTemplate",//what elements can be dropped here
+        drop: function( event, ui ) {//what to do when an element is dropped here
+        addTemplateToPaletteArea( ui.draggable );
+      }
       });
-        // Image deletion function
-    var recycle_icon = "<a href='link/to/recycle/script/when/we/have/js/off' title='Recycle this image' class='ui-icon ui-icon-refresh'>Recycle image</a>";
-    function moveToOrderArea( $item ) {
+   
+    function addTemplateToOrderArea( $item ) {
       $item.fadeOut(function() {
-        var $list = $( "ul", $trash ).length ?
-          $( "ul", $trash ) :
-          $( "<ul class='gallery ui-helper-reset'/>" ).appendTo( $trash );
- 
-        $item.find( "a.ui-icon-trash" ).remove();
-        $item.append( recycle_icon ).appendTo( $list ).fadeIn(function() {
-          $item
-            .animate({ width: "48px" })
-            .find( "img" )
-              .animate({ height: "36px" });
-        });
+         $item.appendTo( $eventOrderArea ).fadeIn();
       });
     }
 
-    // Image recycle function
-    var trash_icon = "<a href='link/to/trash/script/when/we/have/js/off' title='Delete this image' class='ui-icon ui-icon-trash'>Delete image</a>";
-    function moveToPalette( $item ) {
+    function addTemplateToPaletteArea( $item ) {
       $item.fadeOut(function() {
-        $item
-          .find( "a.ui-icon-refresh" )
-            .remove()
-          .end()
-          .css( "width", "96px")
-          .append( trash_icon )
-          .find( "img" )
-            .css( "height", "72px" )
-          .end()
-          .appendTo( $gallery )
-          .fadeIn();
+         $item.appendTo( $eventPaletteArea ).fadeIn();
       });
     }
-    });
+
+  });
+
   </script>
 
 </head>
@@ -77,33 +57,33 @@
 <body>
   <h1> Interaction Dashboard </h1>
   <h2> Event Sequence </h2>
-  
-  <div id="exampleEventTemplate" class="eventTemplate">
 
+  <li id="exampleEventTemplate" class="eventTemplate">
+
+    <p id="title"> New Event</p>
+    <img class="handle" src="./res/drag.png" />
+    <p> Events:</p>
+    <p>mouseover,mouseout</p>
+    <p> Occurrence:</p>
+    <p> Context</p>
+    <p> ndoeID:"submit"</p>
+  </li>
+
+  <ul id="eventPaletteArea">
+    <li id="exampleEventTemplate" class="eventTemplate">
       <p id="title"> New Event</p>
-      <img class="handle" src="./res/drag.png"/>
+      <img class="handle" src="./res/drag.png" />
       <p> Events:</p>
       <p>mouseover,mouseout</p>
       <p> Occurrence:</p>
       <p> Context</p>
       <p> ndoeID:"submit"</p>
-    </div>
+    </li>
+  </ul>
 
-  <div id="eventPaletteArea">
-    <div id="exampleEventTemplate" class="eventTemplate">
-      <p id="title"> New Event</p>
-      <p id="handle">Press here to handle me</p>
-      <p> Events:</p>
-      <p>mouseover,mouseout</p>
-      <p> Occurrence:</p>
-      <p> Context</p>
-      <p> ndoeID:"submit"</p>
-    </div>
-  </div>
+  <ul id="eventOrderArea">
 
-  <div id="eventOrderArea">
-    <p></p>
-  </div>
+  </ul>
 
 </body>
 

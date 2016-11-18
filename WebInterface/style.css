@@ -1,8 +1,13 @@
 
-.eventTemplate{
+ul{
+  /* Remove the indent in the ul containers */
+  padding-left:0;
+}
+li.eventTemplate{
   position: relative;
   border: 1px solid #aaaaaa;
   width: 200px;
+  list-style-type: none;
 }
 .eventTemplate img.handle{
   position:absolute;
@@ -17,7 +22,7 @@
   width:100%;
   border: 5px solid #aaaaaa;
   float: left;
-  margin-left: 300px;
+  //margin-left: 300px;
 }
 
 #eventOrderArea{
@@ -25,6 +30,6 @@
   width:100%;
   border: 5px solid #aaaaaa;
   float: left;
-  margin-left: 300px;
+  //margin-left: 300px;
 }
 
