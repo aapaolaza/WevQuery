@@ -11,18 +11,21 @@
   <script>
 
   $( function() {
-     var $eventPaletteArea = $( "#eventPaletteArea" ),
-      $eventOrderArea = $( "#eventOrderArea" );      
+     var $eventPaletteArea = $("#eventPaletteArea"),
+      $eventOrderArea = $("#eventOrderArea");      
       
       $eventPaletteArea.sortable({
-          connectWith: $eventOrderArea,
-      }).disableSelection();    
-
+          revert: true,//when cancelled, element returns to origin with animation
+          handle: "img.handle",//elements can only be dragged using the handle
+          cancel: "#eventPaletteArea li p",//the rest of the text can be selected
+          connectWith: $eventOrderArea//both areas are conected, so elements can be dragged around
+      });    
 
       $eventOrderArea.sortable({
-          connectWith: $eventPaletteArea,
-      }).disableSelection();
-
+          handle: "img.handle",
+          cancel: "#eventOrderArea li p",
+          connectWith: $eventPaletteArea
+      });
   });
 
   </script>
@@ -48,8 +51,8 @@
 
     <div class="rightDivGreedy">
       <ul id="eventPaletteArea">
-        <li id="exampleEventTemplate" class="eventTemplate eventTemplateDraggable">
-          <p id="title"> Event 1</p>
+        <li id="event1" class="eventTemplate eventTemplateDraggable">
+          <span id="title"> Event 1</span>
           <img class="handle" src="./res/drag.png" />
           <p> Events:</p>
           <p>mouseover,mouseout</p>
@@ -57,7 +60,7 @@
           <p> Context</p>
           <p> ndoeID:"submit"</p>
         </li>
-        <li id="exampleEventTemplate" class="eventTemplate eventTemplateDraggable">
+        <li id="event2" class="eventTemplate eventTemplateDraggable">
           <p id="title"> Event 2</p>
           <img class="handle" src="./res/drag.png" />
           <p id="title"> Event 2</p>
@@ -66,7 +69,7 @@
           <p> Context</p>
           <p> ndoeID:"submit"</p>
         </li>
-        <li id="exampleEventTemplate" class="eventTemplate eventTemplateDraggable">
+        <li id="event3" class="eventTemplate eventTemplateDraggable">
           <p id="title"> Event 3</p>
           <img class="handle" src="./res/drag.png" />
           <p id="title"> Event 2</p>
@@ -82,7 +85,7 @@
   <div id="eventOrderDiv">
     <h2> Event Order Area </h2>
     <ul id="eventOrderArea">
-      <li id="exampleEventTemplate" class="eventTemplate eventTemplateDraggable">
+      <li id="event4" class="eventTemplate eventTemplateDraggable">
         <p id="title"> Event 4</p>
         <img class="handle" src="./res/drag.png" />
         <p> Events:</p>
@@ -91,7 +94,7 @@
         <p> Context</p>
         <p> ndoeID:"submit"</p>
       </li>
-      <li id="exampleEventTemplate" class="eventTemplate eventTemplateDraggable">
+      <li id="event5" class="eventTemplate eventTemplateDraggable">
         <p id="title"> event 5</p>
         <img class="handle" src="./res/drag.png" />
         <p id="title"> Event 2</p>
@@ -100,7 +103,7 @@
         <p> Context</p>
         <p> ndoeID:"submit"</p>
       </li>
-      <li id="exampleEventTemplate" class="eventTemplate eventTemplateDraggable">
+      <li id="event6" class="eventTemplate eventTemplateDraggable">
         <p id="title"> Event 6</p>
         <img class="handle" src="./res/drag.png" />
         <p id="title"> Event 2</p>
