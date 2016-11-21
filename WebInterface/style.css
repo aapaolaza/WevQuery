@@ -1,4 +1,36 @@
 
+h1{
+  text-align:center;
+}
+
+#eventPaletteDiv{
+  clear:both;
+  position:fixed;
+  top:0;
+  height:50%;
+  width:100%;
+}
+#eventOrderDiv {
+  clear:both;
+  position:fixed;
+  bottom:0;
+  height:50%;
+  width:100%;
+}
+
+/** Trick from http://jsfiddle.net/A8zLY/5/ source in
+http://stackoverflow.com/questions/1260122/expand-a-div-to-take-the-remaining-width*/
+.leftDivFixed {
+    width:200px;
+    float:left;
+    padding:30px;
+}
+.rightDivGreedy{
+    width:auto;
+    overflow:hidden;
+}
+
+
 ul{
   /* Remove the indent in the ul containers */
   padding-left:0;
@@ -7,8 +39,33 @@ li.eventTemplate{
   position: relative;
   border: 1px solid #aaaaaa;
   width: 200px;
+  margin: 5px;
   list-style-type: none;
+  float: left;/** So the elements appear in an horizontal line **/
 }
+/* LOG 2016-11-21 11:35:34
+From the dragging feedback code that didn't work
+li.eventTemplate.draggableBefore{
+  border-left-style: double;
+  border-left-width:20px;
+}
+li.eventTemplate.draggableAfter{
+  border-right-style: double;
+  border-right-width:20px;
+}
+*/
+
+li.eventTemplateExample{
+    display: inline-block;
+}
+
+/** CSS for elements inside the template**/
+.eventTemplate label {
+  display: inline-block;
+  width: 20px;
+  text-align: right;
+}
+
 .eventTemplate img.handle{
   position:absolute;
      top:0;
@@ -19,17 +76,35 @@ li.eventTemplate{
 
 #eventPaletteArea{
   min-height: 150px;
-  width:100%;
+  width:auto;
   border: 5px solid #aaaaaa;
   float: left;
-  //margin-left: 300px;
+  padding:10px;
 }
+
 
 #eventOrderArea{
   min-height: 150px;
-  width:100%;
+  width:80%;
   border: 5px solid #aaaaaa;
   float: left;
-  //margin-left: 300px;
+  padding:10px;
 }
 
+
+
+/**Dragging visual feedback**/
+/**What to do when the draggable item is picked**/
+.ui-droppable.ui-droppable-active{
+  background: #ededed;
+}
+
+/** What to do when the user hovers over the droppable area**/ 
+.ui-droppable.ui-droppable-hover{
+  background: #b3b3b3;
+}
+
+
+.verticalLine {
+    border-left: thick solid #ff0000;
+}

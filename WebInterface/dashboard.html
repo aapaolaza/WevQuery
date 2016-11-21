@@ -14,40 +14,98 @@
      var $eventPaletteArea = $( "#eventPaletteArea" ),
       $eventOrderArea = $( "#eventOrderArea" );
 
-      $( ".eventTemplate" ).draggable({
-        handle: "img.handle", //The template will only be draggable using the anchor
-        revert: "invalid", // when not dropped, the item will revert back to its initial position
-        containment: "document",
-        helper: "clone",//a clone of the template will appear when dragged
-        cursor: "move"//when dragged the cursor changes.
-        });
+      $( ".eventTemplateDraggable" ).draggable({
+          handle: "img.handle", //The template will only be draggable using the anchor
+          revert: "invalid", // when not dropped, the item will revert back to its initial position
+          helper: "clone",//a clone of the template will appear when dragged
+          cursor: "move",//when dragged the cursor changes.
+          snapMode: "inner",
+          //refreshPositions: true //If set to true, all droppable positions are calculated on every mousemove.
 
-      $eventOrderArea.droppable({
-        accept: ".eventTemplate",//what elements can be dropped here
-        drop: function( event, ui ) {//what to do when an element is dropped here
-        addTemplateToOrderArea( ui.draggable );
-      }
-      });
-    
+          /* Function to execute everytime the draggable moves. 
+          See http://stackoverflow.com/questions/6199890/jquery-droppable-receiving-events-during-drag-over-not-just-on-initial-drag-o*/
+          /*LOG 2016-11-21 11:31:04 Couldn't get it to work. The sortable works, but no visual feedback is provided'
+          drag: function(event, ui) {
+              //Get the droppable element we are currently  hovering over
+              var $droppable = $("ui-droppable-hover");
+              var i=0; //used as flag to find out if position was found or not
+              //for each element in the hover:
+              $droppable.children('li').each(function()
+              {
+                  if($(this).offset().left>=ui.offset.left)  //compare
+                {
+                  //Do something to give visual feedback of where the dragging element will fall
+                    $(this).addClass("draggableBefore");
+                    console.log("before");
+                    i=1;
+                    return false; //break loop
+                }
+              })
+
+              if(i!=1) //if element dropped at the end
+              {
+                  $(this).addClass("draggableAfter");
+                  console.log("before");
+              } 
+          } */
+        });
+      
+      $eventPaletteArea.sortable().disableSelection();
       $eventPaletteArea.droppable({
         accept: ".eventTemplate",//what elements can be dropped here
         drop: function( event, ui ) {//what to do when an element is dropped here
-        addTemplateToPaletteArea( ui.draggable );
-      }
-      });
-   
-    function addTemplateToOrderArea( $item ) {
-      $item.fadeOut(function() {
-         $item.appendTo( $eventOrderArea ).fadeIn();
-      });
-    }
+              var i=0; //used as flag to find out if element added or not
+              $(this).children('li').each(function()
+              {
+                  if($(this).offset().left>=ui.offset.left)  //compare
+                {
+                    ui.draggable.insertBefore($(this));
+                    i=1;   
+                    return false; //break loop
+                }
+              })
 
-    function addTemplateToPaletteArea( $item ) {
-      $item.fadeOut(function() {
-         $item.appendTo( $eventPaletteArea ).fadeIn();
+              if(i!=1) //if element dropped at the end
+              {
+                  ui.draggable.appendTo(this);
+              } 
+        }
       });
-    }
 
+      $eventOrderArea.droppable({
+        //activeClass: ".eventTemplate",
+        //hoverClass: ".eventTemplate",
+        accept: ".eventTemplate",//what elements can be dropped here
+        drop: function( event, ui ) {//what to do when an element is dropped here
+              var i=0; //used as flag to find out if element added or not
+              $(this).children('li').each(function()
+              {
+                  if($(this).offset().left>=ui.offset.left)  //compare
+                {
+                    ui.draggable.insertBefore($(this));
+                    i=1;   
+                    return false; //break loop
+                }
+              })
+
+              if(i!=1) //if element dropped at the end
+              {
+                  ui.draggable.appendTo(this);
+              }
+        }
+      });
+
+      $eventOrderArea.sortable().disableSelection();
+      /*
+      $eventOrderArea.sortable({
+        items: "li",
+        sort: function () {
+             // gets added unintentionally by droppable interacting with sortable
+             // using connectWithSortable fixes this, but doesn't allow you to customize active/hoverClass options
+             $(this).removeClass("ui-state-default");
+         }
+      });
+      */
   });
 
   </script>
@@ -56,35 +114,86 @@
 
 <body>
   <h1> Interaction Dashboard </h1>
-  <h2> Event Sequence </h2>
+  <div id="eventPaletteDiv">
+    <h2> Event Palette </h2>
 
-  <li id="exampleEventTemplate" class="eventTemplate">
+    <div class="leftDivFixed">
+      <li class="eventTemplate eventTemplateExample">
+          <p id="title"> Event 1</p>
+          <img class="handle" src="./res/add.png" />
+          <p> Events:</p>
+          <p>mouseover,mouseout</p>
+          <p> Occurrence:</p>
+          <p> Context</p>
+          <p> ndoeID:"submit"</p>
+      </li>
+    </div>
 
-    <p id="title"> New Event</p>
-    <img class="handle" src="./res/drag.png" />
-    <p> Events:</p>
-    <p>mouseover,mouseout</p>
-    <p> Occurrence:</p>
-    <p> Context</p>
-    <p> ndoeID:"submit"</p>
-  </li>
+    <div class="rightDivGreedy">
+      <ul id="eventPaletteArea">
+        <li id="exampleEventTemplate" class="eventTemplate eventTemplateDraggable">
+          <p id="title"> Event 1</p>
+          <img class="handle" src="./res/drag.png" />
+          <p> Events:</p>
+          <p>mouseover,mouseout</p>
+          <p> Occurrence:</p>
+          <p> Context</p>
+          <p> ndoeID:"submit"</p>
+        </li>
+        <li id="exampleEventTemplate" class="eventTemplate eventTemplateDraggable">
+          <p id="title"> Event 2</p>
+          <img class="handle" src="./res/drag.png" />
+          <p id="title"> Event 2</p>
+          <p>mouseover,mouseout</p>
+          <p> Occurrence:</p>
+          <p> Context</p>
+          <p> ndoeID:"submit"</p>
+        </li>
+        <li id="exampleEventTemplate" class="eventTemplate eventTemplateDraggable">
+          <p id="title"> Event 3</p>
+          <img class="handle" src="./res/drag.png" />
+          <p id="title"> Event 2</p>
+          <p>mouseover,mouseout</p>
+          <p> Occurrence:</p>
+          <p> Context</p>
+          <p> ndoeID:"submit"</p>
+        </li>
+      </ul>
+    </div>
+  </div>
 
-  <ul id="eventPaletteArea">
-    <li id="exampleEventTemplate" class="eventTemplate">
-      <p id="title"> New Event</p>
-      <img class="handle" src="./res/drag.png" />
-      <p> Events:</p>
-      <p>mouseover,mouseout</p>
-      <p> Occurrence:</p>
-      <p> Context</p>
-      <p> ndoeID:"submit"</p>
-    </li>
-  </ul>
-
-  <ul id="eventOrderArea">
-
-  </ul>
-
+  <div id="eventOrderDiv">
+    <h2> Event Order Area </h2>
+    <ul id="eventOrderArea">
+      <li id="exampleEventTemplate" class="eventTemplate eventTemplateDraggable">
+        <p id="title"> Event 4</p>
+        <img class="handle" src="./res/drag.png" />
+        <p> Events:</p>
+        <p>mouseover,mouseout</p>
+        <p> Occurrence:</p>
+        <p> Context</p>
+        <p> ndoeID:"submit"</p>
+      </li>
+      <li id="exampleEventTemplate" class="eventTemplate eventTemplateDraggable">
+        <p id="title"> event 5</p>
+        <img class="handle" src="./res/drag.png" />
+        <p id="title"> Event 2</p>
+        <p>mouseover,mouseout</p>
+        <p> Occurrence:</p>
+        <p> Context</p>
+        <p> ndoeID:"submit"</p>
+      </li>
+      <li id="exampleEventTemplate" class="eventTemplate eventTemplateDraggable">
+        <p id="title"> Event 6</p>
+        <img class="handle" src="./res/drag.png" />
+        <p id="title"> Event 2</p>
+        <p>mouseover,mouseout</p>
+        <p> Occurrence:</p>
+        <p> Context</p>
+        <p> ndoeID:"submit"</p>
+      </li>
+    </ul>
+  </div>
 </body>
 
 </html>
