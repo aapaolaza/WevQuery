@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+
+  <title>User log query abstraction language</title>
+
+  <!-- Bootstrap -->
+  <link href="bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styleDrag.css">
+
+  <script src="./jquery-ui-1.12.1/external/jquery/jquery.js"></script>
+  <script src="./jquery-ui-1.12.1/jquery-ui.min.js"></script>
+  <!-- Include all compiled plugins (below), or include individual files as needed -->
+  <script src="bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+
+  <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+  <script>
+
+  $( function() {
+     var $eventPaletteArea = $("#eventPaletteArea"),
+      $eventOrderArea = $("#eventOrderArea");      
+      
+      $eventPaletteArea.sortable({
+          revert: true,//when cancelled, element returns to origin with animation
+          handle: "span",//elements can only be dragged using the handle
+          cancel: "#eventPaletteArea li p",//the rest of the text can be selected
+          connectWith: $eventOrderArea//both areas are conected, so elements can be dragged around
+      });    
+
+      $eventOrderArea.sortable({
+          handle: "span",
+          cancel: "#eventOrderArea li p",
+          connectWith: $eventPaletteArea
+      });
+  });
+
+  </script>
+</head>
+
+<body>
+  <h1> Interaction Dashboard </h1>
+  <div id="eventPaletteDiv" class="container">
+    <h2> Event Palette </h2>
+
+    <div class="row">
+      <li class="eventTemplate eventTemplateExample">
+        <div id="title"> Event 1 <span class="glyphicon glyphicon-plus" aria-hidden="true" aria-label="Add Event"></span></div>
+        <p> Events:</p>
+        <p>mouseover,mouseout</p>
+        <p> Occurrence:</p>
+        <p> Context</p>
+        <p> ndoeID:"submit"</p>
+      </li>
+
+      <ul id="eventPaletteArea">
+        <li id="event1" class="eventTemplate eventTemplateDraggable">
+          <div id="title"> Event 1 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
+          <p> Events:</p>
+          <p>mouseover,mouseout</p>
+          <p> Occurrence:</p>
+          <p> Context</p>
+          <p> ndoeID:"submit"</p>
+        </li>
+        <li id="event2" class="eventTemplate eventTemplateDraggable">
+          <div id="title"> Event 2 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
+          <p>mouseover,mouseout</p>
+          <p> Occurrence:</p>
+          <p> Context</p>
+          <p> ndoeID:"submit"</p>
+        </li>
+        <li id="event3" class="eventTemplate eventTemplateDraggable">
+          <div id="title"> Event 3 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
+          <p>mouseover,mouseout</p>
+          <p> Occurrence:</p>
+          <p> Context</p>
+          <p> ndoeID:"submit"</p>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="eventOrderDiv" class="container">
+    <h2> Event Order Area </h2>
+    <ul id="eventOrderArea">
+      <li id="event4" class="eventTemplate eventTemplateDraggable">
+        <div id="title"> Event 4 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
+        <p> Events:</p>
+        <p>mouseover,mouseout</p>
+        <p> Occurrence:</p>
+        <p> Context</p>
+        <p> ndoeID:"submit"</p>
+      </li>
+      <li id="event5" class="eventTemplate eventTemplateDraggable">
+        <div id="title"> event 5 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
+        <p>mouseover,mouseout</p>
+        <p> Occurrence:</p>
+        <p> Context</p>
+        <p> ndoeID:"submit"</p>
+      </li>
+      <li id="event6" class="eventTemplate eventTemplateDraggable">
+        <div id="title"> Event 6 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
+        <p>mouseover,mouseout</p>
+        <p> Occurrence:</p>
+        <p> Context</p>
+        <p> ndoeID:"submit"</p>
+      </li>
+    </ul>
+  </div>
+
+</body>
+
+</html>
