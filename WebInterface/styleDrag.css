@@ -16,8 +16,7 @@ li.eventTemplate{
   width: 200px;
   margin: 5px;
   list-style-type: none;
-  /*
-  position: relative;*/
+
   display: inline-block;
 }
 li.eventTemplate span{
@@ -35,6 +34,7 @@ li.eventTemplateExample{
   text-align: right;
 }
 
+/*Event palette allows template to take various lines*/
 #eventPaletteArea{
   min-height: 200px;
   min-width: 200px;
@@ -43,7 +43,7 @@ li.eventTemplateExample{
   padding:10px;
   margin-left: 230px;
 }
-
+/*Event order area restricts templates to a single ordered line, and shows a scroll bar*/
 #eventOrderArea{
   min-height: 200px;
   min-width: 200px;
@@ -58,7 +58,8 @@ li.eventTemplateExample{
   display:block;
   /*IMPORTANT ATTRIBUTE! Otherwise elements go to the next line when the border is hit*/
   white-space: nowrap;
-
+  /*Important so the temporal constraints can be set to follow the events*/
+  position: relative;
 }
 
 
@@ -77,4 +78,14 @@ li.eventTemplateExample{
 
 .verticalLine {
     border-left: thick solid #ff0000;
+}
+
+
+/**temporal constraints**/
+#tempConstId1toId2 {
+  position:absolute;
+  bottom:0;
+  right:0;
+  background:green;
+  height:10px;
 }

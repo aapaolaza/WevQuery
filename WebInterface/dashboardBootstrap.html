@@ -46,8 +46,29 @@
           cancel: "#eventOrderArea li p",
           connectWith: $eventPaletteArea
       });
+  
+    //Update Existing temporal restriction
+    
+    $("#tempConstraintsArea .tempConstraintObject").each(function( index ) {
+      console.log( "tempConstraintObject number" + index);
+
+      var $startEvent = $("#"+$(this).attr("start"));
+      var $endEvent = $("#"+$(this).attr("end"));
+
+      var constraintBottomCoord = $startEvent.position().top + $startEvent.height();
+
+      var constraintLeftCoord = $startEvent.position().left;
+      var constraintWidth = (($endEvent.position().left + $endEvent.width()) - constraintLeftCoord) + "px";
+
+      console.log( "Drawing from " + constraintLeftCoord + " with size "+ constraintWidth);
+
+      $(this).css({top: constraintBottomCoord, left: constraintLeftCoord, width: constraintWidth, position:'absolute'});
+    });
+
   });
 
+  
+  
   </script>
 </head>
 
@@ -58,7 +79,7 @@
 
     <div class="row">
       <li class="eventTemplate eventTemplateExample">
-        <div id="title"> Event 1 <span class="glyphicon glyphicon-plus" aria-hidden="true" aria-label="Add Event"></span></div>
+        <div id="templateExample"> Event Example <span class="glyphicon glyphicon-plus" aria-hidden="true" aria-label="Add Event"></span></div>
         <p> Events:</p>
         <p>mouseover,mouseout</p>
         <p> Occurrence:</p>
@@ -75,51 +96,51 @@
           <p> Context</p>
           <p> ndoeID:"submit"</p>
         </li>
-        <li id="event1" class="eventTemplate eventTemplateDraggable">
-          <div id="title"> Event 1 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
-          <p> Events:</p>
-          <p>mouseover,mouseout</p>
-          <p> Occurrence:</p>
-          <p> Context</p>
-          <p> ndoeID:"submit"</p>
-        </li>
-
-        <li id="event1" class="eventTemplate eventTemplateDraggable">
-          <div id="title"> Event 1 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
-          <p> Events:</p>
-          <p>mouseover,mouseout</p>
-          <p> Occurrence:</p>
-          <p> Context</p>
-          <p> ndoeID:"submit"</p>
-        </li>
-
-        <li id="event1" class="eventTemplate eventTemplateDraggable">
-          <div id="title"> Event 1 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
-          <p> Events:</p>
-          <p>mouseover,mouseout</p>
-          <p> Occurrence:</p>
-          <p> Context</p>
-          <p> ndoeID:"submit"</p>
-        </li>
-
-        <li id="event1" class="eventTemplate eventTemplateDraggable">
-          <div id="title"> Event 1 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
-          <p> Events:</p>
-          <p>mouseover,mouseout</p>
-          <p> Occurrence:</p>
-          <p> Context</p>
-          <p> ndoeID:"submit"</p>
-        </li>
-
         <li id="event2" class="eventTemplate eventTemplateDraggable">
-          <div id="title"> Event 2 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
+          <div id="title"> Event 2 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
+          <p> Events:</p>
+          <p>mouseover,mouseout</p>
+          <p> Occurrence:</p>
+          <p> Context</p>
+          <p> ndoeID:"submit"</p>
+        </li>
+
+        <li id="event3" class="eventTemplate eventTemplateDraggable">
+          <div id="title"> Event 3 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
+          <p> Events:</p>
+          <p>mouseover,mouseout</p>
+          <p> Occurrence:</p>
+          <p> Context</p>
+          <p> ndoeID:"submit"</p>
+        </li>
+
+        <li id="event4" class="eventTemplate eventTemplateDraggable">
+          <div id="title"> Event 4 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
+          <p> Events:</p>
+          <p>mouseover,mouseout</p>
+          <p> Occurrence:</p>
+          <p> Context</p>
+          <p> ndoeID:"submit"</p>
+        </li>
+
+        <li id="event5" class="eventTemplate eventTemplateDraggable">
+          <div id="title"> Event 5 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
+          <p> Events:</p>
+          <p>mouseover,mouseout</p>
+          <p> Occurrence:</p>
+          <p> Context</p>
+          <p> ndoeID:"submit"</p>
+        </li>
+
+        <li id="event6" class="eventTemplate eventTemplateDraggable">
+          <div id="title"> Event 6 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
             <p>mouseover,mouseout</p>
             <p> Occurrence:</p>
             <p> Context</p>
             <p> ndoeID:"submit"</p>
         </li>
-        <li id="event3" class="eventTemplate eventTemplateDraggable">
-          <div id="title"> Event 3 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
+        <li id="event7" class="eventTemplate eventTemplateDraggable">
+          <div id="title"> Event 7 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
             <p>mouseover,mouseout</p>
             <p> Occurrence:</p>
             <p> Context</p>
@@ -132,25 +153,16 @@
       <div id="eventOrderDiv" class="container">
         <h2> Event Order Area </h2>
         <ul id="eventOrderArea">
-          <li id="event1" class="eventTemplate eventTemplateDraggable">
-            <div id="title"> Event 1 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
+          <li id="event8" class="eventTemplate eventTemplateDraggable">
+            <div id="title"> Event 8 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
             <p> Events:</p>
             <p>mouseover,mouseout</p>
             <p> Occurrence:</p>
             <p> Context</p>
             <p> ndoeID:"submit"</p>
           </li>
-          <li id="event1" class="eventTemplate eventTemplateDraggable">
-            <div id="title"> Event 1 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
-            <p> Events:</p>
-            <p>mouseover,mouseout</p>
-            <p> Occurrence:</p>
-            <p> Context</p>
-            <p> ndoeID:"submit"</p>
-          </li>
-
-          <li id="event1" class="eventTemplate eventTemplateDraggable">
-            <div id="title"> Event 1 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
+          <li id="event9" class="eventTemplate eventTemplateDraggable">
+            <div id="title"> Event 9 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
             <p> Events:</p>
             <p>mouseover,mouseout</p>
             <p> Occurrence:</p>
@@ -158,8 +170,8 @@
             <p> ndoeID:"submit"</p>
           </li>
 
-          <li id="event1" class="eventTemplate eventTemplateDraggable">
-            <div id="title"> Event 1 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
+          <li id="event10" class="eventTemplate eventTemplateDraggable">
+            <div id="title"> Event 10 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
             <p> Events:</p>
             <p>mouseover,mouseout</p>
             <p> Occurrence:</p>
@@ -167,8 +179,8 @@
             <p> ndoeID:"submit"</p>
           </li>
 
-          <li id="event1" class="eventTemplate eventTemplateDraggable">
-            <div id="title"> Event 1 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
+          <li id="event11" class="eventTemplate eventTemplateDraggable">
+            <div id="title"> Event 11 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
             <p> Events:</p>
             <p>mouseover,mouseout</p>
             <p> Occurrence:</p>
@@ -176,45 +188,58 @@
             <p> ndoeID:"submit"</p>
           </li>
 
-          <li id="event2" class="eventTemplate eventTemplateDraggable">
-            <div id="title"> Event 2 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
+          <li id="event12" class="eventTemplate eventTemplateDraggable">
+            <div id="title"> Event 12 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
+            <p> Events:</p>
+            <p>mouseover,mouseout</p>
+            <p> Occurrence:</p>
+            <p> Context</p>
+            <p> ndoeID:"submit"</p>
+          </li>
+
+          <li id="event13" class="eventTemplate eventTemplateDraggable">
+            <div id="title"> Event 13 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
               <p>mouseover,mouseout</p>
               <p> Occurrence:</p>
               <p> Context</p>
               <p> ndoeID:"submit"</p>
           </li>
-          <li id="event3" class="eventTemplate eventTemplateDraggable">
-            <div id="title"> Event 3 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
+          <li id="event14" class="eventTemplate eventTemplateDraggable">
+            <div id="title"> Event 14 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
               <p>mouseover,mouseout</p>
               <p> Occurrence:</p>
               <p> Context</p>
               <p> ndoeID:"submit"</p>
           </li>
-          <li id="event4" class="eventTemplate eventTemplateDraggable">
-            <div id="title"> Event 4 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
+          <li id="event15" class="eventTemplate eventTemplateDraggable">
+            <div id="title"> Event 15 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
               <p> Events:</p>
               <p>mouseover,mouseout</p>
               <p> Occurrence:</p>
               <p> Context</p>
               <p> ndoeID:"submit"</p>
           </li>
-          <li id="event5" class="eventTemplate eventTemplateDraggable">
-            <div id="title"> event 5 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
+          <li id="event16" class="eventTemplate eventTemplateDraggable">
+            <div id="title"> event 16 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
               <p>mouseover,mouseout</p>
               <p> Occurrence:</p>
               <p> Context</p>
               <p> ndoeID:"submit"</p>
           </li>
-          <li id="event6" class="eventTemplate eventTemplateDraggable">
-            <div id="title"> Event 6 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
+          <li id="event17" class="eventTemplate eventTemplateDraggable">
+            <div id="title"> Event 17 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
               <p>mouseover,mouseout</p>
               <p> Occurrence:</p>
               <p> Context</p>
               <p> ndoeID:"submit"</p>
           </li>
-        </ul>
-        </div>
+      
+        <div id="tempConstraintsArea">
+          <div id="tempConstId1toId2" class="tempConstraintObject" start="event8" end="event10">
 
+          </div>
+        </div>
+  </ul>
 </body>
 
 </html>
