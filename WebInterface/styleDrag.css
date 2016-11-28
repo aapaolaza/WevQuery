@@ -1,28 +1,31 @@
 
-h1{
+h1,h2{
   text-align:center;
 }
-
+.container{
+  max-width:80%;
+}
 ul{
   /* Remove the indent in the ul containers */
   padding-left:0;
 }
 li.eventTemplate{
-  position: relative;
   border: 1px solid #aaaaaa;
   border-radius: 5px;
   padding: 5px;
   width: 200px;
   margin: 5px;
   list-style-type: none;
-  float: left;/** So the elements appear in an horizontal line **/
+  /*
+  position: relative;*/
+  display: inline-block;
 }
 li.eventTemplate span{
-    float: right;
+  float: right;
 }
 
 li.eventTemplateExample{
-    display: inline-block;
+  float:left;
 }
 
 /** CSS for elements inside the template**/
@@ -33,19 +36,29 @@ li.eventTemplateExample{
 }
 
 #eventPaletteArea{
-  min-height: 150px;
+  min-height: 200px;
+  min-width: 200px;
   width:auto;
   border: 5px solid #aaaaaa;
-  float: left;
   padding:10px;
+  margin-left: 230px;
 }
 
 #eventOrderArea{
-  min-height: 150px;
-  width:80%;
+  min-height: 200px;
+  min-width: 200px;
+  width:auto;
   border: 5px solid #aaaaaa;
-  float: left;
   padding:10px;
+  margin-bottom: 50px;
+  
+  /*Adding horizontal scroll if it gets too big*/
+  overflow-x:auto;
+  overflow-y:hidden;
+  display:block;
+  /*IMPORTANT ATTRIBUTE! Otherwise elements go to the next line when the border is hit*/
+  white-space: nowrap;
+
 }
 
 
