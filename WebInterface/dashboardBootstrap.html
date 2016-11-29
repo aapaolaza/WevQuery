@@ -25,6 +25,9 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
+  <!-- The event creation and interaction logic is stored in a different file -->
+  <script src="./eventCreation.js"></script>
+
   <script>
 
   $( function() {
@@ -33,12 +36,12 @@
       
       $eventPaletteArea.sortable({
           scroll: true,
-          revert: true,//when cancelled, element returns to origin with animation
+         // revert: true,//when cancelled, element returns to origin with animation
           handle: "span",//elements can only be dragged using the handle
           cancel: "#eventPaletteArea li p",//the rest of the text can be selected
           connectWith: $eventOrderArea,//both areas are conected, so elements can be dragged around,
           helper:"clone",
-          revert:"invalid",
+          //revert:"invalid",
           start: function(event, ui) {
             if ($(ui.item).hasClass("eventOrdered")) {
               throw "cancel";
@@ -47,22 +50,26 @@
           stop: function(event, ui) {
             if ($(ui.item).parents('#eventOrderArea').length > 0) {
               $(this).sortable('cancel');
+              updateTemporalConstraints();
             }
           }
       });    
 
       $eventOrderArea.sortable({
           scroll: true,
-          revert: true,
+          //revert: true,
           handle: "span",
           cancel: "#eventOrderArea li p",
           connectWith: $eventPaletteArea,
-          containment: "#eventOrderArea"
+          containment: "#eventOrderArea",
 
-           
+          stop: function(event, ui) {
+            updateTemporalConstraints();
+          }
       });
     updateTemporalConstraints();
 
+//Code to keep a copy of the event in the palette, if it has been dragged to the event order.
     $eventPaletteArea.bind('sortstop', function(event, ui) {
         var idx = $("#eventOrderArea").children().index($(ui.item[0]))-1,
             elm = $(ui.item[0]).clone(true);
@@ -78,15 +85,16 @@
     $("#tempConstraintsArea .tempConstraintObject").each(function( index ) {
       console.log( "tempConstraintObject number" + index);
 
-      var temConstraintTopPadding = 25*(index+1);
+      var temConstraintTopPadding = 35*(index+1);
 
       var $startEvent = $("#"+$(this).attr("start"));
       var $endEvent = $("#"+$(this).attr("end"));
 
       var constraintBottomCoord = $startEvent.position().top + $startEvent.height() + temConstraintTopPadding;
 
-      var constraintLeftCoord = $startEvent.position().left;
-      var constraintWidth = (($endEvent.position().left + $endEvent.width()) - constraintLeftCoord) + "px";
+      //We need to add the scroll position to the coordinates
+      var constraintLeftCoord = $startEvent.position().left + $("#eventOrderArea").scrollLeft();
+      var constraintWidth = (($endEvent.position().left + $endEvent.width() + $("#eventOrderArea").scrollLeft()) - constraintLeftCoord) + "px";
 
       console.log( "Drawing from " + constraintLeftCoord + " with size "+ constraintWidth);
 
@@ -94,8 +102,9 @@
       $(this).text($(this).attr("type") +" "+ $(this).attr("value") +" "+ $(this).attr("unit"))
 
       //The padding on the bottom will increase depending on the number of constraints. 30px per constraint
-      $("#eventOrderArea").css({paddingBottom: (index+1)*30+"px"})
-
+      $("#eventOrderArea").css({
+        paddingBottom: (index+1)*40+"px",
+      })
     });
   }
   
@@ -104,13 +113,14 @@
 </head>
 
 <body>
+  <button onclick="updateTemporalConstraints"></button>
   <h1> Interaction Dashboard </h1>
   <div id="eventPaletteDiv" class="container">
     <h2> Event Palette </h2>
 
     <div class="row">
       <li class="eventTemplate eventTemplateExample">
-        <div id="templateExample"> Event Example <span class="glyphicon glyphicon-plus" aria-hidden="true" aria-label="Add Event"></span></div>
+        <div id="templateExample"> Event Example <span id="newEventButton" class="glyphicon glyphicon-plus" aria-hidden="true" aria-label="Add Event"></span></div>
         <p> Events:</p>
         <p>mouseover,mouseout</p>
         <p> Occurrence:</p>

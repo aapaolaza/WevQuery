@@ -54,7 +54,7 @@ li.eventTemplateExample{
   
   /*Adding horizontal scroll if it gets too big*/
   overflow-x:auto;
-  overflow-y:hidden;
+  overflow-y:auto;
   display:block;
   /*IMPORTANT ATTRIBUTE! Otherwise elements go to the next line when the border is hit*/
   white-space: nowrap;
