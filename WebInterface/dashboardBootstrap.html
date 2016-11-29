@@ -49,6 +49,17 @@
           },
           stop: function(event, ui) {
             if ($(ui.item).parents('#eventOrderArea').length > 0) {
+              //Code to keep a copy of the event in the palette, if it has been dragged to the event order.
+              //select the element before the one we are ending the drag on
+              var idx = $("#eventOrderArea").children().index($(ui.item[0]))-1;
+              var elm = $(ui.item[0]).clone(true);
+              
+              //if index is greater or equal to 0 then we can put it after that index
+              //otherwise, append it to the list as first element 
+              if(idx>-1)
+                $("#eventOrderArea").children(':eq('+idx+')').after(elm);
+              else
+                $("#eventOrderArea").prepend(elm);
               $(this).sortable('cancel');
               updateTemporalConstraints();
             }
@@ -67,15 +78,8 @@
             updateTemporalConstraints();
           }
       });
-    updateTemporalConstraints();
 
-//Code to keep a copy of the event in the palette, if it has been dragged to the event order.
-    $eventPaletteArea.bind('sortstop', function(event, ui) {
-        var idx = $("#eventOrderArea").children().index($(ui.item[0]))-1,
-            elm = $(ui.item[0]).clone(true);
-    $("#eventOrderArea").children(':eq('+idx+')').after(elm);
-        $(this).sortable('cancel');
-    });
+    updateTemporalConstraints();
   });
 
 /**TODO: I need to call this function when the elements get dragged*/
@@ -274,17 +278,15 @@
               <p> Context</p>
               <p> ndoeID:"submit"</p>
           </li>
-
-          <div id="tempConstraintsArea">
-            <div id="tempConstId8toId10" class="tempConstraintObject" start="event8" end="event10" type="within" value="10" unit="sec">
-            </div>
-            <div id="tempConstId10toId12" class="tempConstraintObject" start="event10" end="event12" type="between" value="2" unit="sec">
-            </div>
-            <div id="tempConstId9toId16" class="tempConstraintObject" start="event9" end="event16" type="within" value="30" unit="min">
-            </div>
-
-          </div>
         </ul>
+        <div id="tempConstraintsArea">
+          <div id="tempConstId8toId10" class="tempConstraintObject" start="event8" end="event10" type="within" value="10" unit="sec">
+          </div>
+          <div id="tempConstId10toId12" class="tempConstraintObject" start="event10" end="event12" type="between" value="2" unit="sec">
+          </div>
+          <div id="tempConstId9toId16" class="tempConstraintObject" start="event9" end="event16" type="within" value="30" unit="min">
+          </div>
+        </div>
 </body>
 
 </html>

@@ -44,8 +44,8 @@ li.eventTemplateExample{
   margin-left: 230px;
 }
 /*Event order area restricts templates to a single ordered line, and shows a scroll bar*/
-#eventOrderArea{
-  min-height: 200px;
+#eventOrderDiv{
+min-height: 200px;
   min-width: 200px;
   width:auto;
   border: 5px solid #aaaaaa;
@@ -61,6 +61,9 @@ li.eventTemplateExample{
   /*Important so the temporal constraints can be set to follow the events*/
   position: relative;
   padding-bottom: 30px;
+}
+#eventOrderArea{
+  
 }
 
 
