@@ -36,7 +36,19 @@
           revert: true,//when cancelled, element returns to origin with animation
           handle: "span",//elements can only be dragged using the handle
           cancel: "#eventPaletteArea li p",//the rest of the text can be selected
-          connectWith: $eventOrderArea//both areas are conected, so elements can be dragged around
+          connectWith: $eventOrderArea,//both areas are conected, so elements can be dragged around,
+          helper:"clone",
+          revert:"invalid",
+          start: function(event, ui) {
+            if ($(ui.item).hasClass("eventOrdered")) {
+              throw "cancel";
+            }
+          },
+          stop: function(event, ui) {
+            if ($(ui.item).parents('#eventOrderArea').length > 0) {
+              $(this).sortable('cancel');
+            }
+          }
       });    
 
       $eventOrderArea.sortable({
@@ -44,18 +56,34 @@
           revert: true,
           handle: "span",
           cancel: "#eventOrderArea li p",
-          connectWith: $eventPaletteArea
+          connectWith: $eventPaletteArea,
+          containment: "#eventOrderArea"
+
+           
       });
-  
-    //Update Existing temporal restriction
+    updateTemporalConstraints();
+
+    $eventPaletteArea.bind('sortstop', function(event, ui) {
+        var idx = $("#eventOrderArea").children().index($(ui.item[0]))-1,
+            elm = $(ui.item[0]).clone(true);
+    $("#eventOrderArea").children(':eq('+idx+')').after(elm);
+        $(this).sortable('cancel');
+    });
+  });
+
+/**TODO: I need to call this function when the elements get dragged*/
+  function updateTemporalConstraints(){
+ //Update Existing temporal restriction
     
     $("#tempConstraintsArea .tempConstraintObject").each(function( index ) {
       console.log( "tempConstraintObject number" + index);
 
+      var temConstraintTopPadding = 25*(index+1);
+
       var $startEvent = $("#"+$(this).attr("start"));
       var $endEvent = $("#"+$(this).attr("end"));
 
-      var constraintBottomCoord = $startEvent.position().top + $startEvent.height();
+      var constraintBottomCoord = $startEvent.position().top + $startEvent.height() + temConstraintTopPadding;
 
       var constraintLeftCoord = $startEvent.position().left;
       var constraintWidth = (($endEvent.position().left + $endEvent.width()) - constraintLeftCoord) + "px";
@@ -63,10 +91,13 @@
       console.log( "Drawing from " + constraintLeftCoord + " with size "+ constraintWidth);
 
       $(this).css({top: constraintBottomCoord, left: constraintLeftCoord, width: constraintWidth, position:'absolute'});
+      $(this).text($(this).attr("type") +" "+ $(this).attr("value") +" "+ $(this).attr("unit"))
+
+      //The padding on the bottom will increase depending on the number of constraints. 30px per constraint
+      $("#eventOrderArea").css({paddingBottom: (index+1)*30+"px"})
+
     });
-
-  });
-
+  }
   
   
   </script>
@@ -149,9 +180,9 @@
       </ul>
       </div>
       </div>
+      <h2> Event Order Area </h2>
 
       <div id="eventOrderDiv" class="container">
-        <h2> Event Order Area </h2>
         <ul id="eventOrderArea">
           <li id="event8" class="eventTemplate eventTemplateDraggable">
             <div id="title"> Event 8 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
@@ -233,13 +264,17 @@
               <p> Context</p>
               <p> ndoeID:"submit"</p>
           </li>
-      
-        <div id="tempConstraintsArea">
-          <div id="tempConstId1toId2" class="tempConstraintObject" start="event8" end="event10">
+
+          <div id="tempConstraintsArea">
+            <div id="tempConstId8toId10" class="tempConstraintObject" start="event8" end="event10" type="within" value="10" unit="sec">
+            </div>
+            <div id="tempConstId10toId12" class="tempConstraintObject" start="event10" end="event12" type="between" value="2" unit="sec">
+            </div>
+            <div id="tempConstId9toId16" class="tempConstraintObject" start="event9" end="event16" type="within" value="30" unit="min">
+            </div>
 
           </div>
-        </div>
-  </ul>
+        </ul>
 </body>
 
 </html>

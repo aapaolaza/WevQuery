@@ -60,6 +60,7 @@ li.eventTemplateExample{
   white-space: nowrap;
   /*Important so the temporal constraints can be set to follow the events*/
   position: relative;
+  padding-bottom: 30px;
 }
 
 
@@ -82,10 +83,10 @@ li.eventTemplateExample{
 
 
 /**temporal constraints**/
-#tempConstId1toId2 {
+.tempConstraintObject {
+  border: 1px solid green;
+  border-radius: 5px;
+  text-align: center;
   position:absolute;
-  bottom:0;
-  right:0;
-  background:green;
-  height:10px;
+  height:25px;
 }
