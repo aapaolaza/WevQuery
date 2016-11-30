@@ -22,6 +22,12 @@ li.eventTemplate{
 li.eventTemplate span{
   float: right;
 }
+li.eventTemplate .glyphicon-move{
+  cursor: move;
+}
+li.eventTemplate .glyphicon-plus{
+  cursor: pointer;
+}
 
 li.eventTemplateExample{
   float:left;
@@ -62,9 +68,6 @@ min-height: 200px;
   position: relative;
   padding-bottom: 30px;
 }
-#eventOrderArea{
-  
-}
 
 
 
@@ -92,4 +95,25 @@ min-height: 200px;
   text-align: center;
   position:absolute;
   height:25px;
+}
+.tempConstraintObject .ui-resizable-e{
+  cursor: e-resize;
+  position:absolute;
+  right:-12px;
+  top:5%;
+}
+.tempConstraintObject .ui-resizable-w {
+  cursor: e-resize;
+  position:absolute;
+  left:-12px;
+  top:5%;
+}
+
+
+/** Changes the aspect of the bootstrap icons**/
+.glyphicon {
+    font-size: 20px;
+}
+.glyphicon-resize-horizontal  {
+    font-size: 25px;
 }

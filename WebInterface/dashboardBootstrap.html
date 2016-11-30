@@ -30,7 +30,7 @@
 
   <script>
 
-  $( function() {
+  $(function() {
      var $eventPaletteArea = $("#eventPaletteArea"),
       $eventOrderArea = $("#eventOrderArea");      
       
@@ -78,6 +78,51 @@
             updateTemporalConstraints();
           }
       });
+      
+      //temporal constraints are resizable
+      $('.tempConstraintObject').resizable({
+        //resize is triggered when interaction with handles occurs
+        handles: "w,e",
+        //The height won't change
+        maxHeight: 25,
+        minHeight: 25,
+        //the element should not get too small,
+        minWidth: 400,
+        //When it stops, it will check the element on top of it, and change the reference events accordingly. 
+        stop: function(event, ui) {
+          var tempConstraint = $(this);
+          var startConstraint = $(tempConstraint).position().left;// + $("#eventOrderArea").scrollLeft();
+          var endConstraint = startConstraint + $(tempConstraint).width();
+
+          //We will loop through all events in ordered area to find the new start and end of the constraints 
+          var startConstraintFound = false;
+          var endConstraintFound = false;
+
+          //Loop through all events in the ordered area to find the one this temporal constraint refers to now.
+          //There are other options (such as find element in coordinate X Y) but this approach makes changing selection criteria easy
+          //We may want to allow the user to select the event the constraint coveres completely, or rather the one the constraint touches.
+          $("#eventOrderArea .eventTemplate").each(function(index,value){
+            //get the left and right coordinates of the temp constraint
+            var eventLeft = $(this).position().left + $("#eventOrderArea").scrollLeft();
+            var eventRight = eventLeft + $(this).width();
+
+            //Check if the start of the constraint falls within the dimensions of this event.If so, update the start reference 
+            if(!startConstraintFound && eventLeft <= startConstraint && startConstraint <= eventRight){
+              $(tempConstraint).attr("start",$(this).attr("id"));
+              startConstraintFound = true;
+              //console.log("Found left constraint event: " + index);
+            }
+
+            //Check if the end of the constraint falls within the dimensions of this event. If so, update the start reference 
+            if(!endConstraintFound && eventLeft <= endConstraint && endConstraint <= eventRight){
+              $(tempConstraint).attr("end",$(this).attr("id"));
+              endConstraintFound = true;
+              //console.log("Found right constraint event: " + index);
+            }
+          });
+          updateTemporalConstraints();
+        }
+      });
 
     updateTemporalConstraints();
   });
@@ -87,7 +132,7 @@
  //Update Existing temporal restriction
     
     $("#tempConstraintsArea .tempConstraintObject").each(function( index ) {
-      console.log( "tempConstraintObject number" + index);
+      //console.log( "tempConstraintObject number" + index);
 
       var temConstraintTopPadding = 35*(index+1);
 
@@ -97,16 +142,18 @@
       var constraintBottomCoord = $startEvent.position().top + $startEvent.height() + temConstraintTopPadding;
 
       //We need to add the scroll position to the coordinates
-      var constraintLeftCoord = $startEvent.position().left + $("#eventOrderArea").scrollLeft();
-      var constraintWidth = (($endEvent.position().left + $endEvent.width() + $("#eventOrderArea").scrollLeft()) - constraintLeftCoord) + "px";
+      var constraintLeftCoord = $startEvent.position().left + $("#eventOrderDiv").scrollLeft();
+      
+      //outerWidth(true) returns the width including the outer margin, which makes the constraints slightly surround the events. 
+      var constraintWidth = (($endEvent.position().left + $endEvent.outerWidth(true) + $("#eventOrderDiv").scrollLeft()) - constraintLeftCoord) + "px";
 
-      console.log( "Drawing from " + constraintLeftCoord + " with size "+ constraintWidth);
+      //console.log( "Drawing from " + constraintLeftCoord + " with size "+ constraintWidth);
 
       $(this).css({top: constraintBottomCoord, left: constraintLeftCoord, width: constraintWidth, position:'absolute'});
-      $(this).text($(this).attr("type") +" "+ $(this).attr("value") +" "+ $(this).attr("unit"))
+      $(".tempConstraintMessage",this).text($(this).attr("type") +" "+ $(this).attr("value") +" "+ $(this).attr("unit"))
 
       //The padding on the bottom will increase depending on the number of constraints. 30px per constraint
-      $("#eventOrderArea").css({
+      $("#eventOrderDiv").css({
         paddingBottom: (index+1)*40+"px",
       })
     });
@@ -281,10 +328,19 @@
         </ul>
         <div id="tempConstraintsArea">
           <div id="tempConstId8toId10" class="tempConstraintObject" start="event8" end="event10" type="within" value="10" unit="sec">
+            <p class="tempConstraintMessage"></p>
+            <span class="glyphicon glyphicon-resize-horizontal ui-resizable-handle ui-resizable-w" aria-hidden="true" aria-label="Resize temporal constraint"></span>
+            <span class="glyphicon glyphicon-resize-horizontal ui-resizable-handle ui-resizable-e" aria-hidden="true" aria-label="Resize temporal constraint"></span>
           </div>
           <div id="tempConstId10toId12" class="tempConstraintObject" start="event10" end="event12" type="between" value="2" unit="sec">
+            <p class="tempConstraintMessage"></p>
+            <span class="glyphicon glyphicon-resize-horizontal ui-resizable-handle ui-resizable-w" aria-hidden="true" aria-label="Resize temporal constraint"></span>
+            <span class="glyphicon glyphicon-resize-horizontal ui-resizable-handle ui-resizable-e" aria-hidden="true" aria-label="Resize temporal constraint"></span>
           </div>
           <div id="tempConstId9toId16" class="tempConstraintObject" start="event9" end="event16" type="within" value="30" unit="min">
+            <p class="tempConstraintMessage"></p>
+            <span class="glyphicon glyphicon-resize-horizontal ui-resizable-handle ui-resizable-w" aria-hidden="true" aria-label="Resize temporal constraint"></span>
+            <span class="glyphicon glyphicon-resize-horizontal ui-resizable-handle ui-resizable-e" aria-hidden="true" aria-label="Resize temporal constraint"></span>
           </div>
         </div>
 </body>
