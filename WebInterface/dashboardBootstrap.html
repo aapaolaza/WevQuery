@@ -12,6 +12,7 @@
   <!-- Bootstrap -->
   <link href="bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="styleDrag.css">
+  <link rel="stylesheet" href="./jquery-ui-1.12.1/jquery-ui.css">
 
   <script src="./jquery-ui-1.12.1/external/jquery/jquery.js"></script>
   <script src="./jquery-ui-1.12.1/jquery-ui.min.js"></script>
@@ -123,6 +124,46 @@
           updateTemporalConstraints();
         }
       });
+
+      var dialog, form,
+ 
+      // From http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html#e-mail-state-%28type=email%29
+      emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
+      name = $( "#name" ),
+      email = $( "#email" ),
+      password = $( "#password" ),
+      allFields = $( [] ).add( name ).add( email ).add( password ),
+      tips = $( ".validateTips" );
+
+      eventDialog = $( "#eventTemplateDialog" ).dialog({
+        autoOpen: false,//it should not open unless called
+        height: 400,
+        width: 350,
+        modal: true,//disables all other items in the page
+        //Adds two buttons, to either add an Event Template or cancel
+        buttons: {
+          "Create an Event template": addEventTemplate,
+          Cancel: function() {
+            eventDialog.dialog( "close" );
+          }
+        },
+
+        //Pressing the "close" icon topright 
+        close: function() {
+          form[ 0 ].reset();
+          allFields.removeClass( "ui-state-error" );
+        }
+      });
+
+    //Enables the "submit" function that can be triggered via keyboard
+    form = eventDialog.find( "form" ).on( "submit", function( event ) {
+      event.preventDefault();
+      addEventTemplate();
+    });
+ 
+    $( "#newEventButton" ).button().on( "click", function() {
+      eventDialog.dialog( "open" );
+    });
 
     updateTemporalConstraints();
   });
@@ -343,6 +384,27 @@
             <span class="glyphicon glyphicon-resize-horizontal ui-resizable-handle ui-resizable-e" aria-hidden="true" aria-label="Resize temporal constraint"></span>
           </div>
         </div>
+        </div>
+
+        <!-- Dialog to be shown when creating a new Event Template-->
+        <div id="eventTemplateDialog" title="Create new Event Template">
+          <p class="validateTips">All form fields are required.</p>
+
+          <form>
+            <fieldset>
+              <label for="name">Name</label>
+              <input type="text" name="name" id="name" value="Jane Smith" class="text ui-widget-content ui-corner-all">
+              <label for="email">Email</label>
+              <input type="text" name="email" id="email" value="jane@smith.com" class="text ui-widget-content ui-corner-all">
+              <label for="password">Password</label>
+              <input type="password" name="password" id="password" value="xxxxxxx" class="text ui-widget-content ui-corner-all">
+
+              <!-- Allow form submission with keyboard without duplicating the dialog button -->
+              <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+            </fieldset>
+          </form>
+        </div>
+
 </body>
 
 </html>
