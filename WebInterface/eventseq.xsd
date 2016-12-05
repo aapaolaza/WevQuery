@@ -1,66 +1,66 @@
-<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" 
-  xmlns:xs="http://www.w3.org/2001/XMLSchema">
-  <xs:element name="eql">
+<xs:schema attributeFormDefault='unqualified' elementFormDefault='qualified' 
+  xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+  <xs:element name='eql'>
     <xs:complexType>
       <xs:sequence>
-        <xs:element maxOccurs="unbounded" name="event">
+        <xs:element maxOccurs='unbounded' name='event'>
           <xs:complexType>
             <xs:sequence>
-              <xs:element minOccurs="1" maxOccurs="1" name="eventList">
+              <xs:element minOccurs='1' maxOccurs='1' name='eventList'>
                 <xs:simpleType>
-                  <xs:list itemType="eventType"/>
+                  <xs:list itemType='eventType'/>
                 </xs:simpleType>
               </xs:element>
-              <xs:element minOccurs="0" maxOccurs="unbounded" name="context">
+              <xs:element minOccurs='0' maxOccurs='unbounded' name='context'>
                 <xs:complexType>
-                  <xs:attribute name="type" type="xs:string" use="required" />
-                  <xs:attribute name="value" type="xs:string" use="required" />
+                  <xs:attribute name='type' type='xs:string' use='required' />
+                  <xs:attribute name='value' type='xs:string' use='required' />
                 </xs:complexType>
               </xs:element>
             </xs:sequence>
-            <xs:attribute name="id" type="xs:string" use="required"/>
-            <xs:attribute name="pre" type="xs:string" use="required"/>
-            <xs:attribute name="occurrences" type="xs:string" default="1"/>
+            <xs:attribute name='id' type='xs:string' use='required'/>
+            <xs:attribute name='pre' type='xs:string' use='required'/>
+            <xs:attribute name='occurrences' type='xs:string' default='1'/>
           </xs:complexType>
         </xs:element>
-        <xs:element name="temporalconstraintList" minOccurs="0" maxOccurs="1">
+        <xs:element name='temporalconstraintList' minOccurs='0' maxOccurs='1'>
           <xs:complexType>
             <xs:sequence>
-              <xs:element maxOccurs="unbounded" name="temporalconstraint">
+              <xs:element maxOccurs='unbounded' name='temporalconstraint'>
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element minOccurs="2" maxOccurs="2" name="eventref">
+                    <xs:element minOccurs='2' maxOccurs='2' name='eventref'>
                       <xs:complexType>
-                        <xs:attribute name="id" type="xs:string" use="required" />
+                        <xs:attribute name='id' type='xs:string' use='required' />
                       </xs:complexType>
                     </xs:element>
                   </xs:sequence>
-                  <xs:attribute name="type" type="temporalconstraintType" use="required" />
-                  <xs:attribute name="value" type="xs:int" use="required" />
-                  <xs:attribute name="unit" type="temporalUnitType" use="required" />
+                  <xs:attribute name='type' type='temporalconstraintType' use='required' />
+                  <xs:attribute name='value' type='xs:int' use='required' />
+                  <xs:attribute name='unit' type='temporalUnitType' use='required' />
                 </xs:complexType>
               </xs:element>
             </xs:sequence>
           </xs:complexType>
         </xs:element>
-        <xs:element name="candidateconstraintList" minOccurs="0" maxOccurs="1">
+        <xs:element name='candidateconstraintList' minOccurs='0' maxOccurs='1'>
           <xs:complexType>
             <xs:sequence>
-              <xs:element maxOccurs="unbounded" name="candidateconstraint">
+              <xs:element maxOccurs='unbounded' name='candidateconstraint'>
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element minOccurs="2" maxOccurs="unbounded" name="operator">
+                    <xs:element minOccurs='2' maxOccurs='unbounded' name='operator'>
                       <xs:complexType>
-                        <xs:attribute name="id" type="xs:string" use="required" />
-                        <xs:attribute name="pre" type="xs:string" use="required"/>
-                        <xs:attribute name="field" type="candidateconstraintField" use="required"/>
-                        <xs:attribute name="operation" type="candidateconstraintOperation" use="optional"/>
+                        <xs:attribute name='id' type='xs:string' use='required' />
+                        <xs:attribute name='pre' type='xs:string' use='required'/>
+                        <xs:attribute name='field' type='candidateconstraintField' use='required'/>
+                        <xs:attribute name='operation' type='candidateconstraintOperation' use='optional'/>
                       </xs:complexType>
                     </xs:element>
                   </xs:sequence>
-                  <xs:attribute name="type" type="candidateconstraintType" use="required" />
-                  <xs:attribute name="condition" type="candidateconstraintCondition" use="required" />
-                  <xs:attribute name="value" type="xs:decimal" use="required" />
+                  <xs:attribute name='type' type='candidateconstraintType' use='required' />
+                  <xs:attribute name='condition' type='candidateconstraintCondition' use='required' />
+                  <xs:attribute name='value' type='xs:decimal' use='required' />
                 </xs:complexType>
               </xs:element>
             </xs:sequence>
@@ -69,55 +69,71 @@
       </xs:sequence>
     </xs:complexType>
   </xs:element>
-  <xs:simpleType name="eventType">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="load"/>
-      <xs:enumeration value="scroll"/>
-      <xs:enumeration value="mouse"/>
-      <xs:enumeration value="window"/>
-      <xs:enumeration value="mousedown"/>
-      <xs:enumeration value="mouseup"/>
-      <xs:enumeration value="mouseover"/>
-      <xs:enumeration value="mouseout"/>
-      <xs:enumeration value="mousemove"/>
-      <xs:enumeration value="mousewheel"/>
+  <xs:simpleType name='eventType'>
+    <xs:restriction base='xs:string'>
+      <xs:enumeration value='load'/>
+      <xs:enumeration value='scroll'/>
+      <xs:enumeration value='mouse'/>
+      <xs:enumeration value='window'/>
+      <xs:enumeration value='mousedown'/>
+      <xs:enumeration value='mouseup'/>
+      <xs:enumeration value='mouseover'/>
+      <xs:enumeration value='mouseout'/>
+      <xs:enumeration value='mousemove'/>
+      <xs:enumeration value='mousewheel'/>
     </xs:restriction>
   </xs:simpleType>
-  <xs:simpleType name="temporalconstraintType">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="within"/>
-      <xs:enumeration value="between"/>
+  <xs:simpleType name='contextType'>
+    <xs:restriction base='xs:string'>
+      <xs:enumeration value='NodeID'/>
+      <xs:enumeration value='NodeClass'/>
+      <xs:enumeration value='ScrollState'/>
+      <xs:enumeration value='ScrollState'/>
+      <xs:enumeration value='ScrollState'/>
+      <xs:enumeration value='ScrollState'/>
+      <xs:enumeration value='ScrollState'/>
+      <xs:enumeration value='ScrollState'/>
+      <xs:enumeration value='ScrollState'/>
+      <xs:enumeration value='ScrollState'/>
+      <xs:enumeration value='ScrollState'/>
+      <xs:enumeration value='ScrollState'/>
     </xs:restriction>
   </xs:simpleType>
-  <xs:simpleType name="temporalUnitType">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="sec"/>
-      <xs:enumeration value="min"/>
+  <xs:simpleType name='temporalconstraintType'>
+    <xs:restriction base='xs:string'>
+      <xs:enumeration value='within'/>
+      <xs:enumeration value='between'/>
     </xs:restriction>
   </xs:simpleType>
-  <xs:simpleType name="candidateconstraintType">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="add"/>
-      <xs:enumeration value="subtract"/>
+  <xs:simpleType name='temporalUnitType'>
+    <xs:restriction base='xs:string'>
+      <xs:enumeration value='sec'/>
+      <xs:enumeration value='min'/>
     </xs:restriction>
   </xs:simpleType>
-  <xs:simpleType name="candidateconstraintCondition">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="gt"/>
-      <xs:enumeration value="sm"/>
-      <xs:enumeration value="gte"/>
-      <xs:enumeration value="sme"/>
+  <xs:simpleType name='candidateconstraintType'>
+    <xs:restriction base='xs:string'>
+      <xs:enumeration value='add'/>
+      <xs:enumeration value='subtract'/>
     </xs:restriction>
   </xs:simpleType>
-  <xs:simpleType name="candidateconstraintField">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="positiveDelta"/>
-      <xs:enumeration value="negativeDelta"/>
+  <xs:simpleType name='candidateconstraintCondition'>
+    <xs:restriction base='xs:string'>
+      <xs:enumeration value='gt'/>
+      <xs:enumeration value='sm'/>
+      <xs:enumeration value='gte'/>
+      <xs:enumeration value='sme'/>
     </xs:restriction>
   </xs:simpleType>
-  <xs:simpleType name="candidateconstraintOperation">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="abs"/>
+  <xs:simpleType name='candidateconstraintField'>
+    <xs:restriction base='xs:string'>
+      <xs:enumeration value='positiveDelta'/>
+      <xs:enumeration value='negativeDelta'/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name='candidateconstraintOperation'>
+    <xs:restriction base='xs:string'>
+      <xs:enumeration value='abs'/>
     </xs:restriction>
   </xs:simpleType>
 </xs:schema>

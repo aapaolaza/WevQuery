@@ -15,9 +15,15 @@
   <link rel="stylesheet" href="./jquery-ui-1.12.1/jquery-ui.css">
 
   <script src="./jquery-ui-1.12.1/external/jquery/jquery.js"></script>
+  <!-- WARNING!!! The order of the following two JavaScripts will affect the icons used in the interface (the last one will have priority)-->
   <script src="./jquery-ui-1.12.1/jquery-ui.min.js"></script>
-  <!-- Include all compiled plugins (below), or include individual files as needed -->
   <script src="bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+
+  <!-- tag selection script-->
+  <script src="chosen_v1.6.2/chosen.jquery.js"></script>
+  <link rel="stylesheet" href="chosen_v1.6.2/chosen.css">
+
+
 
   <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
   <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -125,46 +131,68 @@
         }
       });
 
-      var dialog, form,
- 
+ ///////////Event creation dialog
       // From http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html#e-mail-state-%28type=email%29
-      emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
+      /*emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
       name = $( "#name" ),
       email = $( "#email" ),
       password = $( "#password" ),
       allFields = $( [] ).add( name ).add( email ).add( password ),
-      tips = $( ".validateTips" );
+      tips = $( ".validateTips" );*/
 
-      eventDialog = $( "#eventTemplateDialog" ).dialog({
+      var eventDialog = $( "#eventTemplateDialog" ).dialog({
         autoOpen: false,//it should not open unless called
-        height: 400,
-        width: 350,
+        minWHeight: 600,
+        minWidth: 500,
         modal: true,//disables all other items in the page
         //Adds two buttons, to either add an Event Template or cancel
         buttons: {
           "Create an Event template": addEventTemplate,
-          Cancel: function() {
+          /*Cancel: function() {
             eventDialog.dialog( "close" );
-          }
+          }*/
         },
-
+        //The only purpose of the following code is to find the newly generated "close window" element, and fix the icon
+        //Clashes between bootstrap and jquery-ui break it by default
+        open: function() {
+          $(this).closest(".ui-dialog")
+            .find(".ui-dialog-titlebar-close")
+            .removeClass("ui-dialog-titlebar-close")
+            .html("<span class='glyphicon glyphicon-remove' onclick='eventDialog.dialog( 'close');'></span>");
+        },
+            
         //Pressing the "close" icon topright 
         close: function() {
-          form[ 0 ].reset();
+          eventForm[ 0 ].reset();
           allFields.removeClass( "ui-state-error" );
         }
       });
 
     //Enables the "submit" function that can be triggered via keyboard
-    form = eventDialog.find( "form" ).on( "submit", function( event ) {
+    var eventForm = eventDialog.find( "form" ).on( "submit", function( event ) {
       event.preventDefault();
       addEventTemplate();
     });
  
+    //Links the "plus" sign in the example event to the creation of the dialog.
     $( "#newEventButton" ).button().on( "click", function() {
       eventDialog.dialog( "open" );
-    });
+      //Loads the multiselector
+      loadEventNames($("#eventMultiSelector"));
 
+      $("#eventMultiSelector").chosen({
+        disable_search_threshold: 10,
+        placeholder_text_multiple: "select the events to be considered",
+        no_results_text: "Oops, nothing found!",
+        width: "95%"
+      });
+      loadContextTypes($("#eventTemplateDialog .eventContextTable select[name='contextType']"));
+      
+      $("#eventDialogAddContext").click(function(){
+        addContext($("#eventTemplateDialog .eventContextTable"))
+        });
+      }
+    );
     updateTemporalConstraints();
   });
 
@@ -177,8 +205,8 @@
 
       var temConstraintTopPadding = 35*(index+1);
 
-      var $startEvent = $("#"+$(this).attr("start"));
-      var $endEvent = $("#"+$(this).attr("end"));
+      var $startEvent = $("#"+$(this).attr("start"),"#eventOrderArea");
+      var $endEvent = $("#"+$(this).attr("end"),"#eventOrderArea");
 
       var constraintBottomCoord = $startEvent.position().top + $startEvent.height() + temConstraintTopPadding;
 
@@ -186,7 +214,7 @@
       var constraintLeftCoord = $startEvent.position().left + $("#eventOrderDiv").scrollLeft();
       
       //outerWidth(true) returns the width including the outer margin, which makes the constraints slightly surround the events. 
-      var constraintWidth = (($endEvent.position().left + $endEvent.outerWidth(true) + $("#eventOrderDiv").scrollLeft()) - constraintLeftCoord) + "px";
+      var constraintWidth = (($endEvent.position().left + $endEvent.outerWidth(true)) - $startEvent.position().left) + "px";
 
       //console.log( "Drawing from " + constraintLeftCoord + " with size "+ constraintWidth);
 
@@ -205,8 +233,8 @@
 </head>
 
 <body>
-  <button onclick="updateTemporalConstraints"></button>
   <h1> Interaction Dashboard </h1>
+
   <div id="eventPaletteDiv" class="container">
     <h2> Event Palette </h2>
 
@@ -386,19 +414,107 @@
         </div>
         </div>
 
-        <!-- Dialog to be shown when creating a new Event Template-->
+        <!-- Dialog to be shown when creating a new Event template-->
         <div id="eventTemplateDialog" title="Create new Event Template">
           <p class="validateTips">All form fields are required.</p>
 
-          <form>
+          <form class="form-horizontal container">
             <fieldset>
-              <label for="name">Name</label>
-              <input type="text" name="name" id="name" value="Jane Smith" class="text ui-widget-content ui-corner-all">
-              <label for="email">Email</label>
-              <input type="text" name="email" id="email" value="jane@smith.com" class="text ui-widget-content ui-corner-all">
-              <label for="password">Password</label>
-              <input type="password" name="password" id="password" value="xxxxxxx" class="text ui-widget-content ui-corner-all">
+              <div class="form-group">
+                <label class="col-lg-3 control-label">Events</label>
+                <div class="col-lg-9">
+                  <select id="eventMultiSelector" multiple="multiple">
+                  </select>
+                </div>
+              </div>
 
+              <div class="form-group">
+                <label for=Occurrence class="col-sm-3 control-label">Occurrence:</label>
+                <div class="col-sm-6">
+                  <input type="text" maxlength="3" class="col-sm-4 occurrenceInput" placeholder="" aria-describedby="input to define minimum occurrence">
+                  <label class="col-sm-4">To</label>
+                  <input type="text" maxlength="3" class="col-sm-4 occurrenceInput" placeholder="" aria-describedby="input to define maximum occurrence">
+                  <p class="hint">Number of occurrences, it can be a number or an interval</p>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="Context" class="col-sm-3 control-label">Context:</label>
+              </div>
+              <div class="form-group">
+                <table border="1" class="eventContextTable">
+                  <tr>
+                    <td>name</td>
+                    <td>value</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <select name="contextType">
+                        <option value="" selected disabled>Please select</option>
+                        <optgroup label="Swedish Cars">
+                        <option value="volvo">Volvo</option>
+                        <option value="saab">Saab</option>
+                        <optgroup label="Other Cars">
+                        <option value="fiat">Fiat</option>
+                        <option value="audi">Audi</option>
+                      </select>
+                    </td>
+                    <td>
+                      <input name="contextValue" type="text" placeholder="Introduce value" aria-describedby="Introduce value">
+                    </td>
+                    <td><span id ="eventDialogAddContext" class="glyphicon glyphicon-plus" aria-hidden="true"></span></td>
+                  </tr>
+                </table>
+              </div>
+              <!-- Allow form submission with keyboard without duplicating the dialog button -->
+              <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+            </fieldset>
+          </form>
+        </div>
+
+        <!-- Dialog to be shown when creating a new Temporal Contraint-->
+        <div id="temporalCostraintDialog" title="Create new Temporal Contraint">
+          <p class="validateTips">All form fields are required.</p>
+
+          <form class="form-horizontal container">
+            <fieldset>
+              <div class="form-group">
+                <label for="Relation" class="col-sm-3 control-label">Relation:</label>
+                <div class="col-sm-6">
+                  <div class="radio">
+                    <label><input type="radio" name="optradio">Within</label>
+                  </div>
+                  <div class="radio">
+                    <label><input type="radio" name="optradio">Separated by</label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="Events" class="col-sm-3 control-label">Events:</label>
+                <div class="col-sm-6">
+                  <button class="btn btn-default" type="button">Event1</button>
+                  <button class="btn btn-default" type="button">Event2</button>
+                  <p class="hint">Click on an event to change the selection</p>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="Duration" class="col-sm-3 control-label">Duration:</label>
+                <input type="text" class="col-sm-6" placeholder="insert duration" aria-describedby="Text input for duration">
+              </div>
+              <div class="form-group">
+                <label for="Unit" class="col-sm-3 control-label">Unit:</label>
+                <div class="col-sm-6">
+                  <div class="radio">
+                    <label><input type="radio" name="optradio">Seconds</label>
+                  </div>
+                  <div class="radio">
+                    <label><input type="radio" name="optradio">Minutes</label>
+                  </div>
+                </div>
+              </div>
               <!-- Allow form submission with keyboard without duplicating the dialog button -->
               <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
             </fieldset>
@@ -408,3 +524,4 @@
 </body>
 
 </html>
+
