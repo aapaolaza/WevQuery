@@ -16,8 +16,8 @@ li.eventTemplate{
   width: 200px;
   margin: 5px;
   list-style-type: none;
-
   display: inline-block;
+  vertical-align: bottom;
 }
 li.eventTemplate span{
   float: right;
@@ -31,6 +31,17 @@ li.eventTemplate .glyphicon-plus{
 
 li.eventTemplateExample{
   float:left;
+}
+
+li.eventTemplate table {
+  margin: 1em 0;
+  border-collapse: collapse;
+  width: 100%;
+}
+li.eventTemplate table td, li.eventTemplate table th {
+  border: 1px solid #eee;
+  padding: .6em 10px;
+  text-align: center;
 }
 
 /** CSS for elements inside the template**/
@@ -51,7 +62,7 @@ li.eventTemplateExample{
 }
 /*Event order area restricts templates to a single ordered line, and shows a scroll bar*/
 #eventOrderDiv{
-min-height: 200px;
+  min-height: 200px;
   min-width: 200px;
   width:auto;
   border: 5px solid #aaaaaa;

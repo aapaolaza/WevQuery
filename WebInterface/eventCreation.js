@@ -128,32 +128,58 @@ function addEventTemplate() {
     contextvalueArray.push($(this).text());
   });
 
-  //Check all inputs are correct.
+  //Check all inputs are correct. If not, use jquery UI ui-state-error class
   var valid = true;
-  //at least one event
-  valid = valid && eventList.length > 0;
+  //at least one event. I use Jquery to ease the null test.
+  valid = valid && $(eventList).length > 0;
+  
+  if (!valid){
+    console.log("more events are required");
+    updateTips("Introduce at least one event","#eventTemplateDialog");
+    $("#eventMultiSelector","#eventTemplateForm").addClass("ui-state-error");
+    return false;
+  }else{
+    $("#eventMultiSelector","#eventTemplateForm").removeClass("ui-state-error");
+  }
+
   //minOccurence and maxOccurrence must be nonempty, as well as either a number, or "n"
   valid = valid && minOccurrence!=="" && (!isNaN(minOccurrence) ||minOccurrence==="n");
-  valid = valid && maxOccurrence!=="" && (!isNaN(maxOccurrence) ||maxOccurrence==="n");
-  //no need to check the context, as it can be empty
-  
-  if(!valid)
+  if (!valid){
+    console.log("minimum occurrence missing");
+    updateTips("Minimum occurrence is required, and must be either a number, or 'n'",$("#eventTemplateDialog"));
+    $("input[name='minOccurrence']#eventMultiSelector","#eventTemplateForm").addClass("ui-state-error");
     return false;
+  }else{
+    $("input[name='minOccurrence']#eventMultiSelector","#eventTemplateForm").removeClass("ui-state-error");
+  }
+
+  valid = valid && (!isNaN(maxOccurrence) ||maxOccurrence==="n");
+  if (!valid){
+    updateTips("Maximum occurrence must be either a number, or 'n'",$("#eventTemplateDialog"));
+    $("input[name='maxOccurrence']#eventMultiSelector","#eventTemplateForm").addClass("ui-state-error");
+    return false;
+  }else{
+    $("input[name='maxOccurrence']#eventMultiSelector","#eventTemplateForm").removeClass("ui-state-error");
+  }
+  //no need to check the context, as it can be empty
 
   //Finally, create the div element for the event template, and append it to the palette
   var newEventObject = $("#newEventTemplate").clone();
   newEventObject.removeAttr("id");
-  $(".eventList",newEventObject).val(eventList);
-  $(".minOccurrence",newEventObject).val(minOccurrence);
-  $(".maxOccurrence",newEventObject).val(maxOccurrence);
+  $(".eventList",newEventObject).text(eventList);
+  $(".minOccurrence",newEventObject).text(minOccurrence);
+  if (maxOccurrence!=="")
+    $(".occurrenceJoin",newEventObject).text("to");
+  $(".maxOccurrence",newEventObject).text(maxOccurrence);
 
   if (contextTypeArray.length > 0){
-     $(".contextTable",newEventObject).append("<tr> <th>name</th> <th>value</th> <td></td> </tr>");
+    $(".contextHeader",newEventObject).text("Context");
+    $(".contextTable",newEventObject).append("<tr> <th>name</th> <th>value</th> </tr>");
     contextTypeArray.forEach(function(typeItem,index){
       var valueItem = contextvalueArray[index];
       $(".contextTable tr:last",newEventObject).after(
-      "<tr> <td class='contextType'>" + typeItem + "</td> <td class='contextValue'>" + valueItem
-      + "</td> <td><span class='removeContext glyphicon glyphicon-minus' aria-hidden='true'></span></td> </tr>");
+        "<tr> <td class='contextType'>" + typeItem + "</td> <td class='contextValue'>" + valueItem
+        + "</td> </tr>");
 
       $(".contextTable",newEventObject).val(maxOccurrence);
     });
@@ -165,42 +191,42 @@ function addEventTemplate() {
   return valid;
 }
 
-function updateTips(t) {
-  tips
-    .text(t)
+/**
+ * Update the tips with the given message, and highlights it for a brief period.
+ * It receives as parameters the message to show, as well as the container of the tips object
+ * The container is necessary to differentiate between the event and temporal creation dialogs
+ */
+function updateTips(text,container) {
+  $(".validateTips",container)
+    .text(text)
     .addClass("ui-state-highlight");
   setTimeout(function () {
-    tips.removeClass("ui-state-highlight", 1500);
+     $(".validateTips",container).removeClass("ui-state-highlight", 1500);
   }, 500);
-}
-
-function checkLength(o, n, min, max) {
-  if (o.val().length > max || o.val().length < min) {
-    o.addClass("ui-state-error");
-    updateTips("Length of " + n + " must be between " +
-      min + " and " + max + ".");
-    return false;
-  } else {
-    return true;
-  }
-}
-
-function checkRegexp(o, regexp, n) {
-  if (!(regexp.test(o.val()))) {
-    o.addClass("ui-state-error");
-    updateTips(n);
-    return false;
-  } else {
-    return true;
-  }
 }
 
 /**
  * To be called when an event is dragged from the palette to the ordered area.
  * Will set a unique ID for that event. Possibly some additional tasks as well.
  */
-function addEventToOrderedList() {
+function addEventToOrderedList(eventTemplateObject) {
+  //To determine the ID, get the full list of generated IDs
+  // and check the biggest one. I will use .match(/\d+/) to extract the number from the ID
+  //This is more reliable than keeping a constant, counting the number of issued IDs
+  var idNumberList = $(".eventTemplate","#eventOrderArea").map(function(){
+    //there will always be one element without ID, the one being inserted
+    if($(this)[0].hasAttribute("id"))
+      return $(this).attr("id").match(/\d+/);
+  });
+  
+  //The max function cannot be directly applied to an array, the apply function transforms the array into a list of parameters
+  var newNumId = Math.max.apply(Math, idNumberList) + 1;
+  $(eventTemplateObject).attr("id","event"+newNumId);
+  $(".eventTitle",eventTemplateObject).text("Event "+newNumId);
 
+  //remove the paletteArea class
+  $(eventTemplateObject).removeClass("eventTemplatePalette");
+  console.log("Setting new id to "+ newNumId);
 }
 
 /**
