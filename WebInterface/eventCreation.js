@@ -71,33 +71,32 @@ function addContext(eventContextTable) {
   console.log("Adding new context option");
 
   //1. get the values from the last row and reset the options, for possible new input
-  var lastRow = $(eventContextTable).find('tr:last');
-  var contextType = $("select[name='contextType']", lastRow).find(":selected").text();
-  var contextvalue = $("input[name='contextValue']", lastRow).val();
+  var contextType = $("#eventTemplateContextType").find(":selected").text();
+  var contextvalue = $("#eventTemplateContextValue").val();
   
   //2. Check if input is correct, if not, break
-  if ($("select[name='contextType']", lastRow).find(":disabled").text().indexOf(contextType) !== -1){
-    $("select[name='contextType']", lastRow).fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200);
+  if ($("#eventTemplateContextType").find(":disabled").text().indexOf(contextType) !== -1){
+    $("#eventTemplateContextType").fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200);
     return (false);
   }
   if(contextvalue===""){
-    $("input[name='contextValue']", lastRow).placeholder='Content cannot be empty';
+    $("#eventTemplateContextValue").placeholder='Content cannot be empty';
     // Change background
-    $("input[name='contextValue']", lastRow).css('background-color', '#FF6347');
+    $("#eventTemplateContextValue").css('background-color', '#FF6347');
     // Wait 1 seconds, then remove the css attribute
     setTimeout(function(){           
-      $("input[name='contextValue']", lastRow).css('background-color', '');
+      $("#eventTemplateContextValue").css('background-color', '');
     }, 500);
     return (false);
   }
   
   //3. reset options for reuse
-  $("select[name='contextType']", lastRow)[0].selectedIndex = 0;
-  $("input[name='contextValue']", lastRow).val('');
+  $("#eventTemplateContextType")[0].selectedIndex = 0;
+  $("#eventTemplateContextValue").val('');
 
   // 4. Add them as a new row before the last one.
-  $(eventContextTable).find('tr:last').prev().after('<tr> <td>' + contextType + '</td> <td>' + contextvalue 
-    + '</td> <td><span class="removeContext glyphicon glyphicon-minus" aria-hidden="true"></span></td> </tr>');
+  $(eventContextTable).find('tr:last').prev().after("<tr> <td class='contextType'>" + contextType + "</td> <td class='contextValue'>" + contextvalue 
+    + "</td> <td><span class='removeContext glyphicon glyphicon-minus' aria-hidden='true'></span></td> </tr>");
 
   //5. add the corresponding listener, so each row can be deleted:
   $(".removeContext").click(function(){
@@ -107,25 +106,62 @@ function addContext(eventContextTable) {
 }
 
 function addEventTemplate() {
+
+  //All elements within the form can be easily extracted, except from the table. using the following lines
+  //console.log($('#eventTemplateForm').serialize())
+  //$('#eventTemplateForm').serializeArray()
+  //As I will have to create the div anyway, and I cannot retrieve the elements inside the table, I will just retrieve all of them manually.
+  
+  //event list
+  var eventList = $("#eventMultiSelector","#eventTemplateForm").val();
+  //occurrence
+  var minOccurrence = $("input[name='minOccurrence']", "#eventTemplateForm").val();
+  var maxOccurrence = $("input[name='maxOccurrence']", "#eventTemplateForm").val();
+  //context options
+  var contextTypeArray = [];
+  $(".contextType", "#eventContextTable").each(function(index){
+    contextTypeArray.push($(this).text());
+  });
+  
+  var contextvalueArray = [];
+  $(".contextValue", "#eventContextTable").each(function(index){
+    contextvalueArray.push($(this).text());
+  });
+
+  //Check all inputs are correct.
   var valid = true;
-  allFields.removeClass("ui-state-error");
+  //at least one event
+  valid = valid && eventList.length > 0;
+  //minOccurence and maxOccurrence must be nonempty, as well as either a number, or "n"
+  valid = valid && minOccurrence!=="" && (!isNaN(minOccurrence) ||minOccurrence==="n");
+  valid = valid && maxOccurrence!=="" && (!isNaN(maxOccurrence) ||maxOccurrence==="n");
+  //no need to check the context, as it can be empty
+  
+  if(!valid)
+    return false;
 
-  valid = valid && checkLength(name, "username", 3, 16);
-  valid = valid && checkLength(email, "email", 6, 80);
-  valid = valid && checkLength(password, "password", 5, 16);
+  //Finally, create the div element for the event template, and append it to the palette
+  var newEventObject = $("#newEventTemplate").clone();
+  newEventObject.removeAttr("id");
+  $(".eventList",newEventObject).val(eventList);
+  $(".minOccurrence",newEventObject).val(minOccurrence);
+  $(".maxOccurrence",newEventObject).val(maxOccurrence);
 
-  valid = valid && checkRegexp(name, /^[a-z]([0-9a-z_\s])+$/i, "Username may consist of a-z, 0-9, underscores, spaces and must begin with a letter.");
-  valid = valid && checkRegexp(email, emailRegex, "eg. ui@jquery.com");
-  valid = valid && checkRegexp(password, /^([0-9a-zA-Z])+$/, "Password field only allow : a-z 0-9");
+  if (contextTypeArray.length > 0){
+     $(".contextTable",newEventObject).append("<tr> <th>name</th> <th>value</th> <td></td> </tr>");
+    contextTypeArray.forEach(function(typeItem,index){
+      var valueItem = contextvalueArray[index];
+      $(".contextTable tr:last",newEventObject).after(
+      "<tr> <td class='contextType'>" + typeItem + "</td> <td class='contextValue'>" + valueItem
+      + "</td> <td><span class='removeContext glyphicon glyphicon-minus' aria-hidden='true'></span></td> </tr>");
 
-  if (valid) {
-    $("#users tbody").append("<tr>" +
-      "<td>" + name.val() + "</td>" +
-      "<td>" + email.val() + "</td>" +
-      "<td>" + password.val() + "</td>" +
-      "</tr>");
-    dialog.dialog("close");
+      $(".contextTable",newEventObject).val(maxOccurrence);
+    });
   }
+  
+  $("#eventPaletteArea").append(newEventObject);
+  newEventObject.show();
+  
   return valid;
 }
 

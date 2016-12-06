@@ -132,14 +132,6 @@
       });
 
  ///////////Event creation dialog
-      // From http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html#e-mail-state-%28type=email%29
-      /*emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
-      name = $( "#name" ),
-      email = $( "#email" ),
-      password = $( "#password" ),
-      allFields = $( [] ).add( name ).add( email ).add( password ),
-      tips = $( ".validateTips" );*/
-
       var eventDialog = $( "#eventTemplateDialog" ).dialog({
         autoOpen: false,//it should not open unless called
         minWHeight: 600,
@@ -159,12 +151,12 @@
             .find(".ui-dialog-titlebar-close")
             .removeClass("ui-dialog-titlebar-close")
             .html("<span class='glyphicon glyphicon-remove' onclick='eventDialog.dialog( 'close');'></span>");
+
         },
             
         //Pressing the "close" icon topright 
         close: function() {
           eventForm[ 0 ].reset();
-          allFields.removeClass( "ui-state-error" );
         }
       });
 
@@ -186,10 +178,10 @@
         no_results_text: "Oops, nothing found!",
         width: "95%"
       });
-      loadContextTypes($("#eventTemplateDialog .eventContextTable select[name='contextType']"));
+      loadContextTypes($("#eventTemplateContextType"));
       
       $("#eventDialogAddContext").click(function(){
-        addContext($("#eventTemplateDialog .eventContextTable"))
+        addContext($("#eventTemplateDialog #eventContextTable"))
         });
       }
     );
@@ -250,7 +242,7 @@
 
       <ul id="eventPaletteArea">
         <li id="event1" class="eventTemplate eventTemplateDraggable">
-          <div id="title"> Event 1 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
+          <div class="eventTitle"> Event 1 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
           <p> Events:</p>
           <p>mouseover,mouseout</p>
           <p> Occurrence:</p>
@@ -258,7 +250,7 @@
           <p> ndoeID:"submit"</p>
         </li>
         <li id="event2" class="eventTemplate eventTemplateDraggable">
-          <div id="title"> Event 2 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
+          <div class="eventTitle"> Event 2 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
           <p> Events:</p>
           <p>mouseover,mouseout</p>
           <p> Occurrence:</p>
@@ -267,7 +259,7 @@
         </li>
 
         <li id="event3" class="eventTemplate eventTemplateDraggable">
-          <div id="title"> Event 3 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
+          <div class="eventTitle"> Event 3 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
           <p> Events:</p>
           <p>mouseover,mouseout</p>
           <p> Occurrence:</p>
@@ -276,7 +268,7 @@
         </li>
 
         <li id="event4" class="eventTemplate eventTemplateDraggable">
-          <div id="title"> Event 4 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
+          <div class="eventTitle"> Event 4 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
           <p> Events:</p>
           <p>mouseover,mouseout</p>
           <p> Occurrence:</p>
@@ -285,7 +277,7 @@
         </li>
 
         <li id="event5" class="eventTemplate eventTemplateDraggable">
-          <div id="title"> Event 5 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
+          <div class="eventTitle"> Event 5 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
           <p> Events:</p>
           <p>mouseover,mouseout</p>
           <p> Occurrence:</p>
@@ -294,14 +286,14 @@
         </li>
 
         <li id="event6" class="eventTemplate eventTemplateDraggable">
-          <div id="title"> Event 6 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
+          <div class="eventTitle"> Event 6 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
             <p>mouseover,mouseout</p>
             <p> Occurrence:</p>
             <p> Context</p>
             <p> ndoeID:"submit"</p>
         </li>
         <li id="event7" class="eventTemplate eventTemplateDraggable">
-          <div id="title"> Event 7 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
+          <div class="eventTitle"> Event 7 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
             <p>mouseover,mouseout</p>
             <p> Occurrence:</p>
             <p> Context</p>
@@ -315,7 +307,7 @@
       <div id="eventOrderDiv" class="container">
         <ul id="eventOrderArea">
           <li id="event8" class="eventTemplate eventTemplateDraggable">
-            <div id="title"> Event 8 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
+            <div class="eventTitle"> Event 8 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
             <p> Events:</p>
             <p>mouseover,mouseout</p>
             <p> Occurrence:</p>
@@ -323,7 +315,7 @@
             <p> ndoeID:"submit"</p>
           </li>
           <li id="event9" class="eventTemplate eventTemplateDraggable">
-            <div id="title"> Event 9 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
+            <div class="eventTitle"> Event 9 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
             <p> Events:</p>
             <p>mouseover,mouseout</p>
             <p> Occurrence:</p>
@@ -332,7 +324,7 @@
           </li>
 
           <li id="event10" class="eventTemplate eventTemplateDraggable">
-            <div id="title"> Event 10 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
+            <div class="eventTitle"> Event 10 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
             <p> Events:</p>
             <p>mouseover,mouseout</p>
             <p> Occurrence:</p>
@@ -341,7 +333,7 @@
           </li>
 
           <li id="event11" class="eventTemplate eventTemplateDraggable">
-            <div id="title"> Event 11 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
+            <div class="eventTitle"> Event 11 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
             <p> Events:</p>
             <p>mouseover,mouseout</p>
             <p> Occurrence:</p>
@@ -350,7 +342,7 @@
           </li>
 
           <li id="event12" class="eventTemplate eventTemplateDraggable">
-            <div id="title"> Event 12 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
+            <div class="eventTitle"> Event 12 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
             <p> Events:</p>
             <p>mouseover,mouseout</p>
             <p> Occurrence:</p>
@@ -359,21 +351,21 @@
           </li>
 
           <li id="event13" class="eventTemplate eventTemplateDraggable">
-            <div id="title"> Event 13 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
+            <div class="eventTitle"> Event 13 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
               <p>mouseover,mouseout</p>
               <p> Occurrence:</p>
               <p> Context</p>
               <p> ndoeID:"submit"</p>
           </li>
           <li id="event14" class="eventTemplate eventTemplateDraggable">
-            <div id="title"> Event 14 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
+            <div class="eventTitle"> Event 14 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
               <p>mouseover,mouseout</p>
               <p> Occurrence:</p>
               <p> Context</p>
               <p> ndoeID:"submit"</p>
           </li>
           <li id="event15" class="eventTemplate eventTemplateDraggable">
-            <div id="title"> Event 15 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
+            <div class="eventTitle"> Event 15 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
               <p> Events:</p>
               <p>mouseover,mouseout</p>
               <p> Occurrence:</p>
@@ -381,14 +373,14 @@
               <p> ndoeID:"submit"</p>
           </li>
           <li id="event16" class="eventTemplate eventTemplateDraggable">
-            <div id="title"> event 16 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
+            <div class="eventTitle"> event 16 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
               <p>mouseover,mouseout</p>
               <p> Occurrence:</p>
               <p> Context</p>
               <p> ndoeID:"submit"</p>
           </li>
           <li id="event17" class="eventTemplate eventTemplateDraggable">
-            <div id="title"> Event 17 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
+            <div class="eventTitle"> Event 17 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></p>
               <p>mouseover,mouseout</p>
               <p> Occurrence:</p>
               <p> Context</p>
@@ -418,12 +410,12 @@
         <div id="eventTemplateDialog" title="Create new Event Template">
           <p class="validateTips">All form fields are required.</p>
 
-          <form class="form-horizontal container">
+          <form id="eventTemplateForm" class="form-horizontal container">
             <fieldset>
               <div class="form-group">
                 <label class="col-lg-3 control-label">Events</label>
                 <div class="col-lg-9">
-                  <select id="eventMultiSelector" multiple="multiple">
+                  <select name="eventList" id="eventMultiSelector" multiple="multiple">
                   </select>
                 </div>
               </div>
@@ -431,26 +423,26 @@
               <div class="form-group">
                 <label for=Occurrence class="col-sm-3 control-label">Occurrence:</label>
                 <div class="col-sm-6">
-                  <input type="text" maxlength="3" class="col-sm-4 occurrenceInput" placeholder="" aria-describedby="input to define minimum occurrence">
+                  <input name="minOccurrence" type="text" maxlength="3" class="col-sm-4 occurrenceInput" placeholder="" aria-describedby="input to define minimum occurrence">
                   <label class="col-sm-4">To</label>
-                  <input type="text" maxlength="3" class="col-sm-4 occurrenceInput" placeholder="" aria-describedby="input to define maximum occurrence">
+                  <input name="maxOccurrence" type="text" maxlength="3" class="col-sm-4 occurrenceInput" placeholder="" aria-describedby="input to define maximum occurrence">
                   <p class="hint">Number of occurrences, it can be a number or an interval</p>
                 </div>
               </div>
 
               <div class="form-group">
-                <label for="Context" class="col-sm-3 control-label">Context:</label>
+                <label class="col-sm-3 control-label">Context:</label>
               </div>
               <div class="form-group">
-                <table border="1" class="eventContextTable">
+                <table border="1" id="eventContextTable">
                   <tr>
-                    <td>name</td>
-                    <td>value</td>
+                    <th>name</th>
+                    <th>value</th>
                     <td></td>
                   </tr>
                   <tr>
                     <td>
-                      <select name="contextType">
+                      <select id="eventTemplateContextType">
                         <option value="" selected disabled>Please select</option>
                         <optgroup label="Swedish Cars">
                         <option value="volvo">Volvo</option>
@@ -461,9 +453,9 @@
                       </select>
                     </td>
                     <td>
-                      <input name="contextValue" type="text" placeholder="Introduce value" aria-describedby="Introduce value">
+                      <input id="eventTemplateContextValue" type="text" placeholder="Introduce value" aria-describedby="Introduce value">
                     </td>
-                    <td><span id ="eventDialogAddContext" class="glyphicon glyphicon-plus" aria-hidden="true"></span></td>
+                    <td><span id="eventDialogAddContext" class="glyphicon glyphicon-plus" aria-hidden="true"></span></td>
                   </tr>
                 </table>
               </div>
@@ -473,8 +465,24 @@
           </form>
         </div>
 
+        <!-- template for creating new events-->
+        <li class="eventTemplate eventTemplateDraggable" id='newEventTemplate' style='display:none'>
+          <div class="eventTitle"> Event 9 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span></div>
+          <div class="row">
+            <p class="col-sm-3"> Events:</p>
+            <p class="eventList col-sm-9">mouseover,mouseout</p>
+          </div>
+          <div class="row">
+            <p class="col-sm-3"> Occurrence:</p>
+            <p class="minOccurrence col-sm-3"></p>
+            <p class="maxOccurrence col-sm-3"></p>
+          </div>
+          <p> Context</p>
+          <table class="contextTable"> </table>
+        </li>
+
         <!-- Dialog to be shown when creating a new Temporal Contraint-->
-        <div id="temporalCostraintDialog" title="Create new Temporal Contraint">
+        <div id="temporalCostraintDialog" title="Create new Temporal Contraint" style='display:none'>
           <p class="validateTips">All form fields are required.</p>
 
           <form class="form-horizontal container">
@@ -524,4 +532,3 @@
 </body>
 
 </html>
-
