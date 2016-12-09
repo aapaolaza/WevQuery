@@ -1,7 +1,36 @@
 
 h1,h2{
-  text-align:center;
+  text-align:left;
+  width: 200px;
 }
+/*Created with http://css3buttongenerator.com */
+#eventPaletteTitle {
+  cursor: pointer;
+  -webkit-border-radius: 16;
+  -moz-border-radius: 16;
+  border-radius: 16px;
+  -webkit-box-shadow: 0px 1px 3px #666666;
+  -moz-box-shadow: 0px 1px 3px #666666;
+  box-shadow: 0px 1px 3px #666666;
+  font-family: Arial;
+  color: #ffffff;
+  font-size: 20px;
+  background: #9c9c9c;
+  padding: 10px 20px 10px 20px;
+  text-decoration: none;
+}
+#eventPaletteTitle:hover {
+  background: #606161;
+  text-decoration: none;
+}
+#eventPaletteTitle.up {
+  -webkit-border-radius: 16;
+  -moz-border-radius: 16;
+  border-radius: 16px;
+  border: solid #0a0a0a 2px;
+}
+
+
 .container{
   max-width:80%;
 }
@@ -17,7 +46,7 @@ li.eventTemplate{
   margin: 5px;
   list-style-type: none;
   display: inline-block;
-  vertical-align: bottom;
+  vertical-align: top;
 }
 li.eventTemplate span{
   float: right;
@@ -95,11 +124,15 @@ li.eventTemplate table td, li.eventTemplate table th {
 
 
 .verticalLine {
-    border-left: thick solid #ff0000;
+  border-left: thick solid #ff0000;
 }
 
 
 /**temporal constraints**/
+/*We want the temConstraints to be positioned relative to the parent*/
+#tempConstraintsArea{
+  position: relative;
+}
 .tempConstraintObject {
   border: 1px solid green;
   border-radius: 5px;
@@ -123,7 +156,7 @@ li.eventTemplate table td, li.eventTemplate table th {
 
 /** Changes the aspect of the bootstrap icons**/
 .glyphicon {
-    font-size: 20px;
+  font-size: 20px;
 }
 /*This rule needs to be unusually specific to override the jquery-ui.css which clashes with bootstrap*/
 .tempConstraintObject.ui-resizable .glyphicon-resize-horizontal  {
@@ -132,6 +165,7 @@ li.eventTemplate table td, li.eventTemplate table th {
 }
 
 /** New event template dialog**/
+
 div#eventTemplateDialog {
   width: 350px;
   margin: 20px 0;
@@ -168,4 +202,80 @@ div#eventTemplateDialog .occurrenceInput{
 }
 div#eventTemplateDialog .glyphicon{
   cursor: pointer;
+}
+
+#bottomAreaContainer{
+  position:relative;
+}
+
+/*Div that acts as a button, to open a new temporal constraint dialog*/
+#newTemporalConstraintButton{
+  cursor: pointer;
+  border-radius: 16px;
+  box-shadow: 0px 1px 3px #666666;
+  background: #9c9c9c;
+  padding: 10px 12px 1px 12px;
+  text-decoration: none;
+}
+div.newTempConstraint{
+  position:absolute;
+  max-width:150px;
+  width:7%;
+  bottom:55px;
+  margin-left: 0.5%;
+  text-align: center;
+}
+div.newTempConstraint .glyphicon{
+  font-size: 50px;
+}
+/* Style for the events to be selected to describe they are selectable*/
+.selectableEventTemplate{
+  background: gray;
+  cursor: pointer;
+}
+.selectableEventTemplate:hover{
+  background: lightgray;
+}
+
+/** CSS for a dialog to be used, to show messages to the user **/
+#toastbar {
+    visibility: hidden;
+    min-width: 250px;
+    margin-left: -125px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 2px;
+    padding: 16px;
+    position: fixed;
+    z-index: 1;
+    left: 50%;
+    bottom: 30px;
+    font-size: 17px;
+}
+
+#toastbar.show {
+    visibility: visible;
+    -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+@-webkit-keyframes fadein {
+    from {bottom: 0; opacity: 0;} 
+    to {bottom: 30px; opacity: 1;}
+}
+
+@keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 30px; opacity: 1;}
+}
+
+@-webkit-keyframes fadeout {
+    from {bottom: 30px; opacity: 1;} 
+    to {bottom: 0; opacity: 0;}
+}
+
+@keyframes fadeout {
+    from {bottom: 30px; opacity: 1;}
+    to {bottom: 0; opacity: 0;}
 }

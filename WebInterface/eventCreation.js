@@ -128,12 +128,8 @@ function addEventTemplate() {
     contextvalueArray.push($(this).text());
   });
 
-  //Check all inputs are correct. If not, use jquery UI ui-state-error class
-  var valid = true;
   //at least one event. I use Jquery to ease the null test.
-  valid = valid && $(eventList).length > 0;
-  
-  if (!valid){
+  if ($(eventList).length == 0){
     console.log("more events are required");
     updateTips("Introduce at least one event","#eventTemplateDialog");
     $("#eventMultiSelector","#eventTemplateForm").addClass("ui-state-error");
@@ -143,8 +139,7 @@ function addEventTemplate() {
   }
 
   //minOccurence and maxOccurrence must be nonempty, as well as either a number, or "n"
-  valid = valid && minOccurrence!=="" && (!isNaN(minOccurrence) ||minOccurrence==="n");
-  if (!valid){
+  if (isNaN(minOccurrence) && minOccurrence !=="n"){
     console.log("minimum occurrence missing");
     updateTips("Minimum occurrence is required, and must be either a number, or 'n'",$("#eventTemplateDialog"));
     $("input[name='minOccurrence']#eventMultiSelector","#eventTemplateForm").addClass("ui-state-error");
@@ -153,8 +148,7 @@ function addEventTemplate() {
     $("input[name='minOccurrence']#eventMultiSelector","#eventTemplateForm").removeClass("ui-state-error");
   }
 
-  valid = valid && (!isNaN(maxOccurrence) ||maxOccurrence==="n");
-  if (!valid){
+  if (isNaN(maxOccurrence) && maxOccurrence === "n"){
     updateTips("Maximum occurrence must be either a number, or 'n'",$("#eventTemplateDialog"));
     $("input[name='maxOccurrence']#eventMultiSelector","#eventTemplateForm").addClass("ui-state-error");
     return false;
@@ -187,8 +181,10 @@ function addEventTemplate() {
   
   $("#eventPaletteArea").append(newEventObject);
   newEventObject.show();
+  $("#eventTemplateDialog").dialog("close");
   
-  return valid;
+  
+  return true;
 }
 
 /**
@@ -234,5 +230,63 @@ function addEventToOrderedList(eventTemplateObject) {
  * It shows a dialog that contains the various necessary options.
  */
 function addTemporalConstraint() {
+  
+  
+  var relation = $("input[name='relationRadio']:checked","#temporalCostraintDialog").val();
+  var startEvent = $("#tempConstraintSelectEv1", "#temporalCostraintDialog").text();
+  var endEvent = $("#tempConstraintSelectEv2", "#temporalCostraintDialog").text();
+  var duration = $("#tempConstraintDuration", "#temporalCostraintDialog").val();
+  var unit = $("input[name='unitRadio']:checked","#temporalCostraintDialog").val();
 
+  //Check all inputs are correct. If not, use jquery UI ui-state-error class
+
+  //Has the user selected the relation?
+  if ($("input[name='relationRadio']:checked","#temporalCostraintDialog").length == 0){
+    updateTips("Select the relation between the events","#temporalCostraintDialog");
+    $("input[name='relationRadio']","#temporalCostraintDialog").addClass("ui-state-error");
+    return false;
+  }else{
+    $("input[name='relationRadio']","#temporalCostraintDialog").removeClass("ui-state-error");
+  }
+  //Does the chosen events exist in the ordered area?
+  if($("#"+startEvent,"#eventOrderArea").length==0 || $("#"+endEvent,"#eventOrderArea").length==0){
+    updateTips("Select the events for the constraint","#temporalCostraintDialog");
+    $("#tempConstraintSelectEv1, #tempConstraintSelectEv2", "#temporalCostraintDialog").addClass("ui-state-error");
+    return false;
+  }else{
+    $("#tempConstraintSelectEv1, #tempConstraintSelectEv2", "#temporalCostraintDialog").removeClass("ui-state-error");
+  }
+  //is the duration valid?
+  if(isNaN(duration)){
+    updateTips("A number indicating the duration of the constraint is required","#temporalCostraintDialog");
+    $("#tempConstraintDuration", "#temporalCostraintDialog").addClass("ui-state-error");
+    return false;
+  }else{
+    $("#tempConstraintDuration", "#temporalCostraintDialog").removeClass("ui-state-error");
+  }
+  //Has the user selected the unit?
+  if ($("input[name='unitRadio']:checked","#temporalCostraintDialog").length == 0){
+    updateTips("Select the relation between the events","#temporalCostraintDialog");
+    $("input[name='unitRadio']","#temporalCostraintDialog").addClass("ui-state-error");
+    return false;
+  }else{
+    $("input[name='unitRadio']","#temporalCostraintDialog").removeClass("ui-state-error");
+  }
+  
+  //Finally, create the div element for the temporal constraint, and append it to the temporal area
+  var newTempConstObject = $("#newTempConstTemplate").clone();
+  newTempConstObject.removeAttr("id");
+  newTempConstObject.attr("start",startEvent);
+  newTempConstObject.attr("end",endEvent);
+  newTempConstObject.attr("type",relation);
+  newTempConstObject.attr("value",duration);
+  newTempConstObject.attr("unit",unit);
+  //we make it resizable
+  newTempConstObject.resizable(resizableTemplate);
+
+  $("#tempConstraintsArea").append(newTempConstObject);
+  newTempConstObject.show();
+  updateTemporalConstraints();
+  $("#temporalCostraintDialog").dialog("close");
+  return true;
 }
