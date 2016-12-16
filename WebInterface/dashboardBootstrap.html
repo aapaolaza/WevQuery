@@ -23,6 +23,8 @@
   <script src="chosen_v1.6.2/chosen.jquery.js"></script>
   <link rel="stylesheet" href="chosen_v1.6.2/chosen.css">
 
+  <!-- Xml validation by http://syssgx.github.io/xml.js/ -->
+  <script src="xmllint.js"></script>
 
 
   <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -264,6 +266,11 @@
       }
     );
 
+    $("#downloadXML").click(function() {
+      this.href = 'data:text/plain;charset=utf-8,'
+        + exportXML();
+    });
+
     updateTemporalConstraints();
   });
 
@@ -336,7 +343,7 @@
 
 <body>
   <h1 class="container"> Interaction Dashboard </h1>
-
+  <a href="" id="downloadXML" download="eql.xml">Download XML</a>
   <div id="eventPaletteDiv" class="container">
     <h2 id="eventPaletteTitle"> Event Palette <span class="glyphicon glyphicon-option-horizontal glyphicon-option-vertical" aria-hidden="true"></span></h2>
 

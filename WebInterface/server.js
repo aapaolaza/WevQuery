@@ -1,5 +1,10 @@
 /**
  * Simple Web server for testing purposes
+ * 1. install serve-static 
+ *   npm install connect serve-static
+ * 2. Run node js with this file
+ *   node server.js
+ * 3. http://localhost:8080/
  */
 var connect = require('connect');
 var serveStatic = require('serve-static');

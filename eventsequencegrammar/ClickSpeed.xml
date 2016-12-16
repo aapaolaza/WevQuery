@@ -1,17 +1,62 @@
-<!--Click Speed
-Measures the time taken to click, discarding clicks longer than 10 seconds-->
-
-<eql>
-    <event id="x1" pre="null">
-        <eventList> mousedown</eventList>
-    </event>
-    <event id="x2" pre="x1">
-        <eventList> mouseup</eventList>
-    </event>
-    <temporalconstraintList>
-        <temporalconstraint type="within" value="10" unit="sec">
-            <eventref id="x1"/>
-            <eventref id="x2"/>
-        </temporalconstraint>
-    </temporalconstraintList>
+﻿<eql>
+  <event id="event8" pre="null" occurrences="2">
+    <eventList>window</eventList>
+  </event>
+  <event id="event9" pre="event8" occurrences="">
+    <eventList></eventList>
+  </event>
+  <event id="event19" pre="event9" occurrences="1">
+    <eventList>window</eventList>
+    <context type="ScrollState" value="safsaf"/>
+    <context type="ScrollState" value="safasfsa"/>
+    <context type="NodeID" value="safsaf"/>
+    <context type="ScrollState" value="asfsafsa"/>
+    <context type="ScrollState" value="safsaf"/>
+  </event>
+  <event id="event10" pre="event19" occurrences="">
+    <eventList></eventList>
+  </event>
+  <event id="event18" pre="event10" occurrences="1">
+    <eventList>window</eventList>
+    <context type="ScrollState" value="safsaf"/>
+    <context type="ScrollState" value="safasfsa"/>
+    <context type="NodeID" value="safsaf"/>
+    <context type="ScrollState" value="asfsafsa"/>
+    <context type="ScrollState" value="safsaf"/>
+  </event>
+  <event id="event11" pre="event18" occurrences="">
+    <eventList></eventList>
+  </event>
+  <event id="event12" pre="event11" occurrences="">
+    <eventList></eventList>
+  </event>
+  <event id="event13" pre="event12" occurrences="">
+    <eventList></eventList>
+  </event>
+  <event id="event14" pre="event13" occurrences="">
+    <eventList></eventList>
+  </event>
+  <event id="event15" pre="event14" occurrences="">
+    <eventList></eventList>
+  </event>
+  <event id="event16" pre="event15" occurrences="">
+    <eventList></eventList>
+  </event>
+  <event id="event17" pre="event16" occurrences="">
+    <eventList></eventList>
+  </event>
+  <temporalconstraintList>
+    <temporalconstraint type="within" value="10" unit="sec">
+      <eventref id="event8"/>
+      <eventref id="event10"/>
+    </temporalconstraint>
+    <temporalconstraint type="between" value="2" unit="sec">
+      <eventref id="event10"/>
+      <eventref id="event12"/>
+    </temporalconstraint>
+    <temporalconstraint type="within" value="30" unit="min">
+      <eventref id="event9"/>
+      <eventref id="event16"/>
+    </temporalconstraint>
+  </temporalconstraintList>
 </eql>
