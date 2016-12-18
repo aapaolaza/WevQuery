@@ -1,15 +1,10 @@
 <!--Click SpeedMeasures the time taken to click, discarding clicks longer than 10 seconds-->
 <eql>
   <event id="x1" pre="null" occurrences="3">
-    <eventList> mousedown</eventList>
-    <eventList> mouseover</eventList>
-
+    <eventList>mousedown</eventList>
   </event>
   <event id="x2" pre="x1" occurrences="2">
-    <eventList> mouseup</eventList>
-  </event>
-  <event id="x3" pre="x2" occurrences="1">
-    <eventList> mouseup</eventList>
+    <eventList>mouseup</eventList>
   </event>
   <temporalconstraintList>
     <temporalconstraint type="within" value="10" unit="sec">

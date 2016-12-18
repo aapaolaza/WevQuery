@@ -13,6 +13,7 @@ var mongoUser = "DBUSERNAME";
 var mongoPass = "DBPASSWORD";
 
 var userCollection = "activeUsers";
+var eventCollection = "events";
 
 //web site to be analysed, determined by its "sd" value. 10002 is kupb, 10006 is CS
 var websiteId = "10006";
@@ -205,3 +206,5 @@ module.exports.completeDateValsMilliseconds = completeDateValsMilliseconds;
 module.exports.websiteId = websiteId;
 module.exports.userCollection = userCollection;
 module.exports.scopeObject = scopeObject;
+module.exports.eventCollection = eventCollection;
+module.exports.bannedIPlist = bannedIPlist;

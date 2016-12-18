@@ -40,7 +40,7 @@ console.log("Running XMLtoMongoDB function at:" + datestamp());
 var mapReduceVars = {};
 mapReduceVars.eventList = "";
 mapReduceVars.userList = "";
-mapReduceVars.db="";
+mapReduceVars.db = "";
 //bannedIPlist is provided by MapReduceConstants
 var xmlDoc;
 
@@ -99,9 +99,9 @@ function connectionEstablished(err, db) {
   userCollection.distinct("sid", { "sd": constants.websiteId },
     function (err, docs) {
       if (err) console.log("connectionEstablished():userList query ERROR " + err);
-      console.log(docs);
+      //console.log(docs);
       mapReduceVars.userList = docs;
-      mockMapReduceScript();
+      mapReduceScript();
     });
 }
 
@@ -144,8 +144,7 @@ function mockMapReduceScript() {
   console.log(eventQueryObject);
   console.log("Adding " + (parseInt(eventQueryObject.occurrences) - 1) + " more events");
   //push as many event copies as the occurrences indicate
-  for (i = 0; i < parseInt(eventQueryObject.occurrences)-1; i++) {
-    console.log("inside loop");
+  for (i = 0; i < parseInt(eventQueryObject.occurrences) - 1; i++) {
     //LOG 2016-12-16 15:14:12 I cannot see any reason why I need a proper clone
     //a reference will do so the algorithm can abstract itself and just loop through everything
     //At the moment I don't Does not need
@@ -170,7 +169,7 @@ function mockMapReduceScript() {
       console.log(eventQueryObject);
       console.log("Adding " + (parseInt(eventQueryObject.occurrences) - 1) + " more events");
       //push as many event copies as the occurrences indicate
-      for (i = 0; i < parseInt(eventQueryObject.occurrences)-1; i++) {
+      for (i = 0; i < parseInt(eventQueryObject.occurrences) - 1; i++) {
         xmlQueryObject.eventList.push(eventQueryObject);
         console.log(eventQueryObject);
       }
@@ -229,24 +228,146 @@ function mockMapReduceScript() {
 }
 
 function mapReduceScript() {
-  db.events.mapReduce(
-    mapFunction,
-    reduceFunction,
+  var eventCollection = mapReduceVars.db.collection(constants.eventCollection);
+
+  //The xml needs to be processed, and transformed into JavaScript objects that MapReduce can process
+  constants.scopeObject["xmlQueryObject"] = parseXMLToMapReduceObject();
+
+  console.log("mapReduceScript() start with the following parameters:");
+  console.log("sd: " + constants.websiteId);
+  console.log("sid: $in: " + mapReduceVars.userList.length + "users");
+  console.log("ip: $nin: " + constants.bannedIPlist);
+  console.log("event: $in: " + mapReduceVars.eventList);
+
+
+  console.log("sessionstartms: $exists: " + true);
+  eventCollection.mapReduce(
+    mapFunction.toString(),
+    reduceFunction.toString(),
     {
-      out: { replace: "mouseBehaviourSkinny" },
+      out: { replace: "xmlQuery" },
       query: {
         "sd": constants.websiteId
-        , "sid": { $in: mapReduceVars.userList }
+        //, "sid": { $in: mapReduceVars.userList }
         , "ip": { $nin: constants.bannedIPlist }
         , "event": { $in: mapReduceVars.eventList }
         , "sessionstartms": { "$exists": true }
       },
       //I add a scope with all the required variables.
       scope: constants.scopeObject,
-      finalize: finalizeFunction
+      finalize: finalizeFunction.toString(),
+      verbose: true
       //,sort: {sid:1, url:1, urlSessionCounter:1}
+    },
+    function (error, results, stats) {   // stats provided by verbose
+      console.log("mapReduceScript() end");
+      console.log(error);
+      console.log(results);
+      console.log(stats);
+      mapReduceVars.db.close();
     }
   );
+}
+
+function parseXMLToMapReduceObject() {
+
+  var xmlQueryObject = {};
+  xmlQueryObject.eventList = [];
+  xmlQueryObject.tempConstrList = [];
+  //Each time an event is processed, its index in the query is stored, so it can be retrieved for the corresponding temporal restriction
+  var eventIDTable = {};
+
+  //PROCESS XML
+  //For each occurrence of event, create an eventQueryObject
+  //i.e. if the event has more than one occurrence, create various.
+  //WARNING!!! "n" occurrences is not supported at the moment.
+
+  //First event has predecesor null
+  //each element in the eventList is an eventQueryObject
+  //It will be identified by its index in the query array
+  var eventQueryObject = new Object();
+  eventQueryObject.name = xpath.select("//event[@pre='null']/eventList/text()", xmlDoc).toString().split(",");
+  eventQueryObject.occurrences = xpath.select("string(//event[@pre='null']/@occurrences)", xmlDoc);
+
+  var currentID = xpath.select("string(//event[@pre='null']/@id)", xmlDoc);
+  //Keep the index of this event in the table
+  eventIDTable[currentID] = xmlQueryObject.eventList.push(eventQueryObject);
+  console.log("eventQueryObject with id=" + currentID);
+  console.log(eventQueryObject);
+  console.log("Adding " + (parseInt(eventQueryObject.occurrences) - 1) + " more events");
+  //push as many event copies as the occurrences indicate
+  for (i = 0; i < parseInt(eventQueryObject.occurrences) - 1; i++) {
+    //LOG 2016-12-16 15:14:12 I cannot see any reason why I need a proper clone
+    //a reference will do so the algorithm can abstract itself and just loop through everything
+    //At the moment I don't Does not need
+    xmlQueryObject.eventList.push(eventQueryObject);
+    console.log(eventQueryObject);
+  }
+
+  areEventsLeft = true;
+  while (areEventsLeft) {
+    //Check if exists an event after last one processed
+    //Instead of the "boolean" function, the length of the response can be checked:
+    //if (xpath.select("//event[@pre='" + currentID + "']", xmlDoc).length>0) { 
+    if (xpath.select("boolean(//event[@pre='" + currentID + "'])", xmlDoc)) {
+
+      eventQueryObject = new Object();
+      eventQueryObject.name = xpath.select("//event[@pre='" + currentID + "']/eventList/text()", xmlDoc).toString().split(",");
+      eventQueryObject.occurrences = xpath.select("string(//event[@pre='" + currentID + "']/@occurrences)", xmlDoc);
+      currentID = xpath.select("string(//event[@pre='" + currentID + "']/@id)", xmlDoc);
+      //Keep the index of this event in the table
+      eventIDTable[currentID] = xmlQueryObject.eventList.push(eventQueryObject);
+      console.log("eventQueryObject with id=" + currentID);
+      console.log(eventQueryObject);
+      console.log("Adding " + (parseInt(eventQueryObject.occurrences) - 1) + " more events");
+      //push as many event copies as the occurrences indicate
+      for (i = 0; i < parseInt(eventQueryObject.occurrences) - 1; i++) {
+        xmlQueryObject.eventList.push(eventQueryObject);
+        console.log(eventQueryObject);
+      }
+    }
+    else
+      areEventsLeft = false;
+  }
+  console.log(xmlQueryObject.eventList.length + " eventQueryObjects were added to the list");
+  console.log(xmlQueryObject);
+
+  //temporal restriction list will be created taking into account the index position of the event that they involve
+  var tempRestrObject = {};
+  //2 event references, which will be set to the corresponding index
+  tempRestrObject.eventRef1;
+  tempRestrObject.eventRef2;
+  tempRestrObject.type;
+  //The unit will be used to transform the given time value to ms.
+  tempRestrObject.value;
+
+  var tempRestrNodeList = xpath.select("//temporalconstraint", xmlDoc)
+  tempRestrNodeList.forEach(function (tempRestrNode, index) {
+
+    tempRestrObject = new Object();
+    tempRestrObject.type = tempRestrNode.getAttribute("type");
+
+    if (tempRestrNode.getAttribute("unit") == "sec")
+      tempRestrObject.value = tempRestrNode.getAttribute("value") * 1000;
+    else if (tempRestrNode.getAttribute("unit") == "min")
+      tempRestrObject.value = tempRestrNode.getAttribute("value") * 60 * 1000;
+    else
+      console.log("ERROR WITH THE UNIT VALUE OF TEMPORAL CONSTRAINT");
+
+    //retrieve the event Ids for the temp constraints, and check the constructed table for the corresponding indexes
+    var eventRef = tempRestrNode.getElementsByTagName('eventref');
+    console.log("tempRestrObject with index=" + index);
+    console.log("eventRef1 is " + eventRef[0].getAttribute("id") + " which can be found in the following array:");
+    console.log(eventIDTable);
+
+    tempRestrObject.eventRef1 = eventIDTable[eventRef[0].getAttribute("id")];
+    tempRestrObject.eventRef2 = eventIDTable[eventRef[1].getAttribute("id")];
+    console.log("tempRestrObject with index=" + index);
+    console.log(tempRestrObject);
+    xmlQueryObject.tempConstrList.push(tempRestrObject);
+  });
+
+  return xmlQueryObject;
 }
 
 /**
@@ -254,9 +375,6 @@ function mapReduceScript() {
  * It gets executed for each object, and gives access to internal variables via "this".
  **/
 function mapFunction() {
-
-  //list of events that are relevant for the behaviour to be found
-  //var eventArray = ["mousewheel"];//"scroll",mouseUpEvent,"keydown"];
 
   //we filter out the events we don't want to consider
   //if (eventArray.indexOf(this.event) > -1){
@@ -336,7 +454,7 @@ function reduceFunction(key, values) {
  * This is the function that has access to ALL data, and this is the step in which events can be ordered and processed
  */
 function finalizeFunction(key, reduceOutput) {
-
+  print("STARTING FINALIZE");
 
   //////////////////////////START OF Auxiliary Functions/////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////
@@ -477,130 +595,86 @@ function finalizeFunction(key, reduceOutput) {
   //////////////////////////START OF XML query/////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////
 
+  /**
+   * Constructor for the XmlQuery object.
+   * It takes the xmlDoc and initialises all the variables
+   */
   function XmlQuery() {
 
-    //list containing all the successfully gathered behaviours.
+    //Stores the results of the query
     this.xmlQueryList = [];
-    //list containing the current candidates, will increase and decrease throughout the analysis
-    this.xmlQueryCandidateList = [];
 
-    mapReduceVars.eventList = xpath.select("//eventList/text()", xmlDoc).toString().split(",");
-
-    var xmlQueryObject = {};
-    xmlQueryObject.eventList = {};
-
-    //each element in the eventList is an eventQueryObject
-    //It will be identified by its index in the query array
-    var eventQueryObject;
-    eventQueryObject.name = {};
-    eventQueryObject.occurrences;
-
-    //Each time an event is processed, its index in the query is stored, so it can be retrieved for the corresponding temporal restriction
-    var eventIDTable = {};
-
-    //PROCESS XML
-    //For each occurrence of event, create an eventQueryObject
-    //i.e. if the event has more than one occurrence, create various.
-    //WARNING!!! "n" occurrences is not supported at the moment.
-
-    //First event has predecesor null
-    eventQueryObject = new Object();
-    eventQueryObject.name = xpath.select("event[@pre='null']/eventList/text()", xmlDoc).toString().split(",");
-    eventQueryObject.occurrences = xpath.select("string(//event[@pre='null']/@occurrences)", xmlDoc);
-    xmlQueryObject.eventList.push(eventQueryObject);
-    var currentID = xpath.select("string(//event[@pre='null']/@id)", xmlDoc);
-
-    areEventsLeft = true;
-    while (areEventsLeft) {
-      //Check if exists an event after last one processed 
-      if (xpath.select("boolean(//event[@pre='" + currentID + "'])")) {
-
-        eventQueryObject = new Object();
-        eventQueryObject.name = xpath.select("event[@pre='" + currentID + "']/eventList/text()", xmlDoc).toString().split(",");
-        eventQueryObject.occurrences = xpath.select("string(//event[@pre='" + currentID + "']/@occurrences)", xmlDoc);
-        currentID = xpath.select("string(//event[@pre='" + currentID + "']/@id)", xmlDoc);
-        //Keep the index of this event in the table
-        eventIDTable[currentID] = xmlQueryObject.eventList.push(eventQueryObject);
-
-        //push as many event copies as the occurrences indicate
-        for (i = 0; i++; i <= eventQueryObject.occurrences) {
-          //LOG 2016-12-16 15:14:12 I cannot see any reason why I need a proper clone
-          //a reference will do so the algorithm can abstract itself and just loop through everything
-          //At the moment I don't Does not need
-          xmlQueryObject.eventList.push(eventQueryObject);
-        }
-      }
-      else
-        areEventsLeft = false;
-    }
-
-    //temporal restriction list will be created taking into account the index position of the event that they involve
-    var tempRestrObject;
-    //2 event references, which will be set to the corresponding index
-    tempRestrObject.eventRef1;
-    tempRestrObject.eventRef2;
-    tempRestrObject.type;
-    //The unit will be used to transform the given time value to ms.
-    tempRestrObject.value;
-
-    var tempRestrNodeList = xpath.select("//temporalconstraint", xmlDoc)
-    tempRestrNodeList.forEach(function (tempRestrNode) {
-
-      tempRestrObject = new Object();
-      tempRestrObject.type = tempRestrNode.getAttribute("type");
-
-      if (tempRestrNode.getAttribute("unit") == "sec")
-        tempRestrObject.value = tempRestrNode.getAttribute("value") * 1000;
-      else if (tempRestrNode.getAttribute("unit") == "min")
-        tempRestrObject.value = tempRestrNode.getAttribute("value") * 60 * 1000;
-      else
-        console.log("ERROR WITH THE UNIT VALUE OF TEMPORAL CONSTRAINT");
-
-      //retrieve the event Ids for the temp constraints, and check the constructed table for the corresponding indexes
-      var eventRef = tempRestrNode.getElementsByTagName('eventref');
-      tempRestrObject.eventRef1 = eventIDTable[eventRef[0].getAttribute("id")];
-      tempRestrObject.eventRef2 = eventIDTable[peventRef[1].getAttribute("id")];
-    })
-
-
+    //Stores the prospective query results
+    this.xmlQueryCandidatesList = [];
   }
 
-  //We call this function for all mouserelated events
-  XmlQuery.prototype.processEvent = function (currentEvent, pageSize) {
+  /**
+   * For each event, this function is called.
+   * It takes the event to be processed and matches it against the list of prospective events.
+   * 
+   * Algorithm to follow:
+   * 
+    For each candidate
+      If null
+        match first event
+      If eventIndex > 0 //moving forward in the matching
+        if(match [eventIndex]) //processed event matches the corresponding event
+          if (Check temporal Constraints) //only if both the event and the temporal constraint match we will pick it
+            addEvent
+            increase eventIndex
+            if (complete match)//Check if the match for the query is done
+              Add to completed
+              Remove candidate
+            else if (impossible match)//Is the match not feasible any more? Check temporal constraints
+              Remove candidate
+        else
+        //If either the matching, or the temporal constraint fails, do nothing, we'll try again with the next event
+   */
+  XmlQuery.prototype.processEvent = function (currentEvent) {
 
-    //if it's the first event, store it, it should be the load event, but it could just be any other mouse event.
-    if (this.firstEvent == null) {
-      this.firstEvent = currentEvent;
+    var candidatesToRemove = [];
+    var xmlQuery = this;
+    this.xmlQueryCandidatesList.forEach(function (xmlQueryCandidate, index) {
+      var indexToMatch = xmlQueryCandidate.length;
+      if (xmlQueryObject.eventList[indexToMatch].name == currentEvent.event) {
+        //the event matches, add it to the list, and test temporal constraints.
+        xmlQueryCandidate.push(currentEvent);
+
+        if (matchTemporalConstraintList(xmlQueryCandidate, xmlQueryObject.tempConstrList)) {
+          //Is a match, check if the full query has been matched
+          if (xmlQueryObject.eventList.length == xmlQueryCandidate.length) {
+            //If it's fully finished, add it to the results list and mark it to be removed.
+            xmlQuery.xmlQueryList.push(xmlQueryCandidate);
+            candidatesToRemove.push(index);
+          }
+        }
+        else {
+          //It's not a match, mark it to be removed
+          candidatesToRemove.push(index);
+        }
+        xmlQueryObject.eventList;
+        xmlQueryObject.tempConstrList;
+      }else{
+        
+      }
+    });
+
+    //Remove all non-valid candidates
+    while (candidatesToRemove.length) {
+      this.xmlQueryCandidatesList.splice(candidatesToRemove.pop(), 1);
     }
 
-    //if it's a mousedown, record the value of this event, as well as the previous one
-    else if (this.firstEvent != null
-      && currentEvent.event == mouseDownEvent
-      && !this.eventRecorded) {
-
-      this.currentbehaviour = new Object();
-
-      this.currentbehaviour.clickAfterLoadTime = currentEvent.timestampms - this.firstEvent.timestampms;
-
-      this.currentbehaviour = addInfoToBehaviour(this.currentbehaviour, currentEvent)
-
-      this.currentbehaviour.mouseDownNode = currentEvent.nodeInfo;
-      this.currentbehaviour.firstEvent = this.firstEvent;
-
-      this.currentbehaviour.mouseDownTimestampms = currentEvent.timestampms;
-      this.currentbehaviour.firstEventTimestampms = this.firstEvent.timestampms;
-
-      this.currentbehaviour.pageSize = pageSize;
-      this.clickAfterLoadList.push(this.currentbehaviour);
-
-      this.eventRecorded = true
-
-      return ("##PROCESS: XmlQuery found");
+    //Compare current event to the first event in the matching list
+    if (currentEvent.event == xmlQueryObject.eventList[0].name) {
+      //initialise and add a new candidate
+      var candidateObject = [];
+      candidateObject.push(currentEvent);
+      this.xmlQueryCandidatesList.push(candidateObject);
     }
   }
 
 	/**
-	 * We really don't need to do anything in this function, but I will leave it for consistency
+	 * Last event for this object. It takes any unfinished candidate and determines if it should be included or not
 	 */
   XmlQuery.prototype.endBehaviour = function (currentEvent) {
 
@@ -610,6 +684,38 @@ function finalizeFunction(key, reduceOutput) {
     //return ("##OUTPUT: outputting " + this.controlledBehaviourList.length+" elements");
 
     return this.xmlQueryList;
+  }
+
+  /**
+   * Tests if the given temporal constraint applies.
+   * Returns 1 (true) if applicable, 0 (false) if not.
+   * This function takes 2 events and a temporal constraint as parameters, and tests
+   * if the temporal constraint is valid.
+   * a temporal constraint object is as following:
+   * tempRestrObject= {eventRef1, eventRef2, type,value}
+   */
+  function matchTemporalConstraintList(xmlQueryCandidate, tempConstraintList) {
+    tempConstraintList.forEach(function (tempConstraint, index) {
+      //Events are added to the candidates list following the order as in the query
+      //Therefore the indexes must match the references initially set in the tempConstraint
+
+      //We only need to test for events that are already included in the candidate.
+      //If the length of the candidate is smaller than the index, then it will be ignored
+      if (tempConstraint.eventRef1 < xmlQueryCandidate.length &&
+        tempConstraint.eventRef2 < xmlQueryCandidate.length) {
+        var event1 = xmlQueryCandidate[tempConstraint.eventRef1];
+        var event2 = xmlQueryCandidate[tempConstraint.eventRef2];
+        var timeDistance = Math.abs(event1.timestampms - event2.timestampms);
+
+        if (tempConstraint.type == "within" && timeDistance > tempConstraint.value)
+          return (0);
+        else if (tempConstraint.type == "between" && timeDistance < tempConstraint.value)
+          return (0);
+      }
+    });
+    //at this point, all temporal constraints checked out
+    return (1);
+
   }
   ///////////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////END OF XML query/////////////////////////////
@@ -639,6 +745,14 @@ function finalizeFunction(key, reduceOutput) {
   generalStatistics.timeDifference = 0;
   generalStatistics.valuesBiggerThanPrevious = 0;
   generalStatistics.valuesSmallerThanPrevious = 0;
+  generalStatistics.sdSessionCounter = 0;
+  generalStatistics.sdTimeSinceLastSession = 0;
+  generalStatistics.urlSessionCounter = 0;
+  generalStatistics.urlSinceLastSession = 0;
+  generalStatistics.calculatedActiveTimeMedian = 0;
+  generalStatistics.sessionstartmsMedian = 0;
+  generalStatistics.sdCalculatedActiveTimeMedian = 0;
+  generalStatistics.urlEpisodeLength = 0;
 
   var calculatedActiveTimeList = [];
   var sessionstartmsList = [];
@@ -647,29 +761,6 @@ function finalizeFunction(key, reduceOutput) {
 
   //Behaviour Objects
   var xmlQuery = new XmlQuery();
-  var idleTime = new IdleMouseBehaviour();
-  var timeToClick = new TimeToClickBehaviour();
-  //var hoveringOver = new HoveringOverBehaviour();
-  //var unintentionalMousemovement = new UnintentionalMousemovement();
-  var failToClick = new FailToClick();
-  var idleAfterClick = new IdleAfterClick();
-  var lackOfMousePrecision = new LackOfMousePrecision();
-  var repeatedClicks = new RepeatedClicks();
-  //var failToClickDiffNode = new FailToClickDiffNode();
-  //var failToClickIgnoreNode = new FailToClickIgnoreNode();
-
-  var clickAfterLoad = new ClickAfterLoad();
-
-  /////////////HTML SIZE variables
-  var pageSize = new Object();
-  pageSize.htmlSize = "";
-  pageSize.resolution = "";
-  pageSize.size = "";
-  pageSize.usableSize = "";
-  pageSize.isPageSizeEstimated = "";
-  var resizeEvent = "resize";
-  var loadEvent = "load";
-
 
   for (var i in valuesArraySorted) {
     valueObject = valuesArraySorted[i];
@@ -707,72 +798,40 @@ function finalizeFunction(key, reduceOutput) {
       */
     /////////////END OF CODE TO OBTAIN THE HTML SIZE!////////////
 
-    clickSpeed.processEvent(valueObject, pageSize);
-    idleTime.processEvent(valueObject, pageSize);
-    timeToClick.processEvent(valueObject, pageSize);
-    //hoveringOver.processEvent(valueObject, pageSize);
-    //unintentionalMousemovement.processEvent(valueObject, pageSize);
-    failToClick.processEvent(valueObject, pageSize);
-    idleAfterClick.processEvent(valueObject, pageSize);
-    lackOfMousePrecision.processEvent(valueObject, pageSize);
-    repeatedClicks.processEvent(valueObject, pageSize);
-    //failToClickDiffNode.processEvent(valueObject, pageSize);
-    //failToClickIgnoreNode.processEvent(valueObject, pageSize);
-    clickAfterLoad.processEvent(valueObject, pageSize);
-
-    if (valueObject.event == mouseDownEvent) {
-      mouseStatistics.mousedownCounter++;
-
-      switch (valueObject.button) {
-        case "l":
-          mouseStatistics.leftClickCounter++;
-          break;
-        case "m":
-          mouseStatistics.middleClickCounter++;
-          break;
-        case "r":
-          mouseStatistics.rightClickCounter++;
-          break;
-        default:
-          mouseStatistics.unknownClickCounter++;
-      }
-    }
-    else if (valueObject.event == mouseUpEvent) {
-      mouseStatistics.mouseupCounter++;
-    }
+    xmlQuery.processEvent(valueObject);
 
     //We add what urlSession this object refers to. Depending on the mapReduce emit function, sdSession OR urlSession will remain the same.
-    if (mouseStatistics.sdSessionCounter == 0) {
-      mouseStatistics.sdSessionCounter = valueObject.sdSessionCounter;
-      mouseStatistics.sdTimeSinceLastSession = valueObject.sdTimeSinceLastSession;
-      mouseStatistics.urlSessionCounter = valueObject.urlSessionCounter;
-      mouseStatistics.urlSinceLastSession = valueObject.urlSinceLastSession;
-      mouseStatistics.urlEpisodeLength = valueObject.urlEpisodeLength;
+    if (generalStatistics.sdSessionCounter == 0) {
+      generalStatistics.sdSessionCounter = valueObject.sdSessionCounter;
+      generalStatistics.sdTimeSinceLastSession = valueObject.sdTimeSinceLastSession;
+      generalStatistics.urlSessionCounter = valueObject.urlSessionCounter;
+      generalStatistics.urlSinceLastSession = valueObject.urlSinceLastSession;
+      generalStatistics.urlEpisodeLength = valueObject.urlEpisodeLength;
 
-      mouseStatistics.episodeUrlActivity = valueObject.episodeUrlActivity;
-      mouseStatistics.episodeSdActivity = valueObject.episodeSdActivity;
+      generalStatistics.episodeUrlActivity = valueObject.episodeUrlActivity;
+      generalStatistics.episodeSdActivity = valueObject.episodeSdActivity;
 
     }
     else {
       //If any of them is different, store -1 (this will always happen with at least one of them
-      if (mouseStatistics.sdSessionCounter != valueObject.sdSessionCounter) { mouseStatistics.sdSessionCounter = -1; }
-      if (mouseStatistics.sdTimeSinceLastSession != valueObject.sdTimeSinceLastSession) { mouseStatistics.sdTimeSinceLastSession = -1; }
-      if (mouseStatistics.urlSessionCounter != valueObject.urlSessionCounter) { mouseStatistics.urlSessionCounter = -1; }
-      if (mouseStatistics.urlSinceLastSession != valueObject.urlSinceLastSession) { mouseStatistics.urlSinceLastSession = -1; }
-      if (mouseStatistics.episodeUrlActivity != valueObject.episodeUrlActivity) { mouseStatistics.episodeUrlActivity = -1; }
-      if (mouseStatistics.episodeSdActivity != valueObject.episodeSdActivity) { mouseStatistics.episodeSdActivity = -1; }
+      if (generalStatistics.sdSessionCounter != valueObject.sdSessionCounter) { generalStatistics.sdSessionCounter = -1; }
+      if (generalStatistics.sdTimeSinceLastSession != valueObject.sdTimeSinceLastSession) { generalStatistics.sdTimeSinceLastSession = -1; }
+      if (generalStatistics.urlSessionCounter != valueObject.urlSessionCounter) { generalStatistics.urlSessionCounter = -1; }
+      if (generalStatistics.urlSinceLastSession != valueObject.urlSinceLastSession) { generalStatistics.urlSinceLastSession = -1; }
+      if (generalStatistics.episodeUrlActivity != valueObject.episodeUrlActivity) { generalStatistics.episodeUrlActivity = -1; }
+      if (generalStatistics.episodeSdActivity != valueObject.episodeSdActivity) { generalStatistics.episodeSdActivity = -1; }
     }
 
     //Getting the episode timestamp and active time medians
     if (incorrectActTimeEvents.indexOf(valueObject.event) < 0) {
       calculatedActiveTimeList.push(parseInt(valueObject.calculatedActiveTime));
-      mouseStatistics.calculatedActiveTimeMedian = median(calculatedActiveTimeList);
+      generalStatistics.calculatedActiveTimeMedian = median(calculatedActiveTimeList);
 
       sessionstartmsList.push(parseInt(valueObject.sessionstartms));
-      mouseStatistics.sessionstartmsMedian = median(sessionstartmsList);
+      generalStatistics.sessionstartmsMedian = median(sessionstartmsList);
 
       sdCalculatedActiveTimeList.push(parseInt(valueObject.sdCalculatedActiveTime));
-      mouseStatistics.sdCalculatedActiveTimeMedian = median(sdCalculatedActiveTimeList);
+      generalStatistics.sdCalculatedActiveTimeMedian = median(sdCalculatedActiveTimeList);
 
     }
 
@@ -803,71 +862,23 @@ function finalizeFunction(key, reduceOutput) {
 
   //debugLog +=
 
-  clickSpeed.endBehaviour();
-  idleTime.endBehaviour();
-  timeToClick.endBehaviour();
-  //hoveringOver.endBehaviour();
-  //unintentionalMousemovement.endBehaviour();
-  failToClick.endBehaviour();
-  idleAfterClick.endBehaviour();
-  lackOfMousePrecision.endBehaviour();
-  repeatedClicks.endBehaviour();
-  //failToClickDiffNode.endBehaviour();
-  //failToClickIgnoreNode.endBehaviour();
-  clickAfterLoad.endBehaviour();
+  xmlQuery.endBehaviour();
 
   return {
     generalStatistics: generalStatistics,
-    mouseStatistics: mouseStatistics,
-
-    clickSpeed: clickSpeed.outputResult(),
-    clickSpeedCounter: clickSpeed.outputResult().length,
-
-    idleTime: idleTime.outputResult(),
-    idleTimeCounter: idleTime.outputResult().length,
-
-    timeToClick: timeToClick.outputResult(),
-    timeToClickCounter: timeToClick.outputResult().length,
-
-    //hoveringOver:hoveringOver.outputResult(),
-    //hoveringOverCounter:hoveringOver.outputResult().length,
-
-    failToClick: failToClick.outputResult(),
-    failToClickCounter: failToClick.outputResult().length,
-
-    idleAfterClick: idleAfterClick.outputResult(),
-    idleAfterClickCounter: idleAfterClick.outputResult().length,
-
-    lackOfMousePrecision: lackOfMousePrecision.outputResult(),
-    lackOfMousePrecisionCounter: lackOfMousePrecision.outputResult().length,
-
-    repeatedClicks: repeatedClicks.outputResult(),
-    repeatedClicksCounter: repeatedClicks.outputResult().length,
-
-    clickAfterLoad: clickAfterLoad.outputResult(),
-    clickAfterLoadCounter: clickAfterLoad.outputResult().length,
-
+    xmlQuery: xmlQuery.outputResult(),
+		xmlQueryCounter:xmlQuery.outputResult().length
 
     /*
-    behaviourCounter: clickSpeed.outputResult().length
-              + idleTime.outputResult().length
-              + timeToClick.outputResult().length
-              + failToClick.outputResult().length
-              + idleAfterClick.outputResult().length
-              + lackOfMousePrecision.outputResult().length
-              + repeatedClicks.outputResult().length
-              + failToClickDiffNode.outputResult().length
-              + failToClickIgnoreNode.outputResult().length,
-      */
-    episodeStartms: fixEventTS(valuesArraySorted[0]).timestampms,
-    episodeEndms: fixEventTS(valuesArraySorted[valuesArraySorted.length - 1]).timestampms,
-
-    episodeDurationms: Number(fixEventTS(valuesArraySorted[valuesArraySorted.length - 1]).timestampms) - Number(fixEventTS(valuesArraySorted[0]).timestampms),
-
-    eventsInEpisodeCounter: valuesArraySorted.length,
-
-    debugLog: debugLog
-
+        episodeStartms: fixEventTS(valuesArraySorted[0]).timestampms,
+        episodeEndms: fixEventTS(valuesArraySorted[valuesArraySorted.length - 1]).timestampms,
+    
+        episodeDurationms: Number(fixEventTS(valuesArraySorted[valuesArraySorted.length - 1]).timestampms) - Number(fixEventTS(valuesArraySorted[0]).timestampms),
+    
+        eventsInEpisodeCounter: valuesArraySorted.length,
+    
+        debugLog: debugLog
+    */
   }
 }
 
