@@ -3,6 +3,15 @@ h1,h2{
   text-align:left;
   width: 200px;
 }
+
+#leftMenu{
+  position: fixed;
+  left: 20px;
+}
+#leftMenu img,#leftMenu button,#leftMenu .dropdown-menu{
+  width: 120px;
+}
+
 /*Created with http://css3buttongenerator.com */
 #eventPaletteTitle {
   cursor: pointer;
