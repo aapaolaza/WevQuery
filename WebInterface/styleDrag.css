@@ -7,6 +7,8 @@ h1,h2{
 #leftMenu{
   position: fixed;
   left: 20px;
+  /* There were overlapping problems with bootstrap's row elements*/
+  z-index: 999;
 }
 #leftMenu img,#leftMenu button,#leftMenu .dropdown-menu{
   width: 120px;

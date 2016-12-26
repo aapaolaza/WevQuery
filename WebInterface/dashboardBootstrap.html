@@ -80,7 +80,7 @@
             //console.log("Found right constraint event: " + index);
           }
         });
-        updateTemporalConstraints();
+        updateOrderedArea();
       }
     };
 
@@ -125,9 +125,10 @@
               $("#eventOrderArea").children(':eq(' + idx + ')').after(elm);
             else
               $("#eventOrderArea").prepend(elm);
+
             $(this).sortable('cancel');
 
-            updateTemporalConstraints();
+            updateOrderedArea();
           }
         }
       });
@@ -141,7 +142,7 @@
         //containment: "#eventOrderArea",//The containment caused problems with big elements
 
         stop: function (event, ui) {
-          updateTemporalConstraints();
+          updateOrderedArea();
         }
       });
 
@@ -271,8 +272,16 @@
           + exportXML();
       });
 
-      updateTemporalConstraints();
+      updateOrderedArea();
     });
+
+    /**
+     * To be called every time there is a change in the ordered area
+     */ 
+    function updateOrderedArea(){
+      updateTemporalConstraints();
+      updateOrderedEventIndexes();
+    }
 
     /**TODO: I need to call this function when the elements get dragged*/
     function updateTemporalConstraints() {
@@ -332,6 +341,15 @@
       }
     }
 
+    function updateOrderedEventIndexes() {
+      $("#eventOrderArea li").each(function (index) {
+        var index = $("#eventOrderArea").children().index($(this));
+        //$("span",this).text(index+1);
+         $("span",this).find( "i").remove();
+        $("span",this).append("<i>" + (index+1) +"</i>" );
+      });
+    }
+
     function showToast(message) {
       var x = document.getElementById("toastbar")
       x.className = "show";
@@ -344,7 +362,7 @@
 <body>
   <div id="leftMenu">
     <div>
-      <img src="./res/WevQueryLogo.png" alt="WevQuery tool logo">
+      <img src="./res/WevQueryLogo2.png" alt="WevQuery tool logo">
     </div>
     <div class="btn-group">
       <button type="button" class="btn  btn-lg btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -444,7 +462,7 @@
       </ul>
     </div>
   </div>
-  <h2 class="container"> Event Order Area </h2>
+  <h2 class="container"> Event Sequence Pattern Design </h2>
 
   <div id="bottomAreaContainer" class="container-fluid">
     <div id="newTemporalConstraintButton" class="newTempConstraint">
@@ -669,12 +687,11 @@
 
       <div class="form-group">
         <label for=Occurrence class="col-sm-3 control-label">Occurrence:</label>
-        <div class="col-sm-6">
-          <input name="minOccurrence" type="text" maxlength="3" class="col-sm-4 occurrenceInput" placeholder="" aria-describedby="input to define minimum occurrence">
-          <label class="col-sm-4">To</label>
-          <input name="maxOccurrence" type="text" maxlength="3" class="col-sm-4 occurrenceInput" placeholder="" aria-describedby="input to define maximum occurrence">
-          <p class="hint">Number of occurrences, it can be a number or an interval</p>
+        <div class="col-sm-9">
+          <input name="occurrenceValue" type="text" maxlength="3" class="col-sm-4 occurrenceInput" placeholder="" aria-describedby="input to define occurrence">
         </div>
+        <p class="hint">Number of occurrences, as a number</p>
+
       </div>
 
       <div class="form-group">
@@ -722,9 +739,7 @@
 </div>
 <div class="row">
   <p class="col-sm-6"> Occurrence:</p>
-  <p class="minOccurrence col-sm-2"></p>
-  <p class="occurrenceJoin col-sm-1"></p>
-  <p class="maxOccurrence col-sm-2"></p>
+  <p class="occurrenceValue col-sm-2"></p>
 </div>
 <p class="contextHeader"></p>
 <table class="contextTable"> </table>

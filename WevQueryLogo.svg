@@ -29,13 +29,13 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.7"
-     inkscape:cx="187.79004"
+     inkscape:cx="-141.49567"
      inkscape:cy="596.17923"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1920"
-     inkscape:window-height="1017"
+     inkscape:window-width="1536"
+     inkscape:window-height="801"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1" />
@@ -47,7 +47,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -134,8 +134,8 @@
     <flowRoot
        xml:space="preserve"
        id="flowRoot4228"
-       style="font-style:normal;font-weight:normal;font-size:25px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       transform="matrix(1.9734393,0,0,1.9734393,-27.424429,-428.74503)"
+       style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:40.53841176px;line-height:125%;font-family:Dosis;-inkscape-font-specification:'Dosis, Semi-Bold';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;"
+       transform="matrix(2.1845947,0,0,2.1845947,-32.118332,-519.77575)"
        inkscape:export-xdpi="90"
        inkscape:export-ydpi="90"><flowRegion
          id="flowRegion4230"><rect
@@ -143,7 +143,8 @@
            width="454.28571"
            height="190"
            x="20"
-           y="419.50507" /></flowRegion><flowPara
+           y="419.50507"
+           style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:40.53841176px;line-height:125%;font-family:Dosis;-inkscape-font-specification:'Dosis, Semi-Bold';text-align:start;writing-mode:lr;text-anchor:start;" /></flowRegion><flowPara
          id="flowPara4234"
-         style="font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;font-size:45px;font-family:'Microsoft MHei';-inkscape-font-specification:'Microsoft MHei Light'">WEvQuery</flowPara></flowRoot>  </g>
+         style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:40.53841176px;line-height:125%;font-family:Dosis;-inkscape-font-specification:'Dosis, Semi-Bold';text-align:start;writing-mode:lr;text-anchor:start;">WEvQuery</flowPara></flowRoot>  </g>
 </svg>

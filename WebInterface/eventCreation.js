@@ -115,8 +115,7 @@ function addEventTemplate() {
   //event list
   var eventList = $("#eventMultiSelector","#eventTemplateForm").val();
   //occurrence
-  var minOccurrence = $("input[name='minOccurrence']", "#eventTemplateForm").val();
-  var maxOccurrence = $("input[name='maxOccurrence']", "#eventTemplateForm").val();
+  var occurrenceValue = $("input[name='occurrenceValue']", "#eventTemplateForm").val();
   //context options
   var contextTypeArray = [];
   $(".contextType", "#eventContextTable").each(function(index){
@@ -139,32 +138,22 @@ function addEventTemplate() {
   }
 
   //minOccurence and maxOccurrence must be nonempty, as well as either a number, or "n"
-  if (isNaN(minOccurrence) && minOccurrence !=="n"){
-    console.log("minimum occurrence missing");
-    updateTips("Minimum occurrence is required, and must be either a number, or 'n'",$("#eventTemplateDialog"));
-    $("input[name='minOccurrence']#eventMultiSelector","#eventTemplateForm").addClass("ui-state-error");
+  if (isNaN(occurrenceValue)){
+    console.log("occurrence missing");
+    updateTips("The occurrence is required, and must be a number",$("#eventTemplateDialog"));
+    $("input[name='occurrenceValue']#eventMultiSelector","#eventTemplateForm").addClass("ui-state-error");
     return false;
   }else{
-    $("input[name='minOccurrence']#eventMultiSelector","#eventTemplateForm").removeClass("ui-state-error");
+    $("input[name='occurrenceValue']#eventMultiSelector","#eventTemplateForm").removeClass("ui-state-error");
   }
 
-  if (isNaN(maxOccurrence) && maxOccurrence === "n"){
-    updateTips("Maximum occurrence must be either a number, or 'n'",$("#eventTemplateDialog"));
-    $("input[name='maxOccurrence']#eventMultiSelector","#eventTemplateForm").addClass("ui-state-error");
-    return false;
-  }else{
-    $("input[name='maxOccurrence']#eventMultiSelector","#eventTemplateForm").removeClass("ui-state-error");
-  }
   //no need to check the context, as it can be empty
 
   //Finally, create the div element for the event template, and append it to the palette
   var newEventObject = $("#newEventTemplate").clone();
   newEventObject.removeAttr("id");
   $(".eventList",newEventObject).text(eventList);
-  $(".minOccurrence",newEventObject).text(minOccurrence);
-  if (maxOccurrence!=="")
-    $(".occurrenceJoin",newEventObject).text("to");
-  $(".maxOccurrence",newEventObject).text(maxOccurrence);
+  $(".occurrenceValue",newEventObject).text(occurrenceValue);
 
   if (contextTypeArray.length > 0){
     $(".contextHeader",newEventObject).text("Context");
@@ -174,8 +163,6 @@ function addEventTemplate() {
       $(".contextTable tr:last",newEventObject).after(
         "<tr> <td class='contextType'>" + typeItem + "</td> <td class='contextValue'>" + valueItem
         + "</td> </tr>");
-
-      $(".contextTable",newEventObject).val(maxOccurrence);
     });
   }
   
