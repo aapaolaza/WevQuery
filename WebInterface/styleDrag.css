@@ -7,8 +7,9 @@ h1,h2{
 #leftMenu{
   position: fixed;
   left: 20px;
-  /* There were overlapping problems with bootstrap's row elements*/
-  z-index: 999;
+  /* There were overlapping problems with bootstrap's row elements
+  Cannot be more than 100, as the dialog overlays are 101*/
+  z-index: 100;
 }
 #leftMenu img,#leftMenu button,#leftMenu .dropdown-menu{
   width: 120px;
@@ -58,6 +59,8 @@ li.eventTemplate{
   list-style-type: none;
   display: inline-block;
   vertical-align: top;
+  /*override the nowrap from the orderedAreaDiv*/
+  white-space: normal;
 }
 li.eventTemplate span{
   float: right;
@@ -67,6 +70,11 @@ li.eventTemplate .glyphicon-move{
 }
 li.eventTemplate .glyphicon-plus{
   cursor: pointer;
+}
+
+span.glyphicon-trash{
+  cursor: pointer;
+  font-size: 15px;
 }
 
 li.eventTemplateExample{
@@ -82,6 +90,16 @@ li.eventTemplate table td, li.eventTemplate table th {
   border: 1px solid #eee;
   padding: .6em 10px;
   text-align: center;
+}
+
+
+/* CSS for the components within the event template*/
+li.eventTemplate .eventTitle{
+  font-size: 18px;
+  font-weight: bold;
+}
+li.eventTemplate .eventTemplateLabel{
+  font-weight: bold;
 }
 
 /** CSS for elements inside the template**/
@@ -119,7 +137,9 @@ li.eventTemplate table td, li.eventTemplate table th {
   position: relative;
   padding-bottom: 30px;
 }
-
+#eventOrderArea{
+  min-height: 200px;
+}
 
 
 /**Dragging visual feedback**/
@@ -183,6 +203,7 @@ div#eventTemplateDialog {
 }
 div#eventTemplateDialog label, div#eventTemplateDialog input {
   display:block;
+  text-align: left;
 }
 
 div#eventTemplateDialog table {
@@ -228,6 +249,11 @@ div#eventTemplateDialog .glyphicon{
   padding: 10px 12px 1px 12px;
   text-decoration: none;
 }
+
+#temporalCostraintDialog label{
+  text-align: left;
+}
+
 div.newTempConstraint{
   position:absolute;
   max-width:150px;

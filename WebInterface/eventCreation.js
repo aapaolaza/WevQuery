@@ -152,7 +152,7 @@ function addEventTemplate() {
   //Finally, create the div element for the event template, and append it to the palette
   var newEventObject = $("#newEventTemplate").clone();
   newEventObject.removeAttr("id");
-  $(".eventList",newEventObject).text(eventList);
+  $(".eventList",newEventObject).text(eventList.toString().replace(/,/g, ', '));
   $(".occurrenceValue",newEventObject).text(occurrenceValue);
 
   if (contextTypeArray.length > 0){
@@ -203,7 +203,10 @@ function addEventToOrderedList(eventTemplateObject) {
   });
   
   //The max function cannot be directly applied to an array, the apply function transforms the array into a list of parameters
-  var newNumId = Math.max.apply(Math, idNumberList) + 1;
+  var newNumId = 1;
+  if (idNumberList.length != 0)
+    newNumId = Math.max.apply(Math, idNumberList) + 1;
+
   $(eventTemplateObject).attr("id","event"+newNumId);
   $(".eventTitle",eventTemplateObject).text("Event "+newNumId);
 
@@ -308,10 +311,11 @@ function exportXML(){
     newEventTemplateNode.setAttribute("id",$(this).attr("id"));
     newEventTemplateNode.setAttribute("pre",previousNode);
     previousNode = $(this).attr("id");
-    newEventTemplateNode.setAttribute("occurrences",$(".minOccurrence",this).text());
+    newEventTemplateNode.setAttribute("occurrences",$(".occurrenceValue",this).text());
 
     //For each event in the event list, create a node
-    eventList = $(".eventList",this).text().split(",");
+    //Remember!!! there is a space after each comma
+    eventList = $(".eventList",this).text().split(", ");
 
     $(eventList).each(function(){
       newEventListNode = xmlDoc.createElement("eventList");
@@ -361,6 +365,89 @@ function exportXML(){
   console.log(xmlString);
   return(xmlString);//validateXMLagainstXSD(xmlString));
 }
+
+/**
+ * To be implemented. It takes an XML query and imports it into the interface.
+ * It needs to take into account the corresponding IDs.
+ */
+function importXML(){
+  
+  xmlDoc = document.implementation.createDocument(null, "eql");
+  rootNode = xmlDoc.getElementsByTagName("eql")[0];
+
+  //Add xml properties, so it links it back to the xsd
+  //rootNode.setAttribute("xmlns","moving-project.eu/userlogqal");
+  //rootNode.setAttribute("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance");
+  //rootNode.setAttribute("xsi:schemaLocation","moving-project.eu/userlogqal eventseq.xsd");
+
+  var newEventTemplateNode,newEventListNode,newTempConstListNode,newTempConstNode;
+  //all info to be retrieved from the event
+  var eventList,minOccurrence,maxOccurrence,contextListType,contextListValue,newContextNode;
+  //variables for the temp constraint
+  var eventRefNode;
+  //necessary variable to establish order
+  var previousNode = "null";
+  $(".eventTemplate","#eventOrderArea").each(function(){
+    //parse each event's' data into the event node
+    newEventTemplateNode = xmlDoc.createElement("event");
+    newEventTemplateNode.setAttribute("id",$(this).attr("id"));
+    newEventTemplateNode.setAttribute("pre",previousNode);
+    previousNode = $(this).attr("id");
+    newEventTemplateNode.setAttribute("occurrences",$(".minOccurrence",this).text());
+
+    //For each event in the event list, create a node
+    //Remember!!! there is a space after each comma
+    eventList = $(".eventList",this).text().split(", ");
+
+    $(eventList).each(function(){
+      newEventListNode = xmlDoc.createElement("eventList");
+      newEventListNode.appendChild(xmlDoc.createTextNode(this));
+      newEventTemplateNode.appendChild(newEventListNode);
+    });
+
+    //For each context object create a node
+    contextListType = $(".contextType",this);
+    contextListValue = $(".contextValue",this);
+
+    $(contextListType).each(function(index){
+      newContextNode = xmlDoc.createElement("context");
+      newContextNode.setAttribute("type", $(contextListType[index]).text());
+      newContextNode.setAttribute("value", $(contextListValue[index]).text());
+      newEventTemplateNode.appendChild(newContextNode);
+    });
+
+    //append it to the rootElement
+    rootNode.appendChild(newEventTemplateNode);
+  });
+
+  newTempConstListNode = xmlDoc.createElement("temporalconstraintList");
+  //For each temporal constraint
+  $(".tempConstraintObject","#tempConstraintsArea").each(function(){
+    newTempConstNode = xmlDoc.createElement("temporalconstraint");
+    newTempConstNode.setAttribute("type",$(this).attr("type"));
+    newTempConstNode.setAttribute("value",$(this).attr("value"));
+    newTempConstNode.setAttribute("unit",$(this).attr("unit"));
+
+    //There can only be 2 event references.
+    eventRefNode = xmlDoc.createElement("eventref");
+    eventRefNode.setAttribute("id",$(this).attr("start"));
+    newTempConstNode.appendChild(eventRefNode);
+
+    eventRefNode = xmlDoc.createElement("eventref");
+    eventRefNode.setAttribute("id",$(this).attr("end"));
+    newTempConstNode.appendChild(eventRefNode);
+
+    newTempConstListNode.append(newTempConstNode);
+  });
+  rootNode.appendChild(newTempConstListNode);
+  console.log(xmlDoc);
+
+  //validate the xml against the schema
+  var xmlString = (new XMLSerializer()).serializeToString(xmlDoc);
+  console.log(xmlString);
+  return(xmlString);//validateXMLagainstXSD(xmlString));
+}
+
 
 /**
  * This function should validate the XML against the schema.

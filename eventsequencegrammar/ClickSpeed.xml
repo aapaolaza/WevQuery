@@ -1,6 +1,9 @@
 ﻿<eql>
   <event id="event8" pre="null" occurrences="2">
     <eventList>window</eventList>
+        <context type="NodeID" value="safsaf"/>
+    <context type="ScrollState" value="asfsafsa"/>
+    <context type="ScrollState" value="safsaf"/>
   </event>
   <event id="event9" pre="event8" occurrences="">
     <eventList></eventList>

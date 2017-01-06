@@ -7,7 +7,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 
-  <title>User log query abstraction language</title>
+  <title>Hypothesis Driven Interaction Behaviour Analysis</title>
+
+  <link rel="icon" type="image/png" href="./res/WevQueryLogo2.png" />
 
   <!-- Bootstrap -->
   <link href="bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet">
@@ -245,7 +247,7 @@
             var clickedButton = this;
             showToast("Please select the event you want to use");
             //"one()" is the same as "on()" but only works once, removing the need to unbind the listener
-            $("#eventOrderArea").one("click", function (e) {
+            $(document).one("click", function (e) {
               waitForTempConstraintEventSelection(e, clickedButton);
             });
           });
@@ -277,8 +279,8 @@
 
     /**
      * To be called every time there is a change in the ordered area
-     */ 
-    function updateOrderedArea(){
+     */
+    function updateOrderedArea() {
       updateTemporalConstraints();
       updateOrderedEventIndexes();
     }
@@ -306,7 +308,12 @@
         //console.log( "Drawing from " + constraintLeftCoord + " with size "+ constraintWidth);
 
         $(this).css({ top: constraintBottomCoord, left: constraintLeftCoord, width: constraintWidth, position: 'absolute' });
-        $(".tempConstraintMessage", this).text($(this).attr("type") + " " + $(this).attr("value") + " " + $(this).attr("unit"))
+
+        //we don't want to lose the trash icon from the template
+        var $trashElement = $(".tempConstraintMessage", this).find('span.glyphicon-trash'); 
+        $(".tempConstraintMessage", this).text($(this).attr("type") + " " + $(this).attr("value") + " " + $(this).attr("unit"));
+        $(".tempConstraintMessage", this).append($trashElement);
+
 
         //The padding on the bottom will increase depending on the number of constraints. 30px per constraint
         $("#eventOrderDiv").css({
@@ -333,9 +340,9 @@
 
       }
       else {
-        showToast("Please press on an event from the Event Order Area ");
+        showToast("Please press on an event from the Event Sequence Pattern Design Area");
         console.log($(e.target));
-        $("#eventOrderArea").one("click", function (e) {
+        $(document).one("click", function (e) {
           waitForTempConstraintEventSelection(e, button);
         });
       }
@@ -345,9 +352,17 @@
       $("#eventOrderArea li").each(function (index) {
         var index = $("#eventOrderArea").children().index($(this));
         //$("span",this).text(index+1);
-         $("span",this).find( "i").remove();
-        $("span",this).append("<i>" + (index+1) +"</i>" );
+        $("span.glyphicon-move", this).find("i").remove();
+        $("span.glyphicon-move", this).append("<i>" + (index + 1) + "</i>");
       });
+    }
+
+    function deleteEvent(el) {
+      $(el).closest("li").remove();
+    }
+
+    function deleteTempConstraint(el) {
+      $(el).closest("div.tempConstraintObject").remove();
     }
 
     function showToast(message) {
@@ -366,13 +381,14 @@
     </div>
     <div class="btn-group">
       <button type="button" class="btn  btn-lg btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        XML <span class="caret"></span>
+        Menu <span class="caret"></span>
         </button>
       <ul class="dropdown-menu col-xs-12">
         <li><a href="#">Load XML</a></li>
         <li><a href="" id="downloadXML" download="eql.xml">Download XML</a></li>
         <li role="separator" class="divider"></li>
         <li><a href="#">Run Query</a></li>
+        <li><a href="#">Run <i>Strict</i> Query</a></li>
       </ul>
     </div>
   </div>
@@ -385,291 +401,70 @@
     <div id="eventPaletteRow" class="row">
       <li class="eventTemplate eventTemplateExample">
         <span id="newEventButton" class="glyphicon glyphicon-plus" aria-hidden="true" aria-label="Add Event"></span>
-        <div id="templateExample"> Event Example</div>
-        <p> Events:</p>
-        <p>mouseover,mouseout</p>
-        <p> Occurrence:</p>
-        <p> Context</p>
-        <p> ndoeID:"submit"</p>
+        <p class="eventTitle"> Event Example</p>
+        <div class="row">
+          <p class="eventTemplateLabel col-sm-3"> Events:</p>
+          <p class="eventList col-sm-6 hint">Events to match</p>
+        </div>
+        <div class="row">
+          <p class="eventTemplateLabel col-sm-5"> Occurrence:</p>
+          <p class="occurrenceValue col-sm-7 hint">Number of times listed events need to appear</p>
+        </div>
+        <p class="eventTemplateLabel contextHeader">Context</p>
+        <p class="hint"> Additional context options for the event to be matched </table>
       </li>
 
+
       <ul id="eventPaletteArea">
-        <li id="event1" class="eventTemplate eventTemplateDraggable">
-          <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span>
-          <p class="eventTitle"> Event 1 </p>
-          <p> Events:</p>
-          <p>mouseover,mouseout</p>
-          <p> Occurrence:</p>
-          <p> Context</p>
-          <p> ndoeID:"submit"</p>
-        </li>
-        <li id="event2" class="eventTemplate eventTemplateDraggable">
-          <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span>
-          <p class="eventTitle"> Event 2 </p>
-          <p> Events:</p>
-          <p>mouseover,mouseout</p>
-          <p> Occurrence:</p>
-          <p> Context</p>
-          <p> ndoeID:"submit"</p>
-        </li>
-
-        <li id="event3" class="eventTemplate eventTemplateDraggable">
-          <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span>
-          <p class="eventTitle"> Event 3 </p>
-          <p> Events:</p>
-          <p>mouseover,mouseout</p>
-          <p> Occurrence:</p>
-          <p> Context</p>
-          <p> ndoeID:"submit"</p>
-        </li>
-
-        <li id="event4" class="eventTemplate eventTemplateDraggable">
-          <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span>
-          <p class="eventTitle"> Event 4 </p>
-          <p> Events:</p>
-          <p>mouseover,mouseout</p>
-          <p> Occurrence:</p>
-          <p> Context</p>
-          <p> ndoeID:"submit"</p>
-        </li>
-
-        <li id="event5" class="eventTemplate eventTemplateDraggable">
-          <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span>
-          <p class="eventTitle"> Event 5 </p>
-          <p> Events:</p>
-          <p>mouseover,mouseout</p>
-          <p> Occurrence:</p>
-          <p> Context</p>
-          <p> ndoeID:"submit"</p>
-        </li>
-
-        <li id="event6" class="eventTemplate eventTemplateDraggable">
-          <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span>
-          <p class="eventTitle"> Event 6 </p>
-          <p>mouseover,mouseout</p>
-          <p> Occurrence:</p>
-          <p> Context</p>
-          <p> ndoeID:"submit"</p>
-        </li>
-        <li id="event7" class="eventTemplate eventTemplateDraggable">
-          <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span>
-          <p class="eventTitle"> Event 7 </p>
-          <p>mouseover,mouseout</p>
-          <p> Occurrence:</p>
-          <p> Context</p>
-          <p> ndoeID:"submit"</p>
-        </li>
-      </ul>
-    </div>
-  </div>
-  <h2 class="container"> Event Sequence Pattern Design </h2>
-
-  <div id="bottomAreaContainer" class="container-fluid">
-    <div id="newTemporalConstraintButton" class="newTempConstraint">
-      <div class="row">
-        <span class="glyphicon glyphicon-hourglass" aria-hidden="true"></span>
-        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-      </div>
-      <p> Add a new temporal Constraint </p>
-    </div>
-
-
-    <div id="eventOrderDiv" class="container">
-      <ul id="eventOrderArea">
-        <li id="event8" class="eventTemplate eventTemplateDraggable">
-          <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span>
-          <p class="eventTitle"> Event 8 </p>
-          <p> Events:</p>
-          <p>mouseover,mouseout</p>
-          <p> Occurrence:</p>
-          <p> Context</p>
-          <p> ndoeID:"submit"</p>
-        </li>
-        <li id="event9" class="eventTemplate eventTemplateDraggable">
-          <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span>
-          <p class="eventTitle"> Event 9 </p>
-          <p> Events:</p>
-          <p>mouseover,mouseout</p>
-          <p> Occurrence:</p>
-          <p> Context</p>
-          <p> ndoeID:"submit"</p>
-        </li>
-        <li class="eventTemplate eventTemplateDraggable" style="display: inline-block;" id="event18">
+        <li class="eventTemplate eventTemplateDraggable" style="display: inline-block;">
 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span>
-<p class="eventTitle">Event 18</p>
+<p class="eventTitle"></p>
 <div class="row">
-  <p class="col-sm-3"> Events:</p>
-  <p class="eventList col-sm-6">window</p>
+  <p class="eventTemplateLabel col-sm-3"> Events:</p>
+  <p class="eventList col-sm-6">mousedown, mouseup</p>
 </div>
 <div class="row">
-  <p class="col-sm-6"> Occurrence:</p>
-  <p class="minOccurrence col-sm-2">1</p>
-  <p class="occurrenceJoin col-sm-1"></p>
-  <p class="maxOccurrence col-sm-2"></p>
+  <p class="eventTemplateLabel col-sm-6"> Occurrence:</p>
+  <p class="occurrenceValue col-sm-2">1</p>
 </div>
-<p class="contextHeader">Context</p>
+<p class="eventTemplateLabel contextHeader">Context</p>
 <table class="contextTable">
   <tbody>
     <tr>
-      <th>name</th>
-      <th>value</th>
-    </tr>
-    <tr>
-      <td class="contextType">ScrollState</td>
-      <td class="contextValue">safsaf</td>
-    </tr>
-    <tr>
-      <td class="contextType">ScrollState</td>
-      <td class="contextValue">safasfsa</td>
+      <th>Name</th>
+      <th>Value</th>
     </tr>
     <tr>
       <td class="contextType">NodeID</td>
-      <td class="contextValue">safsaf</td>
-    </tr>
-    <tr>
-      <td class="contextType">ScrollState</td>
-      <td class="contextValue">asfsafsa</td>
-    </tr>
-    <tr>
-      <td class="contextType">ScrollState</td>
-      <td class="contextValue">safsaf</td>
+      <td class="contextValue">Submit</td>
     </tr>
   </tbody>
 </table>
-</li>
-<li class="eventTemplate eventTemplateDraggable" style="display: inline-block;" id="event19">
-<span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span>
-<p class="eventTitle">Event 19</p>
-<div class="row">
-  <p class="col-sm-3"> Events:</p>
-  <p class="eventList col-sm-6">window</p>
-</div>
-<div class="row">
-  <p class="col-sm-6"> Occurrence:</p>
-  <p class="minOccurrence col-sm-2">1</p>
-  <p class="occurrenceJoin col-sm-1"></p>
-  <p class="maxOccurrence col-sm-2"></p>
-</div>
-<p class="contextHeader">Context</p>
-<table class="contextTable">
-  <tbody>
-    <tr>
-      <th>name</th>
-      <th>value</th>
-    </tr>
-    <tr>
-      <td class="contextType">ScrollState</td>
-      <td class="contextValue">safsaf</td>
-    </tr>
-    <tr>
-      <td class="contextType">ScrollState</td>
-      <td class="contextValue">safasfsa</td>
-    </tr>
-    <tr>
-      <td class="contextType">NodeID</td>
-      <td class="contextValue">safsaf</td>
-    </tr>
-    <tr>
-      <td class="contextType">ScrollState</td>
-      <td class="contextValue">asfsafsa</td>
-    </tr>
-    <tr>
-      <td class="contextType">ScrollState</td>
-      <td class="contextValue">safsaf</td>
-    </tr>
-  </tbody>
-</table>
-</li>
-<li id="event10" class="eventTemplate eventTemplateDraggable">
-  <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span>
-  <p class="eventTitle"> Event 10 </p>
-  <p> Events:</p>
-  <p>mouseover,mouseout</p>
-  <p> Occurrence:</p>
-  <p> Context</p>
-  <p> ndoeID:"submit"</p>
-</li>
-
-<li id="event11" class="eventTemplate eventTemplateDraggable">
-  <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span>
-  <p class="eventTitle"> Event 11 </p>
-  <p> Events:</p>
-  <p>mouseover,mouseout</p>
-  <p> Occurrence:</p>
-  <p> Context</p>
-  <p> ndoeID:"submit"</p>
-</li>
-
-<li id="event12" class="eventTemplate eventTemplateDraggable">
-  <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span>
-  <p class="eventTitle"> Event 12 </p>
-  <p> Events:</p>
-  <p>mouseover,mouseout</p>
-  <p> Occurrence:</p>
-  <p> Context</p>
-  <p> ndoeID:"submit"</p>
-</li>
-
-<li id="event13" class="eventTemplate eventTemplateDraggable">
-  <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span>
-  <p class="eventTitle"> Event 13 </p>
-  <p>mouseover,mouseout</p>
-  <p> Occurrence:</p>
-  <p> Context</p>
-  <p> ndoeID:"submit"</p>
-</li>
-<li id="event14" class="eventTemplate eventTemplateDraggable">
-  <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span>
-  <p class="eventTitle"> Event 14 </p>
-  <p>mouseover,mouseout</p>
-  <p> Occurrence:</p>
-  <p> Context</p>
-  <p> ndoeID:"submit"</p>
-</li>
-<li id="event15" class="eventTemplate eventTemplateDraggable">
-  <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span>
-  <p class="eventTitle"> Event 15 </p>
-  <p> Events:</p>
-  <p>mouseover,mouseout</p>
-  <p> Occurrence:</p>
-  <p> Context</p>
-  <p> ndoeID:"submit"</p>
-</li>
-<li id="event16" class="eventTemplate eventTemplateDraggable">
-  <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span>
-  <p class="eventTitle"> event 16 </p>
-  <p>mouseover,mouseout</p>
-  <p> Occurrence:</p>
-  <p> Context</p>
-  <p> ndoeID:"submit"</p>
-</li>
-<li id="event17" class="eventTemplate eventTemplateDraggable">
-  <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span>
-  <p class="eventTitle"> Event 17 </p>
-  <p>mouseover,mouseout</p>
-  <p> Occurrence:</p>
-  <p> Context</p>
-  <p> ndoeID:"submit"</p>
+<span class="glyphicon glyphicon-trash ui-sortable-handle" aria-hidden="true" aria-label="Delete Event" onclick="deleteEvent(this);"></span>
 </li>
 </ul>
-<div id="tempConstraintsArea">
-  <div id="tempConstId8toId10" class="tempConstraintObject" start="event8" end="event10" type="within" value="10" unit="sec">
-    <p class="tempConstraintMessage"></p>
-    <span class="glyphicon glyphicon-resize-horizontal ui-resizable-handle ui-resizable-w" aria-hidden="true" aria-label="Resize temporal constraint"></span>
-    <span class="glyphicon glyphicon-resize-horizontal ui-resizable-handle ui-resizable-e" aria-hidden="true" aria-label="Resize temporal constraint"></span>
-  </div>
-  <div id="tempConstId10toId12" class="tempConstraintObject" start="event10" end="event12" type="between" value="2" unit="sec">
-    <p class="tempConstraintMessage"></p>
-    <span class="glyphicon glyphicon-resize-horizontal ui-resizable-handle ui-resizable-w" aria-hidden="true" aria-label="Resize temporal constraint"></span>
-    <span class="glyphicon glyphicon-resize-horizontal ui-resizable-handle ui-resizable-e" aria-hidden="true" aria-label="Resize temporal constraint"></span>
-  </div>
-  <div id="tempConstId9toId16" class="tempConstraintObject" start="event9" end="event16" type="within" value="30" unit="min">
-    <p class="tempConstraintMessage"></p>
-    <span class="glyphicon glyphicon-resize-horizontal ui-resizable-handle ui-resizable-w" aria-hidden="true" aria-label="Resize temporal constraint"></span>
-    <span class="glyphicon glyphicon-resize-horizontal ui-resizable-handle ui-resizable-e" aria-hidden="true" aria-label="Resize temporal constraint"></span>
-  </div>
 </div>
 </div>
+<h2 class="container"> Event Sequence Pattern Design </h2>
+
+<div id="bottomAreaContainer" class="container-fluid">
+  <div id="newTemporalConstraintButton" class="newTempConstraint">
+    <div class="row">
+      <span class="glyphicon glyphicon-hourglass" aria-hidden="true"></span>
+      <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+    </div>
+    <p> Add a new Temporal Constraint </p>
+  </div>
+
+
+  <div id="eventOrderDiv" class="container">
+    <ul id="eventOrderArea">
+
+    </ul>
+    <div id="tempConstraintsArea">
+
+    </div>
+  </div>
 </div>
 <!-- Dialog to be shown when creating a new Event template-->
 <div id="eventTemplateDialog" title="Create new Event Template">
@@ -700,8 +495,8 @@
       <div class="form-group">
         <table border="1" id="eventContextTable">
           <tr>
-            <th>name</th>
-            <th>value</th>
+            <th>Name</th>
+            <th>Value</th>
             <td></td>
           </tr>
           <tr>
@@ -734,15 +529,16 @@
 <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span>
 <p class="eventTitle"></p>
 <div class="row">
-  <p class="col-sm-3"> Events:</p>
+  <p class="eventTemplateLabel col-sm-3"> Events:</p>
   <p class="eventList col-sm-6"></p>
 </div>
 <div class="row">
-  <p class="col-sm-6"> Occurrence:</p>
+  <p class="eventTemplateLabel col-sm-6"> Occurrence:</p>
   <p class="occurrenceValue col-sm-2"></p>
 </div>
-<p class="contextHeader"></p>
+<p class="eventTemplateLabel contextHeader"></p>
 <table class="contextTable"> </table>
+<span class="glyphicon glyphicon-trash ui-sortable-handle" aria-hidden="true" aria-label="Delete Event"></span>
 </li>
 
 <!-- Dialog to be shown when creating a new Temporal Contraint-->
@@ -794,7 +590,9 @@
 </div>
 <!-- template to create new temporal constraints -->
 <div id="newTempConstTemplate" class="tempConstraintObject" start="" end="" type="" value="" unit="" style='display:none'>
-<p class="tempConstraintMessage"></p>
+<p class="tempConstraintMessage">
+  <span class="glyphicon glyphicon-trash ui-sortable-handle" aria-hidden="true" aria-label="Delete Temporal Constraint" onclick="deleteTempConstraint(this);"></span>
+</p>
 <span class="glyphicon glyphicon-resize-horizontal ui-resizable-handle ui-resizable-w" aria-hidden="true" aria-label="Resize temporal constraint"></span>
 <span class="glyphicon glyphicon-resize-horizontal ui-resizable-handle ui-resizable-e" aria-hidden="true" aria-label="Resize temporal constraint"></span>
 </div>

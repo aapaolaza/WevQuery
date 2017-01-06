@@ -81,21 +81,26 @@
       <xs:enumeration value='mouseout'/>
       <xs:enumeration value='mousemove'/>
       <xs:enumeration value='mousewheel'/>
+      <xs:enumeration value='focus'/>
+      <xs:enumeration value='blur'/>
+      <xs:enumeration value='windowfocus'/>
+      <xs:enumeration value='windowblur'/>
+      <xs:enumeration value='keydown'/>
+      <xs:enumeration value='keyup'/>
+      <xs:enumeration value='resize'/>
+      <xs:enumeration value='select'/>
+      <xs:enumeration value='change'/>
+      <xs:enumeration value='keypress'/>
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name='contextType'>
     <xs:restriction base='xs:string'>
       <xs:enumeration value='NodeID'/>
+      <xs:enumeration value='NodeType'/>
       <xs:enumeration value='NodeClass'/>
-      <xs:enumeration value='ScrollState'/>
-      <xs:enumeration value='ScrollState'/>
-      <xs:enumeration value='ScrollState'/>
-      <xs:enumeration value='ScrollState'/>
-      <xs:enumeration value='ScrollState'/>
-      <xs:enumeration value='ScrollState'/>
-      <xs:enumeration value='ScrollState'/>
-      <xs:enumeration value='ScrollState'/>
-      <xs:enumeration value='ScrollState'/>
+      <xs:enumeration value='NodeTextContent'/>
+      <xs:enumeration value='NodeTextValue'/>
+      <xs:enumeration value='URL'/>
       <xs:enumeration value='ScrollState'/>
     </xs:restriction>
   </xs:simpleType>

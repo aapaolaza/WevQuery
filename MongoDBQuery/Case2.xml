@@ -1,0 +1,15 @@
+<eql>
+  <event id="event1" pre="null" occurrences="1">
+    <eventList>load</eventList>
+  </event>
+  <event id="event2" pre="event1" occurrences="1">
+    <eventList>mousewheel</eventList>
+    <eventList>scroll</eventList>
+  </event>
+  <temporalconstraintList>
+    <temporalconstraint type="Within" value="10" unit="Seconds">
+      <eventref id="event1"/>
+      <eventref id="event2"/>
+    </temporalconstraint>
+  </temporalconstraintList>
+</eql>

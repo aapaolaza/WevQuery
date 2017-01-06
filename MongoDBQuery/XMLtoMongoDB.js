@@ -3,8 +3,9 @@
 //https://www.npmjs.com/package/xpath
 //npm install xpath
 //npm install xmldom
+//npm install yargs
 //To run the script:
-//node XMLtoMongoDB.js filename.xml
+//node XMLtoMongoDB.js --file filename.xml --strictMode boolean
 
 //Old dependencies
 //I was using the following to convert the xml into a JS object (and then into JSON) but I don't need it
@@ -41,25 +42,32 @@ var mapReduceVars = {};
 mapReduceVars.eventList = "";
 mapReduceVars.userList = "";
 mapReduceVars.db = "";
+mapReduceVars.isQueryStrict = false;
 //bannedIPlist is provided by MapReduceConstants
 var xmlDoc;
 
-loadXml();
+//Eases the step of retrieving parameters from the command line
+// Make sure we got a filename on the command line.
+var argv = require('yargs')
+  .usage('Usage: $0 --file [filename.xml] --strictMode')
+  .demandOption(['file'])
+  .argv;
+console.log("All params right, carry on");
+//if --strictMode is not set, the following variable will be "undefined"
+if (argv.strictMode)
+  mapReduceVars.isQueryStrict = true;
+console.log("StrictMode is " + mapReduceVars.isQueryStrict);
+
+//Start the xml Loading
+loadXml(argv.file);
 
 /**
  * Starting function, that loads the XML from the file system
  */
-function loadXml() {
-  // Make sure we got a filename on the command line.
-  if (process.argv.length < 3) {
-    var scriptFilename = process.argv[1].split("\\");
-    scriptFilename = scriptFilename[scriptFilename.length - 1];
-    console.log('Usage: node ' + scriptFilename + ' FILENAME.XML');
-    process.exit(1);
-  }
+function loadXml(filename) {
+
   // Read the file and print its contents.
-  var fs = require('fs')
-    , filename = process.argv[2];
+  var fs = require('fs');
   fs.readFile(filename, 'utf8', function (err, data) {
     if (err) throw err;
     console.log('XML successfully loaded: ' + filename);
@@ -115,135 +123,26 @@ function uniqueArray(array) {
   });
 }
 
-//startMapReduceScript();
-function mockMapReduceScript() {
-  mapReduceVars.eventList = xpath.select("//eventList/text()", xmlDoc).toString().split(",");
-
-  var xmlQueryObject = {};
-  xmlQueryObject.eventList = [];
-  xmlQueryObject.tempConstrList = [];
-  //Each time an event is processed, its index in the query is stored, so it can be retrieved for the corresponding temporal restriction
-  var eventIDTable = {};
-
-  //PROCESS XML
-  //For each occurrence of event, create an eventQueryObject
-  //i.e. if the event has more than one occurrence, create various.
-  //WARNING!!! "n" occurrences is not supported at the moment.
-
-  //First event has predecesor null
-  //each element in the eventList is an eventQueryObject
-  //It will be identified by its index in the query array
-  var eventQueryObject = new Object();
-  eventQueryObject.name = xpath.select("//event[@pre='null']/eventList/text()", xmlDoc).toString().split(",");
-  eventQueryObject.occurrences = xpath.select("string(//event[@pre='null']/@occurrences)", xmlDoc);
-
-  var currentID = xpath.select("string(//event[@pre='null']/@id)", xmlDoc);
-  //Keep the index of this event in the table
-  eventIDTable[currentID] = xmlQueryObject.eventList.push(eventQueryObject);
-  console.log("eventQueryObject with id=" + currentID);
-  console.log(eventQueryObject);
-  console.log("Adding " + (parseInt(eventQueryObject.occurrences) - 1) + " more events");
-  //push as many event copies as the occurrences indicate
-  for (i = 0; i < parseInt(eventQueryObject.occurrences) - 1; i++) {
-    //LOG 2016-12-16 15:14:12 I cannot see any reason why I need a proper clone
-    //a reference will do so the algorithm can abstract itself and just loop through everything
-    //At the moment I don't Does not need
-    xmlQueryObject.eventList.push(eventQueryObject);
-    console.log(eventQueryObject);
-  }
-
-  areEventsLeft = true;
-  while (areEventsLeft) {
-    //Check if exists an event after last one processed
-    //Instead of the "boolean" function, the length of the response can be checked:
-    //if (xpath.select("//event[@pre='" + currentID + "']", xmlDoc).length>0) { 
-    if (xpath.select("boolean(//event[@pre='" + currentID + "'])", xmlDoc)) {
-
-      eventQueryObject = new Object();
-      eventQueryObject.name = xpath.select("//event[@pre='" + currentID + "']/eventList/text()", xmlDoc).toString().split(",");
-      eventQueryObject.occurrences = xpath.select("string(//event[@pre='" + currentID + "']/@occurrences)", xmlDoc);
-      currentID = xpath.select("string(//event[@pre='" + currentID + "']/@id)", xmlDoc);
-      //Keep the index of this event in the table
-      eventIDTable[currentID] = xmlQueryObject.eventList.push(eventQueryObject);
-      console.log("eventQueryObject with id=" + currentID);
-      console.log(eventQueryObject);
-      console.log("Adding " + (parseInt(eventQueryObject.occurrences) - 1) + " more events");
-      //push as many event copies as the occurrences indicate
-      for (i = 0; i < parseInt(eventQueryObject.occurrences) - 1; i++) {
-        xmlQueryObject.eventList.push(eventQueryObject);
-        console.log(eventQueryObject);
-      }
-    }
-    else
-      areEventsLeft = false;
-  }
-  console.log(xmlQueryObject.eventList.length + " eventQueryObjects were added to the list");
-  console.log(xmlQueryObject);
-
-  //temporal restriction list will be created taking into account the index position of the event that they involve
-  var tempRestrObject = {};
-  //2 event references, which will be set to the corresponding index
-  tempRestrObject.eventRef1;
-  tempRestrObject.eventRef2;
-  tempRestrObject.type;
-  //The unit will be used to transform the given time value to ms.
-  tempRestrObject.value;
-
-  var tempRestrNodeList = xpath.select("//temporalconstraint", xmlDoc)
-  tempRestrNodeList.forEach(function (tempRestrNode, index) {
-
-    tempRestrObject = new Object();
-    tempRestrObject.type = tempRestrNode.getAttribute("type");
-
-    if (tempRestrNode.getAttribute("unit") == "sec")
-      tempRestrObject.value = tempRestrNode.getAttribute("value") * 1000;
-    else if (tempRestrNode.getAttribute("unit") == "min")
-      tempRestrObject.value = tempRestrNode.getAttribute("value") * 60 * 1000;
-    else
-      console.log("ERROR WITH THE UNIT VALUE OF TEMPORAL CONSTRAINT");
-
-    //retrieve the event Ids for the temp constraints, and check the constructed table for the corresponding indexes
-    var eventRef = tempRestrNode.getElementsByTagName('eventref');
-    console.log("tempRestrObject with index=" + index);
-    console.log("eventRef1 is " + eventRef[0].getAttribute("id") + " which can be found in the following array:");
-    console.log(eventIDTable);
-
-    tempRestrObject.eventRef1 = eventIDTable[eventRef[0].getAttribute("id")];
-    tempRestrObject.eventRef2 = eventIDTable[eventRef[1].getAttribute("id")];
-    console.log("tempRestrObject with index=" + index);
-    console.log(tempRestrObject);
-    xmlQueryObject.tempConstrList.push(tempRestrObject);
-  });
-
-  /**
-   * At this point in the execution the xmlQueryObject contains 2 lists
-   * **eventList**, a list of the actual occurrences of events, in the corresponding order.
-   * **tempConstrList**, a list of the temporal constraint, with indexes corresponding to
-   * the position each event in the eventList.
-   * The following step would be matching each occurrence of the event to the eventList,
-   * and check the temporal constraints to discard candidates. 
-   */
-
-  mapReduceVars.db.close();
-}
 
 function mapReduceScript() {
   var eventCollection = mapReduceVars.db.collection(constants.eventCollection);
 
   //The xml needs to be processed, and transformed into JavaScript objects that MapReduce can process
   constants.scopeObject["xmlQueryObject"] = parseXMLToMapReduceObject();
+  constants.scopeObject["isQueryStrict"] = mapReduceVars.isQueryStrict;
 
   console.log("mapReduceScript() start with the following parameters:");
   console.log("sd: " + constants.websiteId);
   console.log("sid: $in: " + mapReduceVars.userList.length + "users");
   console.log("ip: $nin: " + constants.bannedIPlist);
   console.log("event: $in: " + mapReduceVars.eventList);
-
+  console.log("isQueryStrict: " + constants.scopeObject["isQueryStrict"]);
 
   console.log("sessionstartms: $exists: " + true);
   eventCollection.mapReduce(
     mapFunction.toString(),
-    reduceFunction.toString(),
+    //reduceFunction.toString(),
+    skinnyReduceFunction.toString(),
     {
       out: { replace: "xmlQuery" },
       query: {
@@ -270,6 +169,9 @@ function mapReduceScript() {
 }
 
 function parseXMLToMapReduceObject() {
+  console.log();
+
+  console.log("Start XML parsing");
 
   var xmlQueryObject = {};
   xmlQueryObject.eventList = [];
@@ -286,8 +188,21 @@ function parseXMLToMapReduceObject() {
   //each element in the eventList is an eventQueryObject
   //It will be identified by its index in the query array
   var eventQueryObject = new Object();
-  eventQueryObject.name = xpath.select("//event[@pre='null']/eventList/text()", xmlDoc).toString().split(",");
+  eventQueryObject.nameList = xpath.select("//event[@pre='null']/eventList/text()", xmlDoc).toString().split(",");
   eventQueryObject.occurrences = xpath.select("string(//event[@pre='null']/@occurrences)", xmlDoc);
+
+  //Get the context for that event
+  eventQueryObject.contextList = new Object();
+  eventQueryObject.contextList.type = [];
+  eventQueryObject.contextList.value = [];
+
+  var contextList = xpath.select("//event[@pre='null']/context", xmlDoc);
+  console.log(contextList.length + "context elements have been found");
+
+  for (i = 0; i < contextList.length; i++) {
+    eventQueryObject.contextList.type[i] = contextList[i].getAttributeNode("type").toString();
+    eventQueryObject.contextList.value[i] = contextList[i].getAttributeNode("value").toString();
+  }
 
   var currentID = xpath.select("string(//event[@pre='null']/@id)", xmlDoc);
   //Keep the index of this event in the table
@@ -312,8 +227,22 @@ function parseXMLToMapReduceObject() {
     if (xpath.select("boolean(//event[@pre='" + currentID + "'])", xmlDoc)) {
 
       eventQueryObject = new Object();
-      eventQueryObject.name = xpath.select("//event[@pre='" + currentID + "']/eventList/text()", xmlDoc).toString().split(",");
+      eventQueryObject.nameList = xpath.select("//event[@pre='" + currentID + "']/eventList/text()", xmlDoc).toString().split(",");
       eventQueryObject.occurrences = xpath.select("string(//event[@pre='" + currentID + "']/@occurrences)", xmlDoc);
+
+      //Get the context for that event
+      eventQueryObject.contextList = new Object();
+      eventQueryObject.contextList.type = [];
+      eventQueryObject.contextList.value = [];
+
+      var contextList = xpath.select("//event[@pre='" + currentID + "']/context", xmlDoc);
+      console.log(contextList.length + "context elements have been found");
+
+      for (i = 0; i < contextList.length; i++) {
+        eventQueryObject.contextList.type[i] = contextList[i].getAttributeNode("type").toString();
+        eventQueryObject.contextList.value[i] = contextList[i].getAttributeNode("value").toString();
+      }
+
       currentID = xpath.select("string(//event[@pre='" + currentID + "']/@id)", xmlDoc);
       //Keep the index of this event in the table
       eventIDTable[currentID] = xmlQueryObject.eventList.push(eventQueryObject);
@@ -390,9 +319,9 @@ function mapFunction() {
           event: this.event,
           timestamp: this.timestamp,
           timestampms: this.timestampms,
-          sid: this.sid,
+          //sid: this.sid,
           ip: this.ip,
-          url: this.url,
+          //url: this.url,
           sessionstartms: this.sessionstartms,
           sessionstartparsed: this.sessionstartparsed,
           visitCounter: this.visitCounter,
@@ -448,6 +377,48 @@ function reduceFunction(key, values) {
   }
   return reduced;
 }
+
+/**
+ * Same as reduceFunction, but after the first value, it will strip down all unnecessary data.
+ * 
+ */
+function skinnyReduceFunction(key, values) {
+  var deleteList = ["sessionstartms",
+    "sessionstartparsed",
+    "visitCounter",
+    "visitDuration",
+    "sdSessionCounter",
+    "sdTimeSinceLastSession",
+    "urlSessionCounter",
+    "urlSinceLastSession",
+    "urlEpisodeLength",
+    "episodeUrlActivity",
+    "episodeSdActivity",
+    "htmlSize",
+    "resolution",
+    "size",
+    "usableSize",
+    "idleTime",
+    "idleTimeSoFar",
+    "sdCalculatedActiveTime",
+    "usertimezoneoffset"];
+
+  var reduced = { "episodeEvents": [] };
+  for (var i in values) {
+    var inter = values[i];
+    for (var j in inter.episodeEvents) {
+      //for all elements except the first one
+      if (reduced.episodeEvents.length > 1) {
+        for (var deleteIndex in deleteList) {
+          delete inter.episodeEvents[j][deleteList[deleteIndex]];
+        }
+      }
+      reduced.episodeEvents.push(inter.episodeEvents[j]);
+    }
+  }
+  return reduced;
+}
+
 
 /**
  * This function is called at the end, with the reduced values for each "key" object.
@@ -636,7 +607,9 @@ function finalizeFunction(key, reduceOutput) {
     var xmlQuery = this;
     this.xmlQueryCandidatesList.forEach(function (xmlQueryCandidate, index) {
       var indexToMatch = xmlQueryCandidate.length;
-      if (xmlQueryObject.eventList[indexToMatch].name == currentEvent.event) {
+      if (xmlQueryObject.eventList[indexToMatch].nameList.indexOf(currentEvent.event) > -1
+        && matchContextInfo(currentEvent.event, xmlQueryObject.eventList[indexToMatch].contextList)) {
+
         //the event matches, add it to the list, and test temporal constraints.
         xmlQueryCandidate.push(currentEvent);
 
@@ -652,10 +625,16 @@ function finalizeFunction(key, reduceOutput) {
           //It's not a match, mark it to be removed
           candidatesToRemove.push(index);
         }
-        xmlQueryObject.eventList;
-        xmlQueryObject.tempConstrList;
-      }else{
-        
+
+        //Old code, not sure of its use
+        //xmlQueryObject.eventList;
+        //xmlQueryObject.tempConstrList;
+
+      } else if (isQueryStrict) {
+        //The event didn't match!
+        //I we need to be strict, this candidate is not valid any longer
+        candidatesToRemove.push(index);
+
       }
     });
 
@@ -665,7 +644,7 @@ function finalizeFunction(key, reduceOutput) {
     }
 
     //Compare current event to the first event in the matching list
-    if (currentEvent.event == xmlQueryObject.eventList[0].name) {
+    if (xmlQueryObject.eventList[0].nameList.indexOf(currentEvent.event) > -1){
       //initialise and add a new candidate
       var candidateObject = [];
       candidateObject.push(currentEvent);
@@ -715,7 +694,14 @@ function finalizeFunction(key, reduceOutput) {
     });
     //at this point, all temporal constraints checked out
     return (1);
+  }
 
+  function matchContextInfo(currentEvent, contextInfo) {
+    for (i = 0; i < contextInfo.type.length; i++) {
+      if (currentEvent[contextInfo.type[i]] != contextInfo.value[i])
+        return false;
+    }
+    return true;
   }
   ///////////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////END OF XML query/////////////////////////////
@@ -867,7 +853,8 @@ function finalizeFunction(key, reduceOutput) {
   return {
     generalStatistics: generalStatistics,
     xmlQuery: xmlQuery.outputResult(),
-		xmlQueryCounter:xmlQuery.outputResult().length
+    xmlQueryCounter: xmlQuery.outputResult().length,
+    isQueryStrict:isQueryStrict
 
     /*
         episodeStartms: fixEventTS(valuesArraySorted[0]).timestampms,
