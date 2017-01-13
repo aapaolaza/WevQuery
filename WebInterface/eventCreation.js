@@ -138,7 +138,7 @@ function addEventTemplate() {
   }
 
   //minOccurence and maxOccurrence must be nonempty, as well as either a number, or "n"
-  if (isNaN(occurrenceValue)){
+  if (occurrenceValue=="" || isNaN(occurrenceValue)){
     console.log("occurrence missing");
     updateTips("The occurrence is required, and must be a number",$("#eventTemplateDialog"));
     $("input[name='occurrenceValue']#eventMultiSelector","#eventTemplateForm").addClass("ui-state-error");
@@ -344,6 +344,8 @@ function exportXML(){
     newTempConstNode = xmlDoc.createElement("temporalconstraint");
     newTempConstNode.setAttribute("type",$(this).attr("type"));
     newTempConstNode.setAttribute("value",$(this).attr("value"));
+
+    //the unit needs to be stored using the corresponding code
     newTempConstNode.setAttribute("unit",$(this).attr("unit"));
 
     //There can only be 2 event references.
@@ -448,6 +450,14 @@ function importXML(){
   return(xmlString);//validateXMLagainstXSD(xmlString));
 }
 
+
+/**
+ * Not yet implemented. This function initiates the query, and sends the results to the given email address
+ * 
+ */
+function executeQuery(email,isStrictMode){
+
+}
 
 /**
  * This function should validate the XML against the schema.

@@ -6,4 +6,10 @@
   <event id="x2" pre="x1" occurrences="2">
     <eventList>mouseup</eventList>
   </event>
+    <temporalconstraintList>
+    <temporalconstraint type="within" value="1" unit="sec">
+      <eventref id="x1"/>
+      <eventref id="x2"/>
+    </temporalconstraint>
+  </temporalconstraintList>
 </eql>

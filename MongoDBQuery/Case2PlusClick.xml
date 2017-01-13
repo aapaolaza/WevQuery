@@ -6,10 +6,17 @@
     <eventList>mousewheel</eventList>
     <eventList>scroll</eventList>
   </event>
+    <event id="event3" pre="event2" occurrences="1">
+    <eventList>mousedown</eventList>
+  </event>
   <temporalconstraintList>
-    <temporalconstraint type="within" value="0.5" unit="sec">
+    <temporalconstraint type="within" value="1" unit="sec">
       <eventref id="event1"/>
       <eventref id="event2"/>
+    </temporalconstraint>
+        <temporalconstraint type="within" value="1" unit="sec">
+      <eventref id="event2"/>
+      <eventref id="event3"/>
     </temporalconstraint>
   </temporalconstraintList>
 </eql>

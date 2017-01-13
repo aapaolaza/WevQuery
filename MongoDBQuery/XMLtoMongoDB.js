@@ -7,6 +7,11 @@
 //To run the script:
 //node XMLtoMongoDB.js --file filename.xml --strictMode boolean
 
+//Remember to start the mongo Server
+//mongod --rest
+//The rest option enables the Web log interface:
+//http://localhost:28017/
+
 //Old dependencies
 //I was using the following to convert the xml into a JS object (and then into JSON) but I don't need it
 //npm install xml2js //https://www.npmjs.com/package/xml2js
@@ -137,6 +142,7 @@ function mapReduceScript() {
   console.log("ip: $nin: " + constants.bannedIPlist);
   console.log("event: $in: " + mapReduceVars.eventList);
   console.log("isQueryStrict: " + constants.scopeObject["isQueryStrict"]);
+  console.log ("printing the list of temporal constraints");
 
   console.log("sessionstartms: $exists: " + true);
   eventCollection.mapReduce(
@@ -205,8 +211,8 @@ function parseXMLToMapReduceObject() {
   }
 
   var currentID = xpath.select("string(//event[@pre='null']/@id)", xmlDoc);
-  //Keep the index of this event in the table
-  eventIDTable[currentID] = xmlQueryObject.eventList.push(eventQueryObject);
+  //Keep the index of this event in the table. The '-1' is necessary to obtain the index of the last element
+  eventIDTable[currentID] = xmlQueryObject.eventList.push(eventQueryObject)-1;
   console.log("eventQueryObject with id=" + currentID);
   console.log(eventQueryObject);
   console.log("Adding " + (parseInt(eventQueryObject.occurrences) - 1) + " more events");
@@ -244,8 +250,8 @@ function parseXMLToMapReduceObject() {
       }
 
       currentID = xpath.select("string(//event[@pre='" + currentID + "']/@id)", xmlDoc);
-      //Keep the index of this event in the table
-      eventIDTable[currentID] = xmlQueryObject.eventList.push(eventQueryObject);
+      //Keep the index of this event in the table. The '-1' is necessary to obtain the index of the last element
+      eventIDTable[currentID] = xmlQueryObject.eventList.push(eventQueryObject) - 1;
       console.log("eventQueryObject with id=" + currentID);
       console.log(eventQueryObject);
       console.log("Adding " + (parseInt(eventQueryObject.occurrences) - 1) + " more events");
@@ -281,7 +287,7 @@ function parseXMLToMapReduceObject() {
     else if (tempRestrNode.getAttribute("unit") == "min")
       tempRestrObject.value = tempRestrNode.getAttribute("value") * 60 * 1000;
     else
-      console.log("ERROR WITH THE UNIT VALUE OF TEMPORAL CONSTRAINT");
+      interruptExecution("parseXMLToMapReduceObject(): ERROR WITH THE UNIT VALUE OF TEMPORAL CONSTRAINT");
 
     //retrieve the event Ids for the temp constraints, and check the constructed table for the corresponding indexes
     var eventRef = tempRestrNode.getElementsByTagName('eventref');
@@ -291,7 +297,7 @@ function parseXMLToMapReduceObject() {
 
     tempRestrObject.eventRef1 = eventIDTable[eventRef[0].getAttribute("id")];
     tempRestrObject.eventRef2 = eventIDTable[eventRef[1].getAttribute("id")];
-    console.log("tempRestrObject with index=" + index);
+    console.log("tempRestrObject contains a restriction involving indexes " +tempRestrObject.eventRef1 + ", and " + tempRestrObject.eventRef2);
     console.log(tempRestrObject);
     xmlQueryObject.tempConstrList.push(tempRestrObject);
   });
@@ -674,7 +680,11 @@ function finalizeFunction(key, reduceOutput) {
    * tempRestrObject= {eventRef1, eventRef2, type,value}
    */
   function matchTemporalConstraintList(xmlQueryCandidate, tempConstraintList) {
-    tempConstraintList.forEach(function (tempConstraint, index) {
+    //For some reason the forEach loop didn't work. 
+//    tempConstraintList.forEach(function (tempConstraint, index) {
+      for (var index = 0; index < tempConstraintList.length; index++) {
+        var tempConstraint = tempConstraintList[index];
+
       //Events are added to the candidates list following the order as in the query
       //Therefore the indexes must match the references initially set in the tempConstraint
 
@@ -691,7 +701,8 @@ function finalizeFunction(key, reduceOutput) {
         else if (tempConstraint.type == "between" && timeDistance < tempConstraint.value)
           return (0);
       }
-    });
+    //});
+    };
     //at this point, all temporal constraints checked out
     return (1);
   }
@@ -854,7 +865,8 @@ function finalizeFunction(key, reduceOutput) {
     generalStatistics: generalStatistics,
     xmlQuery: xmlQuery.outputResult(),
     xmlQueryCounter: xmlQuery.outputResult().length,
-    isQueryStrict:isQueryStrict
+    isQueryStrict:isQueryStrict,
+    tempConstrList:xmlQueryObject.tempConstrList
 
     /*
         episodeStartms: fixEventTS(valuesArraySorted[0]).timestampms,
@@ -898,4 +910,16 @@ function completeDateValsMilliseconds(dateVal) {
   if (dateVal.length < 2) return "00" + dateVal;
   if (dateVal.length < 3) return "0" + dateVal;
   else return dateVal;
+}
+
+
+/**
+ * Function to interrupt the execution at any time. An optional message can be added
+ */
+function interruptExecution(message){
+  console.log ("XMLtoMongoDB execution failed");
+  if(message)
+    console.log(message);
+  //the code will be 1 by default, indicating a failure
+  process.exit(1);
 }

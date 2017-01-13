@@ -227,6 +227,7 @@
           "Create an temporal constraint": addTemporalConstraint,
           Cancel: function () {
             tempConstraintDialog.dialog("close");
+            tempConstraintForm[0].reset();
           }
         },
         //The only purpose of the following code is to find the newly generated "close window" element, and fix the icon
@@ -255,7 +256,7 @@
         //Pressing the "close" icon topright 
         close: function () {
           //reset form elements
-          tempConstraintForm[0].reset();
+          //tempConstraintForm[0].reset();
         }
       });
       //Enables the "submit" function that can be triggered via keyboard
@@ -272,6 +273,37 @@
       $("#downloadXML").click(function () {
         this.href = 'data:text/plain;charset=utf-8,'
           + exportXML();
+      });
+
+      ///////////executeQueryDialog creation dialog
+      var executeQueryDialog = $("#executeQueryDialog").dialog({
+        autoOpen: false,//it should not open unless called
+        minWHeight: 600,
+        minWidth: 500,
+        modal: true,//disables all other items in the page
+        //Adds two buttons, to either add an Event Template or cancel
+        buttons: {
+          "Execute Query": executeQuery,
+          Cancel: function () {
+            executeQueryDialog.dialog("close");
+          }
+        },
+        //The only purpose of the following code is to find the newly generated "close window" element, and fix the icon
+        //Clashes between bootstrap and jquery-ui break it by default
+        open: function () {
+          $(this).closest(".ui-dialog")
+            .find(".ui-dialog-titlebar-close")
+            .removeClass("ui-dialog-titlebar-close")
+            .html("<span class='glyphicon glyphicon-remove' onclick='executeQueryDialog.dialog( 'close');'></span>");
+        },
+        //Pressing the "close" icon topright 
+        close: function () {
+          //reset form elements
+          //tempConstraintForm[0].reset();
+        }
+      });
+      $("#runQueryButton").click(function () {
+        executeQueryDialog.dialog("open");
       });
 
       updateOrderedArea();
@@ -310,8 +342,38 @@
         $(this).css({ top: constraintBottomCoord, left: constraintLeftCoord, width: constraintWidth, position: 'absolute' });
 
         //we don't want to lose the trash icon from the template
-        var $trashElement = $(".tempConstraintMessage", this).find('span.glyphicon-trash'); 
-        $(".tempConstraintMessage", this).text($(this).attr("type") + " " + $(this).attr("value") + " " + $(this).attr("unit"));
+        var $trashElement = $(".tempConstraintMessage", this).find('span.glyphicon-trash');
+        var unit = "";
+        switch ( $(this).attr("unit")) {
+          case "sec":
+            unit = "Seconds";
+          break;
+
+          case "min":
+            unit = "Minutes";
+          break;
+        
+          default:
+            unit ="NA";
+            showToast("WARNING: the unit for a temporal constraint is unknown. 'unit' must be 'sec' or 'min'")
+          break;
+        }
+
+        var type ="";
+        switch ($(this).attr("type")) {
+          case "within":
+            type = "Within";
+          break;
+          case "between":
+            type = "Separated by";
+          break;
+          default:
+            type ="NA";
+            showToast("WARNING: the type for a temporal constraint is unknown. 'type' must be 'within' or 'between'")
+          break;
+        }
+
+        $(".tempConstraintMessage", this).text(type + " " + $(this).attr("value") + " " + unit);
         $(".tempConstraintMessage", this).append($trashElement);
 
 
@@ -387,12 +449,13 @@
         <li><a href="#">Load XML</a></li>
         <li><a href="" id="downloadXML" download="eql.xml">Download XML</a></li>
         <li role="separator" class="divider"></li>
-        <li><a href="#">Run Query</a></li>
-        <li><a href="#">Run <i>Strict</i> Query</a></li>
+        <li><a href="#" id="runQueryButton">Run Query</a></li>
+        <li><a href="#" id="runStrictQueryButton">Run <i>Strict</i> Query</a></li>
       </ul>
     </div>
   </div>
 
+<div id="topAreaContainer" class="container-fluid">
 
   <div id="eventPaletteDiv" class="container">
 
@@ -445,6 +508,8 @@
 </ul>
 </div>
 </div>
+</div>
+
 <h2 class="container"> Event Sequence Pattern Design </h2>
 
 <div id="bottomAreaContainer" class="container-fluid">
@@ -551,10 +616,10 @@
       <label for="Relation" class="col-sm-3 control-label">Relation:</label>
       <div class="col-sm-6">
         <div class="radio">
-          <label><input type="radio" name="relationRadio" value="Within">Within</label>
+          <label><input type="radio" name="relationRadio" value="within">Within</label>
         </div>
         <div class="radio">
-          <label><input type="radio" name="relationRadio" value="Separated by">Separated by</label>
+          <label><input type="radio" name="relationRadio" value="between">Separated by</label>
         </div>
       </div>
     </div>
@@ -576,18 +641,19 @@
       <label for="Unit" class="col-sm-3 control-label">Unit:</label>
       <div class="col-sm-6">
         <div class="radio">
-          <label><input type="radio" name="unitRadio" value="Seconds">Seconds</label>
+          <label><input type="radio" name="unitRadio" value="sec">Seconds</label>
         </div>
         <div class="radio">
-          <label><input type="radio" name="unitRadio" value="Minutes">Minutes</label>
+          <label><input type="radio" name="unitRadio" value="min">Minutes</label>
         </div>
       </div>
     </div>
     <!-- Allow form submission with keyboard without duplicating the dialog button -->
     <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
-</fieldset>
+  </fieldset>
 </form>
 </div>
+
 <!-- template to create new temporal constraints -->
 <div id="newTempConstTemplate" class="tempConstraintObject" start="" end="" type="" value="" unit="" style='display:none'>
 <p class="tempConstraintMessage">
@@ -597,6 +663,17 @@
 <span class="glyphicon glyphicon-resize-horizontal ui-resizable-handle ui-resizable-e" aria-hidden="true" aria-label="Resize temporal constraint"></span>
 </div>
 
+<!-- Dialog to execute a query -->
+<div id="executeQueryDialog" title="Execute query" style='display:none'>
+  <p class="validateTips">A valid mail address is required.</p>
+
+  <form class="form-horizontal container">
+    <label for="email" class="col-sm-5 control-label">Email address:</label>
+        <input id="emailAdress" type="text" class="col-sm-7" placeholder="insert email address" aria-describedby="Text input for email address">
+  </form>
+  <!-- Allow form submission with keyboard without duplicating the dialog button -->
+  <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+</div>
 
 <div id="toastbar">Toast to show to the user</div>
 </body>
