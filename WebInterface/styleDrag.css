@@ -13,7 +13,9 @@ h1,h2{
 #leftMenu img,#leftMenu button,#leftMenu .dropdown-menu{
   width: 120px;
 }
-
+#leftMenu img{
+  margin: 15px;
+}
 /*Created with http://css3buttongenerator.com */
 #eventPaletteTitle {
   cursor: pointer;
@@ -111,11 +113,11 @@ li.eventTemplate .eventTemplateLabel{
 
 /*Container for eventPalette elements*/
 #eventPaletteDiv{
-  min-height: 200px;
+  /*min-height: 200px;*/
   min-width: 200px;
   width:auto;
   padding:10px;
-  margin-bottom: 50px;
+  /*margin-bottom: 50px;*/
   margin-left: 175px;/*Same as eventOrderDiv*/
 }
 
@@ -131,7 +133,7 @@ li.eventTemplate .eventTemplateLabel{
 
 
 #eventOrderTitle{
-  margin-left: 175px;/*Same as eventPaletteDiv*/
+  margin-left: 185px;/*So it matches the event palette title*/
   -webkit-border-radius: 16;
   -moz-border-radius: 16;
   border-radius: 16px;
