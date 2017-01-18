@@ -29,15 +29,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.7"
-     inkscape:cx="-111.88391"
+     inkscape:cx="-441.16962"
      inkscape:cy="52.13296"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1680"
-     inkscape:window-height="987"
-     inkscape:window-x="1912"
-     inkscape:window-y="15"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
      inkscape:window-maximized="1"
      fit-margin-top="0.5"
      fit-margin-left="0.5"
@@ -51,7 +51,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -136,20 +136,20 @@
          d="M 495,466.2 377.2,348.4 C 406.4,312.8 424,267.2 424,217.5 424,103.5 331.5,11 217.5,11 103.4,11 11,103.5 11,217.5 c 0,114 92.4,206.5 206.5,206.5 49.7,0 95.2,-17.5 130.8,-46.7 L 466.1,495 c 8,8 20.9,8 28.9,0 8,-7.9 8,-20.9 0,-28.8 z M 217.5,382.9 C 126.2,382.9 52,308.7 52,217.5 52,126.3 126.2,52 217.5,52 308.7,52 383,126.3 383,217.5 c 0,91.2 -74.3,165.4 -165.5,165.4 z"
          inkscape:connector-curvature="0" />
     </g>
-    <flowRoot
+    <text
        xml:space="preserve"
-       id="flowRoot4228"
-       style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:40.53841019px;line-height:125%;font-family:Dosis;-inkscape-font-specification:'Dosis, Semi-Bold';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       transform="matrix(2.1845947,0,0,2.1845947,-32.118332,-519.77575)"
-       inkscape:export-xdpi="90"
-       inkscape:export-ydpi="90"><flowRegion
-         id="flowRegion4230"><rect
-           id="rect4232"
-           width="454.28571"
-           height="190"
-           x="20"
-           y="419.50507"
-           style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:40.53841019px;line-height:125%;font-family:Dosis;-inkscape-font-specification:'Dosis, Semi-Bold';text-align:start;writing-mode:lr-tb;text-anchor:start" /></flowRegion><flowPara
-         id="flowPara4234"
-         style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:40.53841019px;line-height:125%;font-family:Dosis;-inkscape-font-specification:'Dosis, Semi-Bold';text-align:start;writing-mode:lr-tb;text-anchor:start">WevQuery</flowPara></flowRoot>  </g>
+       style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:88.55999756px;line-height:125%;font-family:Dosis;-inkscape-font-specification:'Dosis, Semi-Bold';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="11.573562"
+       y="486.61826"
+       id="text4163"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         x="11.573562"
+         y="486.61826"
+         id="tspan4165"><tspan
+           x="11.573562"
+           y="486.61826"
+           style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:88.55999756px;line-height:125%;font-family:Dosis;-inkscape-font-specification:'Dosis, Semi-Bold';text-align:start;writing-mode:lr-tb;text-anchor:start"
+           id="tspan4167">WevQuery</tspan></tspan></text>
+  </g>
 </svg>

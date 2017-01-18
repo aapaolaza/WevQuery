@@ -8,7 +8,7 @@
 //node XMLtoMongoDB.js --file filename.xml --strictMode boolean
 
 //Remember to start the mongo Server
-//mongod --rest
+//mongod --rest --bind_ip 127.0.0.1
 //The rest option enables the Web log interface:
 //http://localhost:28017/
 
