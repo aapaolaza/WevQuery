@@ -27,7 +27,18 @@
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
     <!-- The event creation and interaction logic is stored in a different file -->
-    <script src="./eventCreation.js"></script>
+    <script src="./interface.js"></script>
+
+    <!-- server.js code script start-->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var urlarr = window.location.href.split("/");
+        var server = urlarr[0] + "//" + urlarr[2]
+        var socket = io.connect(server);
+    </script>
+    <script src="./connection.js"></script>
+    <!-- server.js code script end-->
+
     <script>
       //We keep the configuration for the temporal constraints in a global variable, so we can refer to it later on
       var resizableTemplate = {
@@ -271,7 +282,7 @@
           modal: true,//disables all other items in the page
           //Adds two buttons, to either add an Event Template or cancel
           buttons: {
-            "Execute Query": executeQuery,
+            "Execute Query": requestExecuteQuery,
             Cancel: function () {
               executeQueryDialog.dialog("close");
             }
@@ -415,12 +426,7 @@
         $(el).closest("div.tempConstraintObject").remove();
       }
       
-      function showToast(message) {
-        var x = document.getElementById("toastbar")
-        x.className = "show";
-        x.textContent = message;
-        setTimeout(function () { x.className = x.className.replace("show", ""); }, 3000);
-      }
+
     </script>
   </head>
   <body>
@@ -631,7 +637,12 @@
     </div>
     <!-- Dialog to execute a query -->
     <div id="executeQueryDialog" title="Execute query" style='display:none'>
-      <p class="validateTips">A valid mail address is required.</p>
+      <p id="isQueryStrict"><b>Not Strict</b></p>
+      <p class="validateTips">A title and a valid mail address is required.</p>
+       <form class="form-horizontal container">
+        <label for="queryTitle" class="col-sm-5 control-label">Query title:</label>
+        <input id="queryTitle" type="text" class="col-sm-7" placeholder="insert query title" aria-describedby="Text input for query title">
+      </form>
       <form class="form-horizontal container">
         <label for="email" class="col-sm-5 control-label">Email address:</label>
         <input id="emailAdress" type="text" class="col-sm-7" placeholder="insert email address" aria-describedby="Text input for email address">

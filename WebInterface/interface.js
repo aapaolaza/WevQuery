@@ -1,7 +1,12 @@
-
-/** When the user presses in the 'plus' sign of the 'New event'' object, a new event will be created.
- * This event won't have an ID (the ID will be set when it)
-*/
+/**
+ * Shows a toast to the user, temporarily showing some information
+ */
+function showToast(message) {
+  var x = document.getElementById("toastbar")
+  x.className = "show";
+  x.textContent = message;
+  setTimeout(function () { x.className = x.className.replace("show", ""); }, 3000);
+}
 
 /**
  * This function takes a multioption object as a parameter
@@ -11,7 +16,7 @@
 function loadEventNames(multiOptionTarget) {
   console.log("loading event names");
   $.get('eventseq.xsd', function (eventSeqTemplate) {
-    console.log("xml schema loaded");
+    console.log("xml schema loaded"+eventSeqTemplate);
     /*The usual jquery selectors work for xml, but I was having problems with xml schema.
     Instead, I will use Xpath: http://api.jquery.com/category/selectors/#XPath_Selectors*/
     //$(eventSeqTemplate).find("[name='eventType'] returns the eventType node, where all the event names are defined.
@@ -455,8 +460,11 @@ function importXML(){
  * Not yet implemented. This function initiates the query, and sends the results to the given email address
  * 
  */
-function executeQuery(email,isStrictMode){
-
+function requestExecuteQuery(){
+  ioExecuteQuery($("#emailAdress","#executeQueryDialog").val(),
+                 $("#isQueryStrict","#executeQueryDialog").text()=="Strict",
+                 $("#queryTitle","#executeQueryDialog").val(),
+                 exportXML());
 }
 
 /**

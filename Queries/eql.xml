@@ -1,9 +1,9 @@
 <eql>
   <event id="event1" pre="null" occurrences="1">
-    <eventList>windowqueryfocus</eventList>
+    <eventList>window</eventList>
   </event>
   <event id="event2" pre="event1" occurrences="1">
-    <eventList>windowqueryfocus</eventList>
+    <eventList>window</eventList>
   </event>
   <temporalconstraintList>
     <temporalconstraint type="within" value="10" unit="sec">

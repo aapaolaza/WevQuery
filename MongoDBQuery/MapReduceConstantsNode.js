@@ -12,6 +12,8 @@ var mongoQueryDB = "ucivitdb";
 var mongoUser = "DBUSERNAME";
 var mongoPass = "DBPASSWORD";
 
+var mongoTimeout = 300000;//0
+
 var userCollection = "activeUsers";
 var eventCollection = "events";
 
@@ -53,13 +55,16 @@ function connectAndValidateNodeJs(callback) {
     mongoConnectionPath = mongoUser + ":" + mongoPass + "@" + mongoPath
       + "?authSource=" + mongoAuthenticateDB;
 
-  var options = {
-    server:
-    {
-      socketOptions:
-      {
-        socketTimeoutMS: 0,
-        connectTimeoutMS: 0
+  var options = { 
+    server: { 
+      socketOptions: { 
+        keepAlive: mongoTimeout, connectTimeoutMS: mongoTimeout 
+      } 
+    }, 
+    replset: { 
+      socketOptions: { 
+        keepAlive: mongoTimeout, 
+        connectTimeoutMS : mongoTimeout 
       }
     }
   };
