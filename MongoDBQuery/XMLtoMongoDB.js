@@ -113,6 +113,56 @@ function mongoRunXmlQuery(title,isQueryStrict, xmlQuery,callback){
 }
 
 /**
+ * Given a query title, retrieves all the documents from the corresponding collection, and calls the given callback
+ * function providing chunks of the resulting data
+ * @param [queryTitle] the title of the query to store
+ * @param [callback] The callback needs to follow this structure(err,title,item,isStillFinished);
+ */
+
+function getQueryData(queryTitle,callback){
+  
+  var collectionTitle = queryCollectionPrefix + queryTitle;
+
+  constants.connectAndValidateNodeJs(function (err, db) {
+    if (err) return console.error("getQueryData() ERROR connecting to DB" + err);
+    console.log("getQueryData() Successfully connected to DB");
+
+    // Does the corresponding collection exist?
+    db.listCollections({name: collectionTitle}).toArray(function(err, items) {
+      if (err) return console.error("getQueryData() ERROR REQUESTING COLLECTION" + err);
+      if (items.length==1){
+        //Collection exists, query its elements
+        //var cursor =
+        db.collection(collectionTitle).find({"value.xmlQueryCounter":{ $gt: 0 }}).toArray(function(err, documents) {
+          console.log("printing reslts");
+          console.log("Returning " + documents.length + " items");
+          callback(null,queryTitle,documents);
+        });
+
+       
+        // Execute the each command, triggers for each document
+        /*cursor.each(function(err, item) {
+            if (err) return console.error("getQueryData() CURSOR ERROR" + err);
+            // If the item is null then the cursor is exhausted/empty and closed
+            if(item == null) {
+                db.close();
+                callback(null,queryTitle,item,true);
+                return;
+            }
+            var itemJson = JSON.stringify(item)
+            //console.log(itemJson);
+            callback(null,queryTitle,itemJson,false);
+        });*/
+      }
+      else{
+        //Collection doesn't exist, return an error
+        return console.error("getQueryData() requested query doesn't exist");
+      }
+    });
+  });
+}
+
+/**
  * Starting function, that loads the XML from the file system
  */
 function loadXml(filename,callback) {
@@ -141,15 +191,15 @@ function xmlReady(xmlDoc,mapReduceVars,callback) {
     if (err) return console.error("xmlReady() ERROR connecting to DB" + err);
     console.log("xmlReady() Successfully connected to DB");
     mapReduceVars.db=db;
-    connectionEstablished(null, xmlDoc,mapReduceVars,callback);
+    prepareMapReduce(null, xmlDoc,mapReduceVars,callback);
   });
 }
 /**
  * Callback for when the database connection is established
  * Conforming to the NodeJs standards, the first parameter is the error message
  */
-function connectionEstablished(err,xmlDoc,mapReduceVars,callback) {
-  if (err) return console.error("connectionEstablished() ERROR connecting to DB" + err);
+function prepareMapReduce(err,xmlDoc,mapReduceVars,callback) {
+  if (err) return console.error("prepareMapReduce() ERROR connecting to DB" + err);
 
   console.log("Current database", mapReduceVars.db.databaseName);
   var userCollection = mapReduceVars.db.collection(constants.userCollection);
@@ -162,7 +212,7 @@ function connectionEstablished(err,xmlDoc,mapReduceVars,callback) {
   });*/
   userCollection.distinct("sid", { "sd": constants.websiteId },
     function (err, docs) {
-      if (err) console.log("connectionEstablished():userList query ERROR " + err);
+      if (err) console.log("prepareMapReduce():userList query ERROR " + err);
       //console.log(docs);
       mapReduceVars.userList = docs;
       mapReduceScript(xmlDoc,mapReduceVars,callback);
@@ -988,3 +1038,4 @@ function interruptExecution(message){
  * Available functions from this module
  */
 module.exports.mongoRunXmlQuery = mongoRunXmlQuery;
+module.exports.getQueryData = getQueryData;

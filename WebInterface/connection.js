@@ -25,11 +25,11 @@ function ioSaveXmlQuery(){
  * @param {xmlData} query to run, in xml format
  */
 function ioExecuteQuery(email,isStrictMode,xmlTitle,xmlData){
-  socket.emit('runXMLQuery', {
-    "email":email,
-    "isStrictMode":isStrictMode,
-    "xmlTitle":xmlTitle,
-    "xmlData":xmlData,
+  socket.emit('serverRunXMLQuery', {
+                "email":email,
+                "isStrictMode":isStrictMode,
+                "xmlTitle":xmlTitle,
+                "xmlData":xmlData,
                 "timestamp": new Date().getTime()
             });
 }
@@ -38,10 +38,26 @@ function ioExecuteQuery(email,isStrictMode,xmlTitle,xmlData){
  * List of socket listeners
  */
 
-socket.on('xmlQueryFinished', function (data) {
+socket.on('clientXmlQueryFinished', function (data) {
   notifyUser(data.message);
 });
 
+/**
+ * Analysis functions
+ */
+function requestQueryData(title){
+  socket.emit('serverRequestQueryData', {"queryTitle":title});
+}
+
+/**
+ * Processes received json object
+ * TODO: I don't like the idea of downloading the whole collection to the client. I think it's better to abstract him from that.
+ */
+socket.on('clientQueryDataProcessed', function (data) {
+    notifyUser("A document for the query " + data.queryTitle + " has been received");
+    console.log("A document for the query " + data.queryTitle + " has been received");
+    console.log("The file is available in " + data.queryPath);
+});
 
 /**
  * Notify user

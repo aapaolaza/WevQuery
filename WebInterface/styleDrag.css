@@ -3,6 +3,26 @@ h1,h2{
   text-align:left;
 }
 
+h2{
+  -webkit-border-radius: 16;
+  -moz-border-radius: 16;
+  border-radius: 16px;
+  -webkit-box-shadow: 0px 1px 3px #666666;
+  -moz-box-shadow: 0px 1px 3px #666666;
+  box-shadow: 0px 1px 3px #666666;
+  font-family: Arial;
+  color: #ffffff;
+  /*font-size: 20px;*/
+  background: #9c9c9c;
+  padding: 10px 20px 10px 20px;
+  text-decoration: none;
+}
+
+.greyBox{
+  border: 5px solid #aaaaaa;
+  padding:10px;
+}
+
 #leftMenu{
   position: fixed;
   left: 20px;
@@ -19,18 +39,6 @@ h1,h2{
 /*Created with http://css3buttongenerator.com */
 #eventPaletteTitle {
   cursor: pointer;
-  -webkit-border-radius: 16;
-  -moz-border-radius: 16;
-  border-radius: 16px;
-  -webkit-box-shadow: 0px 1px 3px #666666;
-  -moz-box-shadow: 0px 1px 3px #666666;
-  box-shadow: 0px 1px 3px #666666;
-  font-family: Arial;
-  color: #ffffff;
-  /*font-size: 20px;*/
-  background: #9c9c9c;
-  padding: 10px 20px 10px 20px;
-  text-decoration: none;
   width:275px;
 }
 #eventPaletteTitle:hover {
@@ -126,26 +134,12 @@ li.eventTemplate .eventTemplateLabel{
   min-height: 200px;
   min-width: 200px;
   width:auto;
-  border: 5px solid #aaaaaa;
-  padding:10px;
   margin-left: 230px;
 }
 
 
 #eventOrderTitle{
   margin-left: 185px;/*So it matches the event palette title*/
-  -webkit-border-radius: 16;
-  -moz-border-radius: 16;
-  border-radius: 16px;
-  -webkit-box-shadow: 0px 1px 3px #666666;
-  -moz-box-shadow: 0px 1px 3px #666666;
-  box-shadow: 0px 1px 3px #666666;
-  font-family: Arial;
-  color: #ffffff;
-  /*font-size: 20px;*/
-  background: #9c9c9c;
-  padding: 10px 20px 10px 20px;
-  text-decoration: none;
   width:475px;
 }
 /*Event order area restricts templates to a single ordered line, and shows a scroll bar*/
@@ -153,8 +147,6 @@ li.eventTemplate .eventTemplateLabel{
   min-height: 200px;
   min-width: 200px;
   width:auto;
-  border: 5px solid #aaaaaa;
-  padding:10px;
   margin-bottom: 50px;
   margin-left: 175px;/*Same as eventPaletteDiv*/
 

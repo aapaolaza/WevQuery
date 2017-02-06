@@ -31,11 +31,6 @@
 
     <!-- server.js code script start-->
     <script src="/socket.io/socket.io.js"></script>
-    <script>
-        var urlarr = window.location.href.split("/");
-        var server = urlarr[0] + "//" + urlarr[2]
-        var socket = io.connect(server);
-    </script>
     <script src="./connection.js"></script>
     <!-- server.js code script end-->
 
@@ -466,7 +461,7 @@
             <p class="hint"> Additional context options for the event to be matched 
             </table>
           </li>
-          <ul id="eventPaletteArea">
+          <ul id="eventPaletteArea" class="greyBox">
             <li class="eventTemplate eventTemplateDraggable" style="display: inline-block;">
               <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span>
               <p class="eventTitle"></p>
@@ -507,7 +502,7 @@
       </div>
           <h2 id="eventOrderTitle"> Event Sequence Pattern Design </h2>
 
-      <div id="eventOrderDiv" class="container">
+      <div id="eventOrderDiv" class="container greyBox">
         <ul id="eventOrderArea">
         </ul>
         <div id="tempConstraintsArea">

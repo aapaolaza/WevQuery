@@ -1,0 +1,16 @@
+#leftMenu{
+width: 250px;
+}
+
+.queryItem{
+  padding-bottom: 10px;
+}
+.queryItem .glyphicon, .queryItem progress{
+  float: right;
+  padding-left: 5px;
+}
+
+#analysisPanel{
+  margin-left: 270px;
+  
+}

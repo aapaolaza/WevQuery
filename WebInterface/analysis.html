@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Hypothesis Driven Interaction Behaviour Analysis</title>
+    <link rel="icon" type="image/png" href="./res/WevQueryLogo2.png" />
+    <!-- Bootstrap -->
+    <link href="bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="analysis.css">
+    <link rel="stylesheet" href="styleDrag.css">
+    <link rel="stylesheet" href="./jquery-ui-1.12.1/jquery-ui.css">
+    <script src="./jquery-ui-1.12.1/external/jquery/jquery.js"></script>
+    <!-- WARNING!!! The order of the following two JavaScripts will affect the icons used in the interface (the last one will have priority)-->
+    <script src="./jquery-ui-1.12.1/jquery-ui.min.js"></script>
+    <script src="bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+    <!-- tag selection script-->
+    <script src="chosen_v1.6.2/chosen.jquery.js"></script>
+    <link rel="stylesheet" href="chosen_v1.6.2/chosen.css">
+    <!-- Xml validation by http://syssgx.github.io/xml.js/ -->
+    <script src="xmllint.js"></script>
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <!-- The event creation and interaction logic is stored in a different file -->
+    <script src="./interface.js"></script>
+
+    <!-- server.js code script start-->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="./connection.js"></script>
+    <!-- server.js code script end-->
+
+    <script>
+      var pBar = document.getElementById('p');
+      var updateProgress = function(value) {
+        pBar.value = value;
+        pBar.getElementsByTagName('span')[0].innerHTML = Math.floor((100 / 70) * value);
+      }
+
+      function downloadQueryData(queryTitle){
+        
+
+      }
+    </script>
+  </head>
+  <body>
+    <div id="leftMenu">
+      <div>
+        <img src="./res/WevQueryLogo.png" alt="WevQuery tool logo">
+      </div>
+      <div class="btn-group">
+        <button type="button" class="btn  btn-lg btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Menu <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu col-xs-12">
+          <li><a href="#">Update Queries</a></li>
+          <li role="separator" class="divider"></li>
+          <li><a href="#">Download Source</a></li>
+          <li><a href="#">Download Report</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h2>Queries</h2>
+        <div id="queryFinishedList" class="greyBox">
+          <div class="queryItem">
+            <b class="title">Query X</b>
+            <i class="glyphicon glyphicon-download"></i>
+            <i class="glyphicon glyphicon-flag"></i>
+            <i class="glyphicon glyphicon-trash"></i>
+          </div>
+          <div class="queryItem">
+            <b class="title">Query Y</b>
+            <i class="glyphicon glyphicon-download"></i>
+            <i class="glyphicon glyphicon-flag"></i>
+            <i class="glyphicon glyphicon-trash"></i>
+          </div>
+        </div>
+        
+        <h2>Query progress</h2>
+        <div id="queryProgressList" class="greyBox">
+          <div class="queryItem">
+            <b class="title">Query X</b>
+            <progress value="22" max="100"/>
+          </div>
+          <div class="queryItem">
+            <b class="title">Query Y</b>
+            <progress value="50" max="100"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="analysisPanel"class="container-fluid">
+      <h2>Analysis panel</h2>
+      <ul class="nav nav-tabs">
+        <li class="active"><a data-toggle="tab" href="#tabRaw">Raw Data</a></li>
+        <li><a data-toggle="tab" href="#tabDescrStat">Descriptive statistics</a></li>
+        <li><a data-toggle="tab" href="#tabTemp">Temporal description</a></li>
+      </ul>
+
+      <div class="tab-content">
+        <div id="rawTab" class="tab-pane fade in active">
+          <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        </div>
+        <div id="tabDescrStat" class="tab-pane fade">
+          <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+        </div>
+        <div id="tabTemp" class="tab-pane fade">
+          <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.</p>
+        </div>
+      </div>
+    </div>
+    
+    <div id="toastbar">Toast to show to the user</div>
+  </body>
+</html>
