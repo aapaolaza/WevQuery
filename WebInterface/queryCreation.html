@@ -28,12 +28,12 @@
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
     <!-- The event creation and interaction logic is stored in a different file -->
-    <script src="./dashboardBootstrap.js"></script>
+    <script src="./queryCreation.js"></script>
 
     <!-- server.js code script start-->
     <script src="/socket.io/socket.io.js"></script>
     <script src="./connection.js"></script>
-    <script src="./dashboardBootstrapConnection.js"></script>
+    <script src="./queryCreationConnection.js"></script>
     <!-- server.js code script end-->
 
     <script>
@@ -301,7 +301,8 @@
         $("#runQueryButton").click(function () {
           executeQueryDialog.dialog("open");
         });
-      
+        
+        initialiseInterface();
         updateOrderedArea();
       });
       
@@ -337,7 +338,7 @@
       
           $(this).css({ top: constraintBottomCoord, left: constraintLeftCoord, width: constraintWidth, position: 'absolute' });
       
-          //we don't want to lose the trash icon from the template
+          //copy the trash element to add it after the inner HTML has been modified
           var $trashElement = $(".tempConstraintMessage", this).find('span.glyphicon-trash');
           var unit = "";
           switch ($(this).attr("unit")) {
@@ -578,8 +579,9 @@
       </div>
       <p class="eventTemplateLabel contextHeader"></p>
       <table class="contextTable"> </table>
-      <span class="glyphicon glyphicon-trash ui-sortable-handle" aria-hidden="true" aria-label="Delete Event"></span>
+      <span class="glyphicon glyphicon-trash ui-sortable-handle" aria-hidden="true" aria-label="Delete Event" onclick="deleteEvent(this);"></span>
     </li>
+
     <!-- Dialog to be shown when creating a new Temporal Contraint-->
     <div id="temporalCostraintDialog" title="Create new Temporal Contraint" style='display:none'>
       <p class="validateTips">All form fields are required.</p>
@@ -624,6 +626,7 @@
         </fieldset>
       </form>
     </div>
+
     <!-- template to create new temporal constraints -->
     <div id="newTempConstTemplate" class="tempConstraintObject" start="" end="" type="" value="" unit="" style='display:none'>
       <p class="tempConstraintMessage">

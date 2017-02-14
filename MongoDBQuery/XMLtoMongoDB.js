@@ -21,16 +21,13 @@
 
 //////We need to load the constants file
 var constants = require("./MapReduceConstantsNode.js");
-var MongoClient = require('mongodb').MongoClient
-  , Server = require('mongodb').Server;
-
-
 
 var xpath = require('xpath')
   , dom = require('xmldom').DOMParser
 
-//This prefix will be added to all 
+//This prefix will be added to all queries
 var queryCollectionPrefix = "xmlQuery_"
+
 //db = connectAndValidate();
 
 //list of events to be processed, this will speed up the query, as only the relevant events will be considered
@@ -44,7 +41,7 @@ var queryCollectionPrefix = "xmlQuery_"
 
 
 //true if the file was run via command line "node ./XMLtoMongoDB.js"
-if (require.main === module){
+if (require.main === module) {
   //Variables I need for the MapReduce function
   var mapReduceVars = {};
   mapReduceVars.eventList = "";
@@ -72,45 +69,20 @@ if (require.main === module){
     if (err) return console.error('There was an error loading the XML', err);
     xmlDoc = data;
     //If the command is launched from the console, the title is set to the filename
-    mapReduceVars.title = queryCollectionPrefix+argv.file.split(".")[0];
+    mapReduceVars.title = queryCollectionPrefix + argv.file.split(".")[0];
     //notify user of the error, or the result of the query
-    xmlReady(xmlDoc,mapReduceVars, function (err, data) {
+    xmlReady(xmlDoc, mapReduceVars, function (err, data) {
       //notify user of the error, or the result of the query
       console.log("Execution ended");
     });
   });
 }
-else{
+else {
   var path = require('path');
   var filename = path.basename(__filename);
-  console.log (filename +" correctly loaded at " + datestamp());
+  console.log(filename + " correctly loaded at " + datestamp());
 }
 
-
-/**
- * Runs the provided xmlQuery. Accessible from the WevQueryServer
- * @param {title} title of the query, the results will be stored in a collection of the same name
- * @param {isQueryStrict} boolean indicating if the query should be strict
- * @param {xmlQuery} string containing the xml query to run
- */
-function mongoRunXmlQuery(title,isQueryStrict, xmlQuery,callback){
-  xmlDoc = new dom().parseFromString(xmlQuery);
-  
-  var mapReduceVars = {};
-  mapReduceVars.eventList = "";
-  mapReduceVars.userList = "";
-  mapReduceVars.db = "";
-  mapReduceVars.isQueryStrict = isQueryStrict;
-  mapReduceVars.title = queryCollectionPrefix+title;
-
-  xmlReady(xmlDoc,mapReduceVars, function (err, data) {
-    //notify user of the error, or the result of the query
-    if (err) throw err;
-    console.log ("xmlQuery finished, results can be found in the collection: "+mapReduceVars.title);
-
-    callback(null,title);
-  });
-}
 
 /**
  * Given a query title, retrieves all the documents from the corresponding collection, and calls the given callback
@@ -119,8 +91,8 @@ function mongoRunXmlQuery(title,isQueryStrict, xmlQuery,callback){
  * @param [callback] The callback needs to follow this structure(err,title,item,isStillFinished);
  */
 
-function getQueryData(queryTitle,callback){
-  
+function getQueryData(queryTitle, callback) {
+
   var collectionTitle = queryCollectionPrefix + queryTitle;
 
   constants.connectAndValidateNodeJs(function (err, db) {
@@ -128,18 +100,18 @@ function getQueryData(queryTitle,callback){
     console.log("getQueryData() Successfully connected to DB");
 
     // Does the corresponding collection exist?
-    db.listCollections({name: collectionTitle}).toArray(function(err, items) {
+    db.listCollections({ name: collectionTitle }).toArray(function (err, items) {
       if (err) return console.error("getQueryData() ERROR REQUESTING COLLECTION" + err);
-      if (items.length==1){
+      if (items.length == 1) {
         //Collection exists, query its elements
         //var cursor =
-        db.collection(collectionTitle).find({"value.xmlQueryCounter":{ $gt: 0 }}).toArray(function(err, documents) {
+        db.collection(collectionTitle).find({ "value.xmlQueryCounter": { $gt: 0 } }).toArray(function (err, documents) {
           console.log("printing reslts");
           console.log("Returning " + documents.length + " items");
-          callback(null,queryTitle,documents);
+          callback(null, queryTitle, documents);
         });
 
-       
+
         // Execute the each command, triggers for each document
         /*cursor.each(function(err, item) {
             if (err) return console.error("getQueryData() CURSOR ERROR" + err);
@@ -154,7 +126,7 @@ function getQueryData(queryTitle,callback){
             callback(null,queryTitle,itemJson,false);
         });*/
       }
-      else{
+      else {
         //Collection doesn't exist, return an error
         return console.error("getQueryData() requested query doesn't exist");
       }
@@ -163,9 +135,70 @@ function getQueryData(queryTitle,callback){
 }
 
 /**
+ * Deletes the collection with the data for the given query title
+ */
+function deleteResultCollection(queryTitle, callback) {
+  constants.connectAndValidateNodeJs(function (err, db) {
+    if (err) return console.error("deleteResultCollection() ERROR connecting to DB" + err);
+    db.collection(queryCollectionPrefix + queryTitle).drop(function (err, result) {
+      if (err) {
+        console.log(err);
+      }
+      db.close();
+      callback(null);
+    });
+  });
+}
+
+/**
+ * Callback for when the query is completed
+ *
+ * @callback runXmlQueryCallback
+ * @param {err} err
+ * @param {string} title of the query that has completed
+ */
+
+/**
+ * Callback for when the query has been succesfully started
+ * This callback is optional, and will be replaced with null if not provided
+ *
+ * @callback afterQueryStarts
+ * @param {err} err
+ * @param {string} title of the query that has completed
+ * @param {string} xmlQuery string containing the xml query to run
+ */
+
+/**
+ * Runs the provided xmlQuery. Accessible from the WevQueryServer
+ * @param {string} title of the query, the results will be stored in a collection of the same name
+ * @param {boolean} isQueryStrict boolean indicating if the query should be strict
+ * @param {string} xmlQuery string containing the xml query to run
+ * @param {runXmlQueryCallback} callback to call when completed
+ * @param {afterQueryStarts} callback to call as soon as the query has been succesfully started
+ */
+function runXmlQuery(title, isQueryStrict, xmlQuery, endCallback, launchedCallback) {
+
+  //I am not sure if this assignment is necessary. Can I just pass "undefined" variables over?
+  //The test for the validity of the callback will be done before calling it
+  var launchedCallback = typeof launchedCallback !== 'undefined' ? launchedCallback : null;
+
+  xmlDoc = new dom().parseFromString(xmlQuery);
+
+  var mapReduceVars = {};
+  mapReduceVars.eventList = "";
+  mapReduceVars.userList = "";
+  mapReduceVars.db = "";
+  mapReduceVars.isQueryStrict = isQueryStrict;
+  mapReduceVars.title = title;
+
+  xmlReady(xmlQuery, xmlDoc, mapReduceVars, endCallback, launchedCallback);
+}
+
+
+/**
  * Starting function, that loads the XML from the file system
  */
-function loadXml(filename,callback) {
+function loadXml(filename, callback) {
 
   // Read the file and print its contents.
   var fs = require('fs');
@@ -182,7 +215,7 @@ function loadXml(filename,callback) {
 /**
  * Once the XML is ready, I can read the values, and prepare the MapReduce script
  */
-function xmlReady(xmlDoc,mapReduceVars,callback) {
+function xmlReady(xmlQuery, xmlDoc, mapReduceVars, endCallback, launchedCallback) {
   mapReduceVars.eventList = xpath.select("//eventList/text()", xmlDoc).toString().split(",");
   mapReduceVars.eventList = uniqueArray(mapReduceVars.eventList);
   console.log(mapReduceVars.eventList);
@@ -190,16 +223,15 @@ function xmlReady(xmlDoc,mapReduceVars,callback) {
   constants.connectAndValidateNodeJs(function (err, db) {
     if (err) return console.error("xmlReady() ERROR connecting to DB" + err);
     console.log("xmlReady() Successfully connected to DB");
-    mapReduceVars.db=db;
-    prepareMapReduce(null, xmlDoc,mapReduceVars,callback);
+    mapReduceVars.db = db;
+    prepareMapReduce(xmlQuery, xmlDoc, mapReduceVars, endCallback, launchedCallback);
   });
 }
 /**
  * Callback for when the database connection is established
  * Conforming to the NodeJs standards, the first parameter is the error message
  */
-function prepareMapReduce(err,xmlDoc,mapReduceVars,callback) {
-  if (err) return console.error("prepareMapReduce() ERROR connecting to DB" + err);
+function prepareMapReduce(xmlQuery, xmlDoc, mapReduceVars, endCallback, launchedCallback) {
 
   console.log("Current database", mapReduceVars.db.databaseName);
   var userCollection = mapReduceVars.db.collection(constants.userCollection);
@@ -215,7 +247,7 @@ function prepareMapReduce(err,xmlDoc,mapReduceVars,callback) {
       if (err) console.log("prepareMapReduce():userList query ERROR " + err);
       //console.log(docs);
       mapReduceVars.userList = docs;
-      mapReduceScript(xmlDoc,mapReduceVars,callback);
+      mapReduceScript(xmlQuery, xmlDoc, mapReduceVars, endCallback, launchedCallback);
     });
 }
 
@@ -230,7 +262,7 @@ function uniqueArray(array) {
 }
 
 
-function mapReduceScript(xmlDoc,mapReduceVars,callback) {
+function mapReduceScript(xmlQuery, xmlDoc, mapReduceVars, endCallback, launchedCallback) {
   var eventCollection = mapReduceVars.db.collection(constants.eventCollection);
 
   //The xml needs to be processed, and transformed into JavaScript objects that MapReduce can process
@@ -243,7 +275,8 @@ function mapReduceScript(xmlDoc,mapReduceVars,callback) {
   console.log("ip: $nin: " + constants.bannedIPlist);
   console.log("event: $in: " + mapReduceVars.eventList);
   console.log("isQueryStrict: " + constants.scopeObject["isQueryStrict"]);
-  console.log("title: "+mapReduceVars.title);
+  console.log("title: " + mapReduceVars.title);
+  console.log("collection name: " + queryCollectionPrefix + mapReduceVars.title);
 
 
   console.log("sessionstartms: $exists: " + true);
@@ -252,7 +285,7 @@ function mapReduceScript(xmlDoc,mapReduceVars,callback) {
     //reduceFunction.toString(),
     skinnyReduceFunction.toString(),
     {
-      out: { replace: mapReduceVars.title},
+      out: { replace: queryCollectionPrefix + mapReduceVars.title },
       query: {
         "sd": constants.websiteId
         //, "sid": { $in: mapReduceVars.userList }
@@ -266,15 +299,26 @@ function mapReduceScript(xmlDoc,mapReduceVars,callback) {
       verbose: true
       //,sort: {sid:1, url:1, urlSessionCounter:1}
     },
-    function (error, results, stats) {   // stats provided by verbose
+    function (err, results, stats) {   // stats provided by verbose
       console.log("mapReduceScript() end");
-      console.log(error);
+      if (err) return console.error("mapReduceScript() ERROR " + err);
       console.log(results);
       console.log(stats);
+      console.log("Query finished in " + stats.processtime + " ms");
       mapReduceVars.db.close();
-      callback(null, results);
+      endCallback(null, mapReduceVars.title, stats.processtime);
     }
   );
+
+  //Add a delay to the funcion, as the query will not be available straight away
+  if (launchedCallback !== null) {
+    setTimeout(function () {
+      console.log("calling launchedCallback");
+      console.log(mapReduceVars.title);
+      console.log(xmlQuery);
+      launchedCallback(null, mapReduceVars.title, xmlQuery)
+    }, 500);
+  }
 }
 
 function parseXMLToMapReduceObject(xmlDoc) {
@@ -315,7 +359,7 @@ function parseXMLToMapReduceObject(xmlDoc) {
 
   var currentID = xpath.select("string(//event[@pre='null']/@id)", xmlDoc);
   //Keep the index of this event in the table. The '-1' is necessary to obtain the index of the last element
-  eventIDTable[currentID] = xmlQueryObject.eventList.push(eventQueryObject)-1;
+  eventIDTable[currentID] = xmlQueryObject.eventList.push(eventQueryObject) - 1;
   console.log("eventQueryObject with id=" + currentID);
   console.log(eventQueryObject);
   console.log("Adding " + (parseInt(eventQueryObject.occurrences) - 1) + " more events");
@@ -400,7 +444,7 @@ function parseXMLToMapReduceObject(xmlDoc) {
 
     tempRestrObject.eventRef1 = eventIDTable[eventRef[0].getAttribute("id")];
     tempRestrObject.eventRef2 = eventIDTable[eventRef[1].getAttribute("id")];
-    console.log("tempRestrObject contains a restriction involving indexes " +tempRestrObject.eventRef1 + ", and " + tempRestrObject.eventRef2);
+    console.log("tempRestrObject contains a restriction involving indexes " + tempRestrObject.eventRef1 + ", and " + tempRestrObject.eventRef2);
     console.log(tempRestrObject);
     xmlQueryObject.tempConstrList.push(tempRestrObject);
   });
@@ -753,14 +797,14 @@ function finalizeFunction(key, reduceOutput) {
     }
 
     //Compare current event to the first event in the matching list
-    if (xmlQueryObject.eventList[0].nameList.indexOf(currentEvent.event) > -1){
+    if (xmlQueryObject.eventList[0].nameList.indexOf(currentEvent.event) > -1) {
       //initialise a new candidate
       var candidateObject = [];
       candidateObject.push(currentEvent);
-      
+
       //is the query looking for sequences formed of a single event?
       //If so, just store it as a match, if not, add it to the candidate list to match further events
-      if(xmlQueryObject.eventList.length ==1)
+      if (xmlQueryObject.eventList.length == 1)
         xmlQuery.xmlQueryList.push(candidateObject);
       else
         this.xmlQueryCandidatesList.push(candidateObject);
@@ -790,9 +834,9 @@ function finalizeFunction(key, reduceOutput) {
    */
   function matchTemporalConstraintList(xmlQueryCandidate, tempConstraintList) {
     //For some reason the forEach loop didn't work. 
-//    tempConstraintList.forEach(function (tempConstraint, index) {
-      for (var index = 0; index < tempConstraintList.length; index++) {
-        var tempConstraint = tempConstraintList[index];
+    //    tempConstraintList.forEach(function (tempConstraint, index) {
+    for (var index = 0; index < tempConstraintList.length; index++) {
+      var tempConstraint = tempConstraintList[index];
 
       //Events are added to the candidates list following the order as in the query
       //Therefore the indexes must match the references initially set in the tempConstraint
@@ -810,7 +854,7 @@ function finalizeFunction(key, reduceOutput) {
         else if (tempConstraint.type == "between" && timeDistance < tempConstraint.value)
           return (0);
       }
-    //});
+      //});
     };
     //at this point, all temporal constraints checked out
     return (1);
@@ -974,8 +1018,8 @@ function finalizeFunction(key, reduceOutput) {
     generalStatistics: generalStatistics,
     xmlQuery: xmlQuery.outputResult(),
     xmlQueryCounter: xmlQuery.outputResult().length,
-    isQueryStrict:isQueryStrict,
-    tempConstrList:xmlQueryObject.tempConstrList
+    isQueryStrict: isQueryStrict,
+    tempConstrList: xmlQueryObject.tempConstrList
 
     /*
         episodeStartms: fixEventTS(valuesArraySorted[0]).timestampms,
@@ -1025,9 +1069,9 @@ function completeDateValsMilliseconds(dateVal) {
 /**
  * Function to interrupt the execution at any time. An optional message can be added
  */
-function interruptExecution(message){
-  console.log ("XMLtoMongoDB execution failed");
-  if(message)
+function interruptExecution(message) {
+  console.log("XMLtoMongoDB execution failed");
+  if (message)
     console.log(message);
   //the code will be 1 by default, indicating a failure
   process.exit(1);
@@ -1037,5 +1081,6 @@ function interruptExecution(message){
 /**
  * Available functions from this module
  */
-module.exports.mongoRunXmlQuery = mongoRunXmlQuery;
+module.exports.runXmlQuery = runXmlQuery;
 module.exports.getQueryData = getQueryData;
+module.exports.deleteResultCollection = deleteResultCollection;

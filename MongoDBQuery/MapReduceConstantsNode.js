@@ -213,6 +213,7 @@ function completeDateValsMilliseconds(dateVal) {
 
 
 //////Modules
+module.exports.mongoQueryDB = mongoQueryDB;
 module.exports.connectAndValidateNodeJs = connectAndValidateNodeJs;
 module.exports.completeDateValsMilliseconds = completeDateValsMilliseconds;
 module.exports.parseDateToMs2 = parseDateToMs2;

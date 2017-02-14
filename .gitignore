@@ -5,6 +5,9 @@ logs
 *.log
 npm-debug.log*
 
+#SVN data from external libraries
+.svn
+
 # Runtime data
 pids
 *.pid
@@ -49,3 +52,5 @@ jspm_packages
 .yarn-integrity
 
 config.js
+WebInterface/tablesorter/tests/
+WebInterface/tablesorter/docs/

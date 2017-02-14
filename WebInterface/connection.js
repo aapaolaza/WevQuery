@@ -1,70 +1,69 @@
+/**
+ * Basic connection file, same for all client pages
+ */
+
+
 var urlarr = window.location.href.split("/");
 var server = urlarr[0] + "//" + urlarr[2]
 var socket = io.connect(server);
 
+var logFile = [];
 
-/**
- * This code serves as the interface from the Web application to the main server
- * Requests file saving, and queries* 
- * 
- */
 
-function ioSaveXmlQuery(){
- socket.emit('saveXMLQuery', {
-                "title": currentIndex,
-                "data": imagesIndexesList[currentIndex],
-                "timestamp": new Date().getTime()
-            });
-}
-
-/**
- * Runs the query
- * @param {email} email to send the results of the query to
- * @param {isStrictMode} boolean indicating if query should run in strict mode
- * @param {xmlTitle} title for the query
- * @param {xmlData} query to run, in xml format
- */
-function ioExecuteQuery(email,isStrictMode,xmlTitle,xmlData){
-  socket.emit('serverRunXMLQuery', {
-                "email":email,
-                "isStrictMode":isStrictMode,
-                "xmlTitle":xmlTitle,
-                "xmlData":xmlData,
-                "timestamp": new Date().getTime()
-            });
-}
-
-/**
- * List of socket listeners
- */
-
-socket.on('clientXmlQueryFinished', function (data) {
-  notifyUser(data.message);
+socket.on('messageToClient', function (data) {
+  console.log(data);
+  logFile.push(data.message);
+  $("#connectionLog").text(logFile);
+  notifyUser(data.message, data.isError);
 });
 
-/**
- * Analysis functions
- */
-function requestQueryData(title){
-  socket.emit('serverRequestQueryData', {"queryTitle":title});
-}
-
-/**
- * Processes received json object
- * TODO: I don't like the idea of downloading the whole collection to the client. I think it's better to abstract him from that.
- */
-socket.on('clientQueryDataProcessed', function (data) {
-    notifyUser("A document for the query " + data.queryTitle + " has been received");
-    console.log("A document for the query " + data.queryTitle + " has been received");
-    console.log("The file is available in " + data.queryPath);
-});
 
 /**
  * Notify user
- * I would use a toast, and add the resulting link to the query to the Web dashboard
+ * If the received message is an error, it shows an error dialog
+ * @param [string] message to show to the user
+ * @param [boolean] indicates if the provided message should be treated as an error
  */
-function notifyUser(message){
-  console.log("notifying user:"+message)
-  showToast(message);
+function notifyUser(message, isError) {
+  if (isError)
+    console.log("ERROR: notifying user:" + message)
+  else
+    console.log("notifying user:" + message)
+  logFile.push(message);
+
+  $("#connectionLog").html("<p>" + logFile.toString().replace(/,/g, "</p><p>") + "</p>");
+
+  if (isError)
+    showErrorMessage("ERROR",message);
+  else
+    showToast(message);
   //update analysis dashboard
 }
+
+/**
+ * Addas a toggable log at the bottom of the page
+ */
+$(function () {
+  var $logDiv = $("<div>", { id: "connectionLog" });
+  var $logButton = $("<button>", { id: "connectionLogToggle" });
+  $logButton.click(function () {
+    $logDiv.toggle("slow");
+  });
+  $("body").append($logDiv);
+  $("body").append($logButton);
+
+
+  $logDiv.text("Log messages appear below");
+  $logDiv.css("position", "fixed");
+  $logDiv.css("z-index", "100");
+  $logDiv.css("bottom", "0");
+  $logDiv.css("left", "0");
+  $logDiv.css("width", "100%");
+  $logDiv.css("display", "none");
+
+  $logButton.text("Show connection log");
+  $logButton.css("position", "fixed");
+  $logButton.css("z-index", "101");
+  $logButton.css("bottom", "0");
+  $logButton.css("right", "0");
+});
