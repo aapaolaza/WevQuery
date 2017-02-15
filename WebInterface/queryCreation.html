@@ -19,8 +19,10 @@
     <!-- tag selection script-->
     <script src="chosen_v1.6.2/chosen.jquery.js"></script>
     <link rel="stylesheet" href="chosen_v1.6.2/chosen.css">
-    <!-- Xml validation by http://syssgx.github.io/xml.js/ -->
-    <script src="xmllint.js"></script>
+    
+    <link href="bower_components/bootstrap-toggle/css/bootstrap-toggle.css" rel="stylesheet">
+    <script src="bower_components/bootstrap-toggle/js/bootstrap-toggle.js"></script>
+
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -271,17 +273,17 @@
             + exportXML();
         });
       
-        ///////////executeQueryDialog creation dialog
-        var executeQueryDialog = $("#executeQueryDialog").dialog({
+        ///////////saveQueryDialog creation dialog
+        var saveQueryDialog = $("#saveQueryDialog").dialog({
           autoOpen: false,//it should not open unless called
           minWHeight: 600,
           minWidth: 500,
           modal: true,//disables all other items in the page
           //Adds two buttons, to either add an Event Template or cancel
           buttons: {
-            "Execute Query": requestExecuteQuery,
+            "Save Query": saveQuery,
             Cancel: function () {
-              executeQueryDialog.dialog("close");
+              saveQueryDialog.dialog("close");
             }
           },
           //The only purpose of the following code is to find the newly generated "close window" element, and fix the icon
@@ -290,7 +292,7 @@
             $(this).closest(".ui-dialog")
               .find(".ui-dialog-titlebar-close")
               .removeClass("ui-dialog-titlebar-close")
-              .html("<span class='glyphicon glyphicon-remove' onclick='executeQueryDialog.dialog( 'close');'></span>");
+              .html("<span class='glyphicon glyphicon-remove' onclick='saveQueryDialog.dialog( 'close');'></span>");
           },
           //Pressing the "close" icon topright 
           close: function () {
@@ -298,8 +300,8 @@
             //tempConstraintForm[0].reset();
           }
         });
-        $("#runQueryButton").click(function () {
-          executeQueryDialog.dialog("open");
+        $("#saveQueryButton").click(function () {
+          saveQueryDialog.dialog("open");
         });
         
         initialiseInterface();
@@ -432,6 +434,9 @@
       <div>
         <img src="./res/WevQueryLogo.png" alt="WevQuery tool logo">
       </div>
+      <div>
+        <input id="pageToggle" type="checkbox" data-toggle="toggle" data-on="Query Creation" data-off="Analysis" data-onstyle="primary" data-offstyle="info">
+      </div>
       <div class="btn-group">
         <button type="button" class="btn  btn-lg btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         Menu <span class="caret"></span>
@@ -440,8 +445,7 @@
           <li><a href="#">Load XML</a></li>
           <li><a href="" id="downloadXML" download="eql.xml">Download XML</a></li>
           <li role="separator" class="divider"></li>
-          <li><a href="#" id="runQueryButton">Run Query</a></li>
-          <li><a href="#" id="runStrictQueryButton">Run <i>Strict</i> Query</a></li>
+          <li><a href="#" id="saveQueryButton">Save Query</a></li>
         </ul>
       </div>
     </div>
@@ -636,20 +640,21 @@
       <span class="glyphicon glyphicon-resize-horizontal ui-resizable-handle ui-resizable-e" aria-hidden="true" aria-label="Resize temporal constraint"></span>
     </div>
     <!-- Dialog to execute a query -->
-    <div id="executeQueryDialog" title="Execute query" style='display:none'>
-      <p id="isQueryStrict"><b>Not Strict</b></p>
-      <p class="validateTips">A title and a valid mail address is required.</p>
+    <div id="saveQueryDialog" title="Save query" style='display:none'>
+      <p class="validateTips">A title is required.</p>
        <form class="form-horizontal container">
         <label for="queryTitle" class="col-sm-5 control-label">Query title:</label>
         <input id="queryTitle" type="text" class="col-sm-7" placeholder="insert query title" aria-describedby="Text input for query title">
       </form>
-      <form class="form-horizontal container">
-        <label for="email" class="col-sm-5 control-label">Email address:</label>
-        <input id="emailAdress" type="text" class="col-sm-7" placeholder="insert email address" aria-describedby="Text input for email address">
-      </form>
       <!-- Allow form submission with keyboard without duplicating the dialog button -->
       <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
     </div>
+
+    <div id="dialog-confirm" title="Empty the recycle bin?" style='display:none'>
+      <p><span class="glyphicon glyphicon-alert" style="float:left; margin:12px 12px 20px 0;"></span>These items will be permanently
+      deleted and cannot be recovered. Are you sure?</p>
+    </div>
+    
     <div id="toastbar">Toast to show to the user</div>
   </body>
 </html>

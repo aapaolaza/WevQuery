@@ -5,13 +5,17 @@
  * 
  */
 
-function ioSaveXmlQuery(){
+function requestSaveXmlQuery(title,xmlData){
  socket.emit('saveXMLQuery', {
-                "title": currentIndex,
-                "data": imagesIndexesList[currentIndex],
-                "timestamp": new Date().getTime()
-            });
+                "title": title,
+                "data": xmlData
+              });
 }
+
+socket.on('clientXmlQuerySaved', function (data) {
+  //the interface will determine the nature of the message (error or success) and notify the user
+  showSaveQueryResult(data.errorMessage);
+});
 
 /**
  * Runs the query
@@ -20,7 +24,7 @@ function ioSaveXmlQuery(){
  * @param {xmlTitle} title for the query
  * @param {xmlData} query to run, in xml format
  */
-function ioExecuteQuery(email,isStrictMode,xmlTitle,xmlData){
+function requestExecuteQuery(email,isStrictMode,xmlTitle,xmlData){
   socket.emit('serverRunXMLQuery', {
                 "email":email,
                 "isStrictMode":isStrictMode,

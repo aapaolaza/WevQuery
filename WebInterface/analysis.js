@@ -1,11 +1,24 @@
+
 /**
  * Called when the page is loaded. Runs all the initialisation functions
  * 
  */
 function initialiseInterface() {
   requestCompletedQueries();
-  requestHistoryQueries();
+  requestCatalogQueries();
   requestRunningQueries();
+
+  //Redirect the user when the toggle is pressed
+  $('#pageToggle').bootstrapToggle('off');//analysis.html is off
+  $("#pageToggle").change(function() {
+    if ($(this).prop('checked'))
+      window.location.replace("./queryCreation.html")    
+    else{
+      window.location.replace("./analysis.html")
+      //Before moving away, store the state of the query into the cookie
+      
+    }
+  });
 }
 
 /**
@@ -29,32 +42,32 @@ function updateCompletedQueries(queryList) {
 }
 
 /**
- * Given a list of query objects from db, it udpates the query history list
+ * Given a list of query objects from db, it udpates the query Catalog list
  * It includes the elapsed time, if available
  */
-function updateHistoryQueries(queryList) {
+function updateCatalogQueries(queryList) {
   //Empty the list
-  $(".queryHistoryItem", "#queryHistoryList").remove();
+  $(".queryCatalogItem", "#queryCatalogList").remove();
   //Fill the list with the received items
   queryList.forEach(function (queryObject, index) {
-    console.log("Filling newHistoryQueryObject");
+    console.log("Filling newCatalogQueryObject");
 
-    var newHistoryQueryObject = $("#queryHistoryItemTemplate").clone();
-    newHistoryQueryObject.removeAttr("id");
-    $(".title", newHistoryQueryObject).text(queryObject.title);
-    $(".date", newHistoryQueryObject).text(queryObject.readableDate.split("T")[0]);
+    var newCatalogQueryObject = $("#queryCatalogItemTemplate").clone();
+    newCatalogQueryObject.removeAttr("id");
+    $(".title", newCatalogQueryObject).text(queryObject.title);
+    $(".date", newCatalogQueryObject).text(queryObject.readableDate.split("T")[0]);
 
     if (queryObject.processtimems > -1)
-      $(".processTime", newHistoryQueryObject).text(queryObject.processtimems);
+      $(".processTime", newCatalogQueryObject).text(queryObject.processtimems);
     else
-      $(".processTime", newHistoryQueryObject).text("NA");
-    $(".numberOfObjects", newHistoryQueryObject).text(queryObject.count);
-    $(".queryData", newHistoryQueryObject).text(queryObject.queryXML);
+      $(".processTime", newCatalogQueryObject).text("NA");
+    $(".numberOfObjects", newCatalogQueryObject).text(queryObject.count);
+    $(".queryData", newCatalogQueryObject).text(queryObject.queryXML);
 
-    $("#queryHistoryList").append(newHistoryQueryObject);
-    //$('#queryHistoryList tr:last').after(newHistoryQueryObject);
+    $("#queryCatalogList").append(newCatalogQueryObject);
+    //$('#queryCatalogList tr:last').after(newCatalogQueryObject);
 
-    newHistoryQueryObject.show();
+    newCatalogQueryObject.show();
   });
   updateLeftMenu();
 }
@@ -98,7 +111,7 @@ function updateLeftMenu() {
     opacity: 1
   }, 200);
   $("#queryResultsTable").trigger("update");
-  $("#queryHistoryTable").trigger("update");
+  $("#queryCatalogTable").trigger("update");
 
   //Add option menu when user clicks on a row
   $("td", "#queryResultsList").click(function () {
@@ -110,13 +123,13 @@ function updateLeftMenu() {
     positionOptions($("tr.active", "#queryResultsList"), "queryResultsOptions");
   });
 
-  $("td", "#queryHistoryList").click(function () {
+  $("td", "#queryCatalogList").click(function () {
     //Highlight selected row
-    $("tr.active", "#queryHistoryList").removeClass("active");
+    $("tr.active", "#queryCatalogList").removeClass("active");
     $(this).parent("tr").addClass("active");
     //Open options menu
-    $("#queryHistoryOptions").show();
-    positionOptions($("tr.active", "#queryHistoryList"), "queryHistoryOptions");
+    $("#queryCatalogOptions").show();
+    positionOptions($("tr.active", "#queryCatalogList"), "queryCatalogOptions");
   });
   updateOptionsMenu();
 }
@@ -136,16 +149,16 @@ function updateOptionsMenu() {
   else
     $("#queryResultsOptions").hide();
 
-  if ($("#queryHistoryList").is(":visible")) {
-    if ($("tr.active", "#queryHistoryList").length > 0) {
-      $("#queryHistoryOptions").show();
-      positionOptions($("tr.active", "#queryHistoryList"), "queryHistoryOptions");
+  if ($("#queryCatalogList").is(":visible")) {
+    if ($("tr.active", "#queryCatalogList").length > 0) {
+      $("#queryCatalogOptions").show();
+      positionOptions($("tr.active", "#queryCatalogList"), "queryCatalogOptions");
     }
     else
-      $("#queryHistoryOptions").hide();
+      $("#queryCatalogOptions").hide();
   }
   else
-    $("#queryHistoryOptions").hide();
+    $("#queryCatalogOptions").hide();
 }
 
 /**
@@ -203,20 +216,20 @@ function deleteQueryResults(queryTitle) {
 }
 
 /**
- * Deletes the selected query from the history
+ * Deletes the selected query from the Catalog
  */
-function deleteQueryHistory(queryTitle) {
+function deleteQueryCatalog(queryTitle) {
   $("p", "#dialog-confirm").text("You will lose the stored infromation regarding this query.");
 
   var confirmDialog = $("#dialog-confirm").dialog({
-    title: "Delete the history for " + queryTitle + "?",
+    title: "Delete the Catalog for " + queryTitle + "?",
     resizable: false,
     height: "auto",
     width: 400,
     modal: true,
     buttons: {
       "Confirm": function () {
-        requestQueryHistoryDeletion(queryTitle);
+        requestQueryCatalogDeletion(queryTitle);
         confirmDialog.dialog("close");
       },
       Cancel: function () {
@@ -237,9 +250,9 @@ function deleteQueryHistory(queryTitle) {
 
 
 /**
- * Run the given query from history
+ * Run the given query from Catalog
  */
-function runQueryHistory(email, isQueryStrict, queryTitle, queryData) {
+function runQueryCatalog(email, isQueryStrict, queryTitle, queryData) {
   requestExecuteQuery(email, isQueryStrict, queryTitle, queryData);
   if (isQueryStrict)
     showToast("The query " + queryTitle + " is now running in strict mode");
@@ -248,18 +261,21 @@ function runQueryHistory(email, isQueryStrict, queryTitle, queryData) {
 }
 
 /**
- * Edit history item. Sotres teh selected queryData in a cookie, and opens a new window
+ * Edit Catalog item. Sotres teh selected queryData in a cookie, and opens a new window
  */
-function editQueryHistory(queryData) {
+function editQueryCatalog(queryData) {
   setCookie("queryXMLData", queryData, 1);
-  var win = window.open('./queryCreation.html', '_blank');
+  
+  window.location.replace("./queryCreation.html")    
+  //This old approach opened a new window
+  /*var win = window.open('./queryCreation.html', '_blank');
   if (win) {
     //Browser has allowed it to be opened
     win.focus();
   } else {
     //Browser has blocked it
     alert('Please allow popups for this website');
-  }
+  }*/
 }
 
 
@@ -310,9 +326,9 @@ function showErrorMessage(title, message) {
         .find(".ui-dialog-titlebar-close")
         .removeClass("ui-dialog-titlebar-close")
         .html("<span class='glyphicon glyphicon-remove' onclick='confirmDialog.dialog( 'close');'></span>");
-
     },
   });
+  confirmDialog.show();
 }
 
 function setCookie(cname, cvalue, exdays) {

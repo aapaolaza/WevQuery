@@ -1,0 +1,30 @@
+{
+  "name": "wevquery",
+  "version": "1.0.0",
+  "description": "Hypothesis Driven Interaction Behaviour Analysis",
+  "main": "WevQueryServer.js",
+  "dependencies": {
+    "connect": "^3.5.0",
+    "nodemailer": "^3.0.1",
+    "serve-static": "^1.11.2",
+    "socket.io": "^1.7.2"
+  },
+  "devDependencies": {
+    "grunt": "^1.0.1"
+  },
+  "scripts": {
+    "test": "node WevQueryServer.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://aapaolaza@bitbucket.org/aapaolaza/moving-userlogqal.git"
+  },
+  "keywords": [
+    "Web",
+    "interaction",
+    "usability"
+  ],
+  "author": "Aitor Apaolaza",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/aapaolaza/moving-userlogqal#readme"
+}

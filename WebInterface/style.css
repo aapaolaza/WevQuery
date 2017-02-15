@@ -30,6 +30,11 @@ h2{
   Cannot be more than 100, as the dialog overlays are 101*/
   z-index: 100;
 }
+
+#leftMenu .toggle{
+  margin-bottom:7px;
+}
+
 #leftMenu img,#leftMenu button,#leftMenu .dropdown-menu{
   width: 120px;
 }

@@ -15,16 +15,16 @@ socket.on('clientCompletedQueriesFinished', function (data) {
 
 
 /**
- * Requests the list of all queries in history
+ * Requests the list of all queries in Catalog
  */
  
-function requestHistoryQueries(){
-  socket.emit('serverRequestHistoryQueries');
+function requestCatalogQueries(){
+  socket.emit('serverRequestCatalogQueries');
 }
 
-socket.on('serverRequestHistoryQueriesFinished', function (data) {
-  updateHistoryQueries(data.queryList);
-  notifyUser(data.queryList.length + " history queries have been retrieved");
+socket.on('serverRequestCatalogQueriesFinished', function (data) {
+  updateCatalogQueries(data.queryList);
+  notifyUser(data.queryList.length + " Catalog queries have been retrieved");
 });
 
 /**
@@ -58,18 +58,18 @@ socket.on('deleteResultFinished', function (data) {
 
 
 /**
- * Requests the deletion of a history element
+ * Requests the deletion of a Catalog element
  */
-function requestQueryHistoryDeletion(queryTitle){
-  console.log("Delete "+queryTitle + " history");
-  socket.emit('serverDeleteHistory', {
+function requestQueryCatalogDeletion(queryTitle){
+  console.log("Delete "+queryTitle + " Catalog");
+  socket.emit('serverDeleteCatalog', {
                 "queryTitle":queryTitle
             });
 }
 
-socket.on('deleteHistoryFinished', function (data) {
-  notifyUser("History deleted" + data.message,false);
-  requestHistoryQueries();
+socket.on('deleteCatalogFinished', function (data) {
+  notifyUser("Catalog deleted" + data.message,false);
+  requestCatalogQueries();
 });
 
 /**

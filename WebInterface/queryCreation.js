@@ -2,9 +2,22 @@
  * Called when the page is loaded. Runs all the initialisation functions
  * 
  */
-function initialiseInterface(){
-  if(getCookie("queryXMLData")!=="")
+function initialiseInterface() {
+  if (getCookie("queryXMLData") !== "")
     importXML(getCookie("queryXMLData"));
+
+  //Redirect the user when the toggle is pressed
+  //queryCreation.html is on, but we show an animation
+  $('#pageToggle').bootstrapToggle('on');
+  $("#pageToggle").change(function () {
+    if ($(this).prop('checked'))
+      window.location.replace("./queryCreation.html")
+    else {
+      //Before moving away, store the state of the query into the cookie
+      setCookie("queryXMLData", exportXML(), 1);
+      window.location.replace("./analysis.html");
+    }
+  });
 }
 
 
@@ -370,7 +383,7 @@ function exportXML() {
   //validate the xml against the schema
   var xmlString = (new XMLSerializer()).serializeToString(xmlDoc);
   console.log(xmlString);
-  return (xmlString);//validateXMLagainstXSD(xmlString));
+  return (xmlString);
 }
 
 /**
@@ -388,13 +401,20 @@ function importXML(xmlString) {
 
   //the events will be popped out in order
   while ($(xmlDoc).find("event").length > 0) {
-    var xmlEventObject = $(xmlDoc).find("event[pre='"+eventPre+"']");
+    var xmlEventObject = $(xmlDoc).find("event[pre='" + eventPre + "']");
 
     var newEventObject = $("#newEventTemplate").clone();
     newEventObject.removeAttr("id");
 
-    $(".eventList", newEventObject).text(
-      xmlEventObject.find("eventList").text().replace(/,/g, ', '));
+    var eventList = "";
+    xmlEventObject.find("eventList").each(function (index, obj) {
+      if (index == 0)
+        eventList += $(this).text();
+      else
+        eventList += ", " + $(this).text();
+    });
+    $(".eventList", newEventObject).text(eventList);
+
     $(".occurrenceValue", newEventObject).text(xmlEventObject.attr("occurrences"));
 
     var contextList = [];
@@ -409,7 +429,6 @@ function importXML(xmlString) {
       $(".contextHeader", newEventObject).text("Context");
       $(".contextTable", newEventObject).append("<tr> <th>name</th> <th>value</th> </tr>");
       contextList.forEach(function (contextItem, index) {
-        var valueItem = contextvalueArray[index];
         $(".contextTable tr:last", newEventObject).after(
           "<tr> <td class='contextType'>" + contextItem.type + "</td> <td class='contextValue'>" + contextItem.value
           + "</td> </tr>");
@@ -421,15 +440,15 @@ function importXML(xmlString) {
 
     //At this point some modifications need to be done, to make the event fit the ordered area
     var newOrderedEventObject = newEventObject.clone();
-    newOrderedEventObject.attr("id",xmlEventObject.attr("id"));
+    newOrderedEventObject.attr("id", xmlEventObject.attr("id"));
     newOrderedEventObject.removeClass("eventTemplatePalette");
     $("#eventOrderArea").append(newOrderedEventObject);
     newOrderedEventObject.show();
-    
+
     //next event to be popped is the one following current ID
     eventPre = xmlEventObject.attr("id");
-    $(xmlDoc).find("event[id='"+ eventPre+ "']").remove();
-    
+    $(xmlDoc).find("event[id='" + eventPre + "']").remove();
+
   }
 
 
@@ -454,41 +473,30 @@ function importXML(xmlString) {
 
 
 /**
- * Not yet implemented. This function initiates the query, and sends the results to the given email address
+ * This function tries to save the query with a given title
  * 
  */
-function requestExecuteQuery() {
-  ioExecuteQuery($("#emailAdress", "#executeQueryDialog").val(),
-    $("#isQueryStrict", "#executeQueryDialog").text() == "Strict",
-    $("#queryTitle", "#executeQueryDialog").val(),
+function saveQuery() {
+  requestSaveXmlQuery($("#queryTitle","#saveQueryDialog").val(),
     exportXML());
 }
 
 /**
- * This function should validate the XML against the schema.
- * returns true if everything went alright.
- * If not, it will return the received error message.
- * BUG: Right now is not working, as the validation takes to long, causing problems with the download.
+ * Show query saving result
  */
-function validateXMLagainstXSD(xmlData) {
-  $.get('eventseq.xsd', function (eventSeqTemplate) {
-    //create an object
-    var Module = {
-      xml: xmlData,
-      schema: eventSeqTemplate,
-      arguments: ["--noout", "--schema", "eventseq.xsd", "eql.xml"]
-    };
-    var xmllintValidation = validateXML(Module);
-    if (!xmllintValidation.errors) {
-      //there were no errors.
-      console.log("xml conforms to schema");
-      return true;
+
+function showSaveQueryResult(message) {
+  if (message) {
+    if ($("#saveQueryDialog").is(':visible')) {
+      updateTips(message, $("#saveQueryDialog"));
     }
-    else {
-      console.log("xml does NOT conform to schema");
-      return xmllint;
-    }
-  });
+    else
+      showErrorMessage("Save Query", message);
+  }
+  else{
+    $("#saveQueryDialog").dialog("close");
+    notifyUser("Query has been saved",false);
+  }
 }
 
 /**
@@ -528,28 +536,30 @@ function showErrorMessage(title, message) {
 
     },
   });
+  confirmDialog.show();
 }
+
 
 
 function setCookie(cname, cvalue, exdays) {
-    var d = new Date();
-    d.setTime(d.getTime() + (exdays*24*60*60*1000));
-    var expires = "expires="+ d.toUTCString();
-    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+  var d = new Date();
+  d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+  var expires = "expires=" + d.toUTCString();
+  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
 }
 
 function getCookie(cname) {
-    var name = cname + "=";
-    var decodedCookie = decodeURIComponent(document.cookie);
-    var ca = decodedCookie.split(';');
-    for(var i = 0; i <ca.length; i++) {
-        var c = ca[i];
-        while (c.charAt(0) == ' ') {
-            c = c.substring(1);
-        }
-        if (c.indexOf(name) == 0) {
-            return c.substring(name.length, c.length);
-        }
+  var name = cname + "=";
+  var decodedCookie = decodeURIComponent(document.cookie);
+  var ca = decodedCookie.split(';');
+  for (var i = 0; i < ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
     }
-    return "";
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
 }

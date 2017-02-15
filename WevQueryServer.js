@@ -25,7 +25,7 @@ var exec = require('child_process').exec;
 var path = require('path');
 var url = require("url");
 
-var mongoDAO = require("./mongoDBQuery/mongoDAO.js");
+var mongoDAO = require("./MongoDBQuery/mongoDAO.js");
 
 var resultsFolder = "./Results/";
 
@@ -46,9 +46,20 @@ var config = require('./config.js');
 // listen for commands from the Web dashboard
 io.sockets.on('connection', function (socket) {
 
-  socket.on('saveXMLQuery', function (xmlData) {
-    log("saveXMLQuery, saving the following XML query: " + xmlData.title);
-    io.sockets.emit('showimage', xmlData);
+  socket.on('saveXMLQuery', function (data) {
+    log("saveXMLQuery, saving the following XML query: " + data.title);
+
+    mongoDAO.isQueryTitleInCatalog(data.title, function (err, isTitleCorrect) {
+      if (isTitleCorrect) {
+        console.log(isTitleCorrect);
+        mongoDAO.saveQuery(data.title, data.xmlData);
+        io.sockets.emit('clientXmlQuerySaved', {});
+      }
+      else {
+        log("On saveXMLQuery: Title is not valid, notify user that an error happened.");
+        io.sockets.emit('clientXmlQuerySaved', { 'errorMessage': "The given title is not valid, please provide a different one. Is this title already in use?" });
+      }
+    });
   });
 
   //To be triggered when a request to run a query is received
@@ -84,9 +95,9 @@ io.sockets.on('connection', function (socket) {
     mongoDAO.getCompletedQueries(completedQueriesFinished);
   });
 
-  socket.on('serverRequestHistoryQueries', function (data) {
-    log("serverRequestHistoryQueries, requesting history queries");
-    mongoDAO.getHistoryQueries(historyQueriesFinished);
+  socket.on('serverRequestCatalogQueries', function (data) {
+    log("serverRequestCatalogQueries, requesting Catalog queries");
+    mongoDAO.getCatalogQueries(CatalogQueriesFinished);
   });
 
   socket.on('serverRequestRunningQueries', function (data) {
@@ -117,11 +128,11 @@ io.sockets.on('connection', function (socket) {
     });
   });
 
-  socket.on('serverDeleteHistory', function (data) {
-    log("serverDeleteHistory, deleting the following history: " + data.queryTitle);
-    mongoDAO.deleteHistoryQuery(data.queryTitle, function (err) {
-      if (err) return console.error("serverDeleteHistory() ERROR in deleteHistoryQuery callback " + err);
-      deleteHistoryFinished(data.queryTitle);
+  socket.on('serverDeleteCatalog', function (data) {
+    log("serverDeleteCatalog, deleting the following Catalog: " + data.queryTitle);
+    mongoDAO.deleteCatalogQuery(data.queryTitle, function (err) {
+      if (err) return console.error("serverDeleteCatalog() ERROR in deleteCatalogQuery callback " + err);
+      deleteCatalogFinished(data.queryTitle);
     });
   });
 
@@ -162,11 +173,11 @@ function completedQueriesFinished(err, queryList) {
 }
 
 /**
- * When the database retrieves all history queries it returns an array of query documents
+ * When the database retrieves all Catalog queries it returns an array of query documents
  */
-function historyQueriesFinished(err, queryList) {
-  if (err) return console.error("historyQueriesFinished() ERROR retrieving history queries " + err);
-  io.sockets.emit('serverRequestHistoryQueriesFinished', { 'queryList': queryList });
+function CatalogQueriesFinished(err, queryList) {
+  if (err) return console.error("CatalogQueriesFinished() ERROR retrieving Catalog queries " + err);
+  io.sockets.emit('serverRequestCatalogQueriesFinished', { 'queryList': queryList });
 }
 
 /**
@@ -195,11 +206,11 @@ function deleteResultFinished(queryTitle) {
 }
 
 /**
- * When the history has been deleted, notify the user
+ * When the Catalog has been deleted, notify the user
  */
-function deleteHistoryFinished(queryTitle) {
-  log("deleteHistoryFinished()");
-  io.sockets.emit('deleteHistoryFinished', { 'message': "The history of the query called " + queryTitle + " has been deleted" });
+function deleteCatalogFinished(queryTitle) {
+  log("deleteCatalogFinished()");
+  io.sockets.emit('deleteCatalogFinished', { 'message': "The Catalog of the query called " + queryTitle + " has been deleted" });
 }
 
 
@@ -394,3 +405,31 @@ function saveLog(id) {
   fs.rename(logFile, logFile + "." + id);
   clearLog();
 }
+
+
+/**
+ * Error handling
+ */
+process.stdin.resume();//so the program will not close instantly
+
+function exitHandler(options, err) {
+  if (options.adminInitiated) {
+    sendMessageToUser(-1, "ADMINISTRATOR STOPPED THE SERVER", true);
+  } else{
+    sendMessageToUser(-1, "FATAL ERROR, CONTACT ADMINISTRATOR", true);
+  }
+  if (options.cleanup) console.log('clean');
+  if (err) console.log(err.stack);
+  if (options.exit) process.exit();
+}
+
+
+//do something when app is closing
+process.on('exit', exitHandler.bind(null, { cleanup: true }));
+
+//catches ctrl+c event
+process.on('SIGINT', exitHandler.bind(null, { adminInitiated: true, exit: true }));
+
+//catches uncaught exceptions
+//Do we want to close the server if there is an uncaught exception?
+process.on('uncaughtException', exitHandler.bind(null, { exit: false }));

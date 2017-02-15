@@ -1,0 +1,23 @@
+{
+  "name": "WevQueryWebInterface",
+  "authors": [
+    "Aitor Apaolaza <aitor.apaolaza@manchester.ac.uk>"
+  ],
+  "description": "Hypothesis Driven Interaction Behaviour Analysis",
+  "main": "analysis.html",
+  "keywords": [
+    "Web",
+    "analysis",
+    "usability"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

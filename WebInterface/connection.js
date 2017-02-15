@@ -25,19 +25,17 @@ socket.on('messageToClient', function (data) {
  * @param [boolean] indicates if the provided message should be treated as an error
  */
 function notifyUser(message, isError) {
-  if (isError)
+  if (isError){
     console.log("ERROR: notifying user:" + message)
-  else
+    showErrorMessage("ERROR",message);
+  }
+  else{
     console.log("notifying user:" + message)
+    showToast(message);
+  }
   logFile.push(message);
 
   $("#connectionLog").html("<p>" + logFile.toString().replace(/,/g, "</p><p>") + "</p>");
-
-  if (isError)
-    showErrorMessage("ERROR",message);
-  else
-    showToast(message);
-  //update analysis dashboard
 }
 
 /**
