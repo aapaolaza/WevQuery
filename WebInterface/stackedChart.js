@@ -361,29 +361,30 @@ function loadGeneralGraphClickable(csvFilePath) {
 //http://nvd3.org/examples/multiBar.html
 //Using text as x axis
 //http://stackoverflow.com/questions/23727627/nvd3-line-chart-with-string-values-on-x-axis
-function nvdStackedChart(generalOverviewData,urlIndexes){
+function nvdStackedChart(generalOverviewData, urlIndexes) {
   console.log("nvdStackedChart() start");
-  nv.addGraph(function() {
+  nv.addGraph(function () {
     var chart = nv.models.multiBarChart();
 
     //to get the possible values for the ticks, I create a list of all possible url index numbers
-    var urlNumberList = Array.apply(null, {length: urlIndexes.length}).map(Number.call, Number)
+    var urlNumberList = Array.apply(null, { length: urlIndexes.length }).map(Number.call, Number)
     //This results in [0,1,2,3,... urlIndexes.length]
 
-    chart.xAxis
-        .tickFormat(d3.format(',f'));
-    /*chart.xAxis.tickValues(urlNumberList)
-      .tickFormat(function(d){
+    /*chart.xAxis
+        .tickFormat(d3.format(',f'));*/
+    chart.xAxis.axisLabel('Hover over the bars to see the URL');
+    chart.xAxis.tickValues(urlNumberList)
+      .tickFormat(function (d) {
         return urlIndexes[d]
-    });*/
+      });
 
     chart.yAxis
-        .tickFormat(d3.format(',.1f'));
+      .tickFormat(d3.format(',.1f'));
 
     d3.select("svg").attr("id", "generalGraph")
-        .datum(generalOverviewData)
-        .transition().duration(500)
-        .call(chart);
+      .datum(generalOverviewData)
+      .transition().duration(500)
+      .call(chart);
 
     nv.utils.windowResize(chart.update);
 
@@ -391,21 +392,21 @@ function nvdStackedChart(generalOverviewData,urlIndexes){
   });
 }
 
-function nvdStackedChartOrig(data){
+function nvdStackedChartOrig(data) {
   console.log("nvdStackedChartOrig() start");
-  nv.addGraph(function() {
+  nv.addGraph(function () {
     var chart = nv.models.multiBarChart();
 
     chart.xAxis
-        .tickFormat(d3.format(',f'));
+      .tickFormat(d3.format(',f'));
 
     chart.yAxis
-        .tickFormat(d3.format(',.1f'));
+      .tickFormat(d3.format(',.1f'));
 
     d3.select("svg").attr("id", "generalGraph")
-        .datum(data)
-        .transition().duration(500)
-        .call(chart);
+      .datum(data)
+      .transition().duration(500)
+      .call(chart);
 
     nv.utils.windowResize(chart.update);
 
@@ -417,8 +418,8 @@ function nvdStackedChartOrig(data){
 /**
  * Random data generator
  */
-var data = function() {
-  return stream_layers(3,10+Math.random()*100,.1).map(function(data, i) {
+var data = function () {
+  return stream_layers(3, 10 + Math.random() * 100, .1).map(function (data, i) {
     return {
       key: 'Stream' + i,
       values: data
@@ -431,31 +432,31 @@ function stream_layers(n, m, o) {
   if (arguments.length < 3) o = 0;
   function bump(a) {
     var x = 1 / (.1 + Math.random()),
-        y = 2 * Math.random() - .5,
-        z = 10 / (.1 + Math.random());
+      y = 2 * Math.random() - .5,
+      z = 10 / (.1 + Math.random());
     for (var i = 0; i < m; i++) {
       var w = (i / m - y) * z;
       a[i] += x * Math.exp(-w * w);
     }
   }
-  return d3.range(n).map(function() {
-      var a = [], i;
-      for (i = 0; i < m; i++) a[i] = o + o * Math.random();
-      for (i = 0; i < 5; i++) bump(a);
-      return a.map(stream_index);
-    });
+  return d3.range(n).map(function () {
+    var a = [], i;
+    for (i = 0; i < m; i++) a[i] = o + o * Math.random();
+    for (i = 0; i < 5; i++) bump(a);
+    return a.map(stream_index);
+  });
 }
 
 /* Another layer generator using gamma distributions. */
 function stream_waves(n, m) {
-  return d3.range(n).map(function(i) {
-    return d3.range(m).map(function(j) {
-        var x = 20 * j / m - i / 3;
-        return 2 * x * Math.exp(-.5 * x);
-      }).map(stream_index);
-    });
+  return d3.range(n).map(function (i) {
+    return d3.range(m).map(function (j) {
+      var x = 20 * j / m - i / 3;
+      return 2 * x * Math.exp(-.5 * x);
+    }).map(stream_index);
+  });
 }
 
 function stream_index(d, i) {
-  return {x: i, y: Math.max(0, d)};
+  return { x: i, y: Math.max(0, d) };
 }

@@ -26,6 +26,7 @@
   <!--<script type="text/javascript" src="./bower_components/d3/d3.js"></script> -->
   <script src="./nvd3/d3.v3.js"></script>
   <script src="./nvd3/nv.d3.js"></script>
+  <script src="./spin/spin.js"></script>
   <link rel="stylesheet" href="./nvd3/nv.d3.css">
 
   <link href="bower_components/bootstrap-toggle/css/bootstrap-toggle.css" rel="stylesheet">
@@ -283,7 +284,8 @@
   <div id="analysisPanel" class="container-fluid">
     <h2>Analysis panel</h2>
     <ul class="nav nav-tabs">
-      <li class="active"><a data-toggle="tab" href="#tabRaw">Raw Data</a></li>
+      <li class="active"><a data-toggle="tab" href="#tabGeneral">General View</a></li>
+      <li><a data-toggle="tab" href="#tabRaw">Raw Data</a></li>
       <li><a data-toggle="tab" href="#tabDescrStat">Descriptive statistics</a></li>
       <li><a data-toggle="tab" href="#tabTemp">Temporal description</a></li>
     </ul>
@@ -292,9 +294,10 @@
     <div class="tab-content">
           
       <div id="tabGeneral" class="tab-pane fade in active">
+        <div id="loadingSpin"></div>
         <svg id="generalGraph" width="960" height="500"></svg>
       </div>
-      <div id="rawTab" class="tab-pane fade in active">
+      <div id="tabRaw" class="tab-pane fade">
         <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
           aliqua.
         </p>

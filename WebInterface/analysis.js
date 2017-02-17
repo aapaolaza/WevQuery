@@ -1,4 +1,3 @@
-
 /**
  * Called when the page is loaded. Runs all the initialisation functions
  * 
@@ -10,17 +9,17 @@ function initialiseInterface() {
 
   //Redirect the user when the toggle is pressed
   $('#pageToggle').bootstrapToggle('off');//analysis.html is off
-  $("#pageToggle").change(function() {
+  $("#pageToggle").change(function () {
     if ($(this).prop('checked'))
-      window.location.replace("./queryCreation.html")    
-    else{
+      window.location.replace("./queryCreation.html")
+    else {
       window.location.replace("./analysis.html")
       //Before moving away, store the state of the query into the cookie
-      
+
     }
   });
 
-  requestAnalysisData();
+  updateGeneralOverview();
 }
 
 /**
@@ -267,7 +266,7 @@ function runQueryCatalog(email, isQueryStrict, queryTitle, queryData) {
  */
 function editQueryCatalog(queryData) {
   setCookie("queryXMLData", queryData, 1);
-  
+
   window.location.replace("./queryCreation.html");
 }
 
@@ -275,8 +274,27 @@ function editQueryCatalog(queryData) {
  * Shows a general overview of the results, with the provided data
  */
 
-function updateGeneralOverview(generalOverviewData,urlIndexes){
-  nvdStackedChart(generalOverviewData,urlIndexes);
+var spinner;
+function updateGeneralOverview() {
+  var opts = {
+    lines: 9, // The number of lines to draw
+    length: 9, // The length of each line
+    width: 5, // The line thickness
+    radius: 14, // The radius of the inner circle
+    color: '#EE3124', // #rgb or #rrggbb or array of colors
+    speed: 1.9, // Rounds per second
+    trail: 40, // Afterglow percentage
+    className: 'spinner', // The CSS class to assign to the spinner
+  };
+  spinner = new Spinner(opts).spin(document.getElementById("loadingSpin"));
+  console.log("starting spin");
+  requestAnalysisData();
+}
+
+function generalOverviewDataReceived(generalOverviewData, urlIndexes) {
+  console.log("stopping spin");
+  spinner.stop();
+  nvdStackedChart(generalOverviewData, urlIndexes);
 }
 
 

@@ -1,4 +1,5 @@
 var testData;
+var testUrlIndexes;
 
 /**
  * Requests the list of all available collections
@@ -106,9 +107,7 @@ function requestAnalysisData(){
 
 socket.on('analyseGeneralOverviewProcessed', function (data) {
     notifyUser("analyseGeneralOverviewProcessed and " + data.generalOverviewData.length + " collections were received");
-    console.log("analyseGeneralOverviewProcessed and " + data.generalOverviewData.length + " collections were received");
-    testData = data.generalOverviewData;
-    updateGeneralOverview(data.generalOverviewData,data.urlIndexes);
+    generalOverviewDataReceived(data.generalOverviewData,data.urlIndexes);
 });
 
 /**
