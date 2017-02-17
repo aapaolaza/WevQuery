@@ -106,7 +106,7 @@ function getQueryData(queryTitle, callback) {
         //Collection exists, query its elements
         //var cursor =
         db.collection(collectionTitle).find({ "value.xmlQueryCounter": { $gt: 0 } }).toArray(function (err, documents) {
-          console.log("printing reslts");
+          console.log("printing results");
           console.log("Returning " + documents.length + " items");
           callback(null, queryTitle, documents);
         });

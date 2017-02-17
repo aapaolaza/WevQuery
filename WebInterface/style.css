@@ -13,9 +13,14 @@ h2{
   font-family: Arial;
   color: #ffffff;
   /*font-size: 20px;*/
-  background: #9c9c9c;
+  background: #aaaaaa;
   padding: 10px 20px 10px 20px;
   text-decoration: none;
+}
+
+#leftMenu h2{
+  border-radius: 16px 16px 0px 0px;
+  margin-bottom: 0px;
 }
 
 .greyBox{

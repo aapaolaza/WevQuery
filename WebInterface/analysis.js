@@ -19,6 +19,8 @@ function initialiseInterface() {
       
     }
   });
+
+  requestAnalysisData();
 }
 
 /**
@@ -266,16 +268,15 @@ function runQueryCatalog(email, isQueryStrict, queryTitle, queryData) {
 function editQueryCatalog(queryData) {
   setCookie("queryXMLData", queryData, 1);
   
-  window.location.replace("./queryCreation.html")    
-  //This old approach opened a new window
-  /*var win = window.open('./queryCreation.html', '_blank');
-  if (win) {
-    //Browser has allowed it to be opened
-    win.focus();
-  } else {
-    //Browser has blocked it
-    alert('Please allow popups for this website');
-  }*/
+  window.location.replace("./queryCreation.html");
+}
+
+/**
+ * Shows a general overview of the results, with the provided data
+ */
+
+function updateGeneralOverview(generalOverviewData,urlIndexes){
+  nvdStackedChart(generalOverviewData,urlIndexes);
 }
 
 

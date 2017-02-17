@@ -107,9 +107,9 @@ io.sockets.on('connection', function (socket) {
 
 
 
-  socket.on('serverAnalyseQueryData', function (data) {
-    log("serverAnalyseQueryData, requesting the following query: " + data.queryTitle);
-    analyseQueryData(data.queryTitle);
+  socket.on('serverAnalyseGeneralOverview', function (data) {
+    log("serverAnalyseGeneralOverview, requesting general information of all results");
+    analyseQueryData();
   });
 
   socket.on('serverRequestQueryData', function (data) {
@@ -285,6 +285,15 @@ function storeQueryJson(queryTitle, callback) {
 
 function analyseQueryData() {
   //I can use https://plot.ly/nodejs/ to create nice graphs
+  mongoDAO.stackedChart(analyseQueryDataReady);
+}
+
+function analyseQueryDataReady(err, allCollectionsList,uniqueUrls){
+  if (err) return console.error("analyseQueryDataReady() ERROR retrieving data" + err);
+      io.sockets.emit('analyseGeneralOverviewProcessed', {
+      'generalOverviewData' : allCollectionsList,
+      'urlIndexes' : uniqueUrls
+    });
 }
 
 /**
@@ -415,7 +424,7 @@ process.stdin.resume();//so the program will not close instantly
 function exitHandler(options, err) {
   if (options.adminInitiated) {
     sendMessageToUser(-1, "ADMINISTRATOR STOPPED THE SERVER", true);
-  } else{
+  } else {
     sendMessageToUser(-1, "FATAL ERROR, CONTACT ADMINISTRATOR", true);
   }
   if (options.cleanup) console.log('clean');

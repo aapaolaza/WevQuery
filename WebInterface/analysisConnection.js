@@ -1,4 +1,4 @@
-
+var testData;
 
 /**
  * Requests the list of all available collections
@@ -100,6 +100,16 @@ function requestQueryData(title){
   socket.emit('serverRequestQueryData', {"queryTitle":title});
 }
 
+function requestAnalysisData(){
+    socket.emit('serverAnalyseGeneralOverview');
+}
+
+socket.on('analyseGeneralOverviewProcessed', function (data) {
+    notifyUser("analyseGeneralOverviewProcessed and " + data.generalOverviewData.length + " collections were received");
+    console.log("analyseGeneralOverviewProcessed and " + data.generalOverviewData.length + " collections were received");
+    testData = data.generalOverviewData;
+    updateGeneralOverview(data.generalOverviewData,data.urlIndexes);
+});
 
 /**
  * Processes received json object

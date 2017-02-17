@@ -4,6 +4,7 @@
 
 var queryDocument = require("./queryDocumentBean.js");
 var xmlToMongoDB = require("./XMLtoMongoDB.js");
+var analyseData = require("./analyseData.js");
 
 module.exports.runXmlQuery = xmlToMongoDB.runXmlQuery;
 module.exports.getQueryData = xmlToMongoDB.getQueryData;
@@ -20,3 +21,5 @@ module.exports.getCatalogQueries = queryDocument.getCatalogQueries;
 module.exports.getRunningQueries = queryDocument.getRunningQueries;
 module.exports.deleteCompletedQuery = queryDocument.deleteCompletedQuery;
 module.exports.deleteCatalogQuery = queryDocument.deleteCatalogQuery;
+
+module.exports.stackedChart = analyseData.stackedChart;

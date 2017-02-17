@@ -23,7 +23,11 @@
   <!-- Xml validation by http://syssgx.github.io/xml.js/ -->
   <script type="text/javascript" src="./tablesorter/jquery.tablesorter.js"></script>
 
-      
+  <!--<script type="text/javascript" src="./bower_components/d3/d3.js"></script> -->
+  <script src="./nvd3/d3.v3.js"></script>
+  <script src="./nvd3/nv.d3.js"></script>
+  <link rel="stylesheet" href="./nvd3/nv.d3.css">
+
   <link href="bower_components/bootstrap-toggle/css/bootstrap-toggle.css" rel="stylesheet">
   <script src="bower_components/bootstrap-toggle/js/bootstrap-toggle.js"></script>
   <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -34,6 +38,8 @@
     <![endif]-->
   <!-- The event creation and interaction logic is stored in a different file -->
   <script src="./analysis.js"></script>
+  <script src="./stackedChart.js"></script>
+
 
   <!-- server.js code script start-->
   <script src="/socket.io/socket.io.js"></script>
@@ -282,7 +288,12 @@
       <li><a data-toggle="tab" href="#tabTemp">Temporal description</a></li>
     </ul>
 
+
     <div class="tab-content">
+          
+      <div id="tabGeneral" class="tab-pane fade in active">
+        <svg id="generalGraph" width="960" height="500"></svg>
+      </div>
       <div id="rawTab" class="tab-pane fade in active">
         <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
           aliqua.

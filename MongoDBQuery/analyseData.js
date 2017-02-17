@@ -1,0 +1,290 @@
+/**
+ * Queries the database and extracts the corresponding data to support
+ * analysis of data in the client
+ */
+
+var constants = require("./MapReduceConstantsNode.js");
+var mongoDAO = require("./mongoDAO.js");
+
+var fs = require('fs');
+var util = require('util');
+
+//This tag can be found in the "msg" field in the current ops command of MapReduce commands
+const mapReduceTag = "m/r";
+const xmlQueryResults = "xmlQueryResults";
+const xmlQueryCatalog = "xmlQueryCatalog";
+
+//This prefix will be added to all queries
+const queryCollectionPrefix = "xmlQuery_"
+
+const analysisResultsFolder = "./Results/analysisResults";
+
+const homeURL = "http://www.cs.manchester.ac.uk/";
+const homeURLReplace = "HOME/";
+
+/**
+ * Provides a general overview of the data, taking into account all collections.
+ * It is bespoke data for the https://bl.ocks.org/mbostock/3886208 graph
+ * It creates a column for each behaviour, and the count of behaviours for each URL in each row.
+ * URL,seq1,seq2,seq3
+ * url1,count1,count2,count3
+ * url2,count4,count5,count6
+ * it returns a string with the filename of the created CSV
+ */
+function stackedChartCSV(callback) {
+
+
+  constants.connectAndValidateNodeJs(function (err, db) {
+    if (err) return console.error("getQueryData() ERROR connecting to DB" + err);
+    mongoDAO.getCompletedQueries(function (err, resultCollectionList) {
+      var collectionsProcessed = 0;
+
+      //keeps track of which collection is at which index
+      var titleList = [];
+      //keeps a list of all Url counts for all collections
+      var allCollectionsList = [];
+      //keeps a list of all unique urls to ease the construction of the final csv
+      var uniqueUrls = [];
+
+      resultCollectionList.forEach(function (resultCollectionTitle, collectionIndex, collectionsArray) {
+
+        //for each results collection, loop through its documents
+        db.collection(queryCollectionPrefix + resultCollectionTitle.title).find({
+          "value.xmlQueryCounter": { $gt: 0 }
+        }).toArray(function (err, documents) {
+          console.log("Returning " + documents.length + " items");
+
+          //For each collection, create an object list of urls
+          var collectionUrlCountList = {}
+
+          //For each document, create a csv row
+          documents.forEach(function (docElem, index) {
+
+            //each document might have several occurrences of the same behaviour
+            docElem.value.xmlQuery.forEach(function (seqOccurence, index) {
+              if (typeof collectionUrlCountList[docElem._id.url] === 'undefined') {
+                collectionUrlCountList[docElem._id.url] = 1;
+              }
+              else {
+                collectionUrlCountList[docElem._id.url]++;
+              }
+              if (uniqueUrls.indexOf(docElem._id.url) == -1)
+                uniqueUrls.push(docElem._id.url)
+
+              /*csvLine = "";
+              csvLine += safeCsv(resultCollectionTitle.title) + ",";
+              csvLine += safeCsv(docElem._id.url) + ",";
+              //There is more information to extract, but as it's an unbounded list of elements, it's query dependent
+              csvLine += safeCsv(docElem.value.generalStatistics.sessionstartmsMedian) + ",";
+              csvLine += safeCsv(docElem.value.generalStatistics.calculatedActiveTimeMedian) + ",";
+              csvLine += safeCsv(seqOccurence.length);
+              //write csvLine to file
+              dataOutput.write(csvLine + "\n");*/
+            });
+          });
+          collectionsProcessed++;
+
+          titleList[collectionIndex] = resultCollectionTitle.title;
+          allCollectionsList[collectionIndex] = collectionUrlCountList;
+
+          if (collectionsProcessed === collectionsArray.length) {
+
+            var filename = analysisResultsFolder + "stackedChart.csv";
+
+            //'w' flag directly overwrites the file if it exists
+            var dataOutput = fs.createWriteStream(filename, { 'flags': 'w' });
+
+            //fills in the headers
+            var csvLine = "State,";
+            titleList.forEach(function (title, index) {
+              if (index == 0)
+                csvLine += title;
+              else
+                csvLine += "," + title;
+            });
+            dataOutput.write(csvLine + "\n");
+
+            //For each URL, create a row
+            uniqueUrls.forEach(function (urlItem, index) {
+              csvLine="";
+              csvLine = urlItem.replace(homeURL,homeURLReplace) + ",";
+
+              allCollectionsList.forEach(function (collectionItem, index) {
+                var csvAddToLine =""                
+                if (typeof collectionItem[urlItem] === 'undefined')
+                  csvAddToLine += 0;
+                else
+                  csvAddToLine += collectionItem[urlItem];
+                
+                if (index == 0)
+                csvLine += csvAddToLine;
+              else
+                csvLine += "," + csvAddToLine;
+              });
+              dataOutput.write(csvLine + "\n");
+            });
+            
+            //dataOutput.close();
+            callback(null, filename);
+            //all behaviours finished
+          }
+        });
+      });
+
+    });
+  });
+}
+
+
+/**
+ * Returns an object describing the general stats for the collections
+ */
+function stackedChart(callback) {
+  //all the occurrences for urls below this threshold of frequency will be removed before sending them out 
+  var urlCountThreshold = 20;
+
+  constants.connectAndValidateNodeJs(function (err, db) {
+    if (err) return console.error("getQueryData() ERROR connecting to DB" + err);
+    mongoDAO.getCompletedQueries(function (err, resultCollectionList) {
+      var collectionsProcessed = 0;
+
+      //keeps a list of all Url counts for all collections
+      var allCollectionsList = [];
+      //keeps a list of all unique urls to ease the construction of the final csv
+      var uniqueUrls = [];
+      //We keep track of the number of occurrences per URL, so we can return only the most popular subset
+      var urlFreqCount = [];
+
+      resultCollectionList.forEach(function (resultCollectionTitle, collectionIndex, collectionsArray) {
+
+        //for each results collection, loop through its documents
+        db.collection(queryCollectionPrefix + resultCollectionTitle.title).find({
+          "value.xmlQueryCounter": { $gt: 0 }
+        }).toArray(function (err, documents) {
+          console.log("Returning " + documents.length + " items");
+
+          //For each collection, create an object list of urls
+          var collectionUrlCountList = {};
+
+          //For each document, create a csv row
+          documents.forEach(function (docElem, index) {
+
+            //each document might have several occurrences of the same behaviour
+            docElem.value.xmlQuery.forEach(function (seqOccurence, index) {
+              if (typeof collectionUrlCountList[docElem._id.url] === 'undefined') {
+                collectionUrlCountList[docElem._id.url] = 1;
+              }
+              else {
+                collectionUrlCountList[docElem._id.url]++;
+              }
+              if (uniqueUrls.indexOf(docElem._id.url) == -1){
+                uniqueUrls.push(docElem._id.url);
+                urlFreqCount[uniqueUrls.indexOf(docElem._id.url)]=0;
+              }
+              else{
+                urlFreqCount[uniqueUrls.indexOf(docElem._id.url)]++;
+              }
+            });
+          });
+
+
+
+          collectionsProcessed++;
+          if (countProperties(collectionUrlCountList)>0){
+            var resultObject={}
+            resultObject.key = resultCollectionTitle.title;
+            resultObject.valuesObjectArray = collectionUrlCountList;
+            allCollectionsList.push(resultObject);
+          }
+          if (collectionsProcessed === collectionsArray.length) {
+            //all behaviours finished asynchronously
+
+            var freqUrlList = returnTop(uniqueUrls,urlFreqCount,urlCountThreshold)
+            
+            
+            //Once we have processed all the data, I need to crate an array of x,y values for the graph
+            //in this case, it will be an array of url, count pairs, but it needs to be an array for the graph to interpret it
+
+            //We basically translate references to a URL into a number.
+            //This number corresponds to the position of that URL in the freqUrlList list
+            allCollectionsList.forEach(function (collectionObject, index) {
+              
+              collectionObject.values = [];
+              var urlObjectArray = collectionObject.valuesObjectArray;
+              for (var valueIndex in urlObjectArray) {
+                if(urlObjectArray.hasOwnProperty(valueIndex) ) {
+                  if (freqUrlList.indexOf(valueIndex)>-1){
+                  collectionObject.values.push({
+                    x: freqUrlList.indexOf(valueIndex),
+                    y: urlObjectArray[valueIndex]});
+                  }
+                }
+              }
+            });
+
+
+            //For each URL, if the selected collection doesn't have it, add a '0' in that position
+            /*uniqueUrls.forEach(function (urlItem, index) {
+              allCollectionsList.forEach(function (collectionItem, index) {
+                if (typeof collectionItem.values[urlItem] === 'undefined')
+                 collectionItem.values[urlItem]= 0;
+              });
+            });*/
+            
+            callback(null, allCollectionsList,freqUrlList);
+          }
+        });
+      });
+
+    });
+  });
+}
+
+/**
+ * Given a frequency array, and a content array, it returns the top X most recurring elements
+ */
+function returnTop(contentArray,freqArray,threshold){
+  console.log("returnTop()");
+  console.log(contentArray);
+  freqArray.forEach(function (freqItem, index) {
+    if (isNaN(Number(freqItem)))
+      console.log(freqItem);
+  });
+  //The regular Math.max doesn't work on node js. I need to call an abstract function for that
+  console.log();
+
+  var result = [];
+  var index;
+  var maxTemp;
+  //Makes the max operation threshold times
+  while (result.length<threshold){
+    maxTemp = freqArray.reduce(function (a, b) {return Math.max(a, b);}, 0);
+    index = freqArray.indexOf(maxTemp);
+
+    console.log("biggest element was:"+maxTemp);
+    console.log(contentArray[index]);
+    console.log(index);
+    result.push(contentArray[index]);
+    contentArray.splice(index, 1);
+    freqArray.splice(index, 1);
+  }
+  console.log("returning the top elements:" + result)
+  return result;
+}
+
+function countProperties(obj) {
+    var count = 0;
+
+    for(var prop in obj) {
+        if(obj.hasOwnProperty(prop))
+            ++count;
+    }
+
+    return count;
+}
+
+function safeCsv(field) {
+  return (util.format("%s", field).replace(",", "_"));
+}
+
+module.exports.stackedChart = stackedChart;
