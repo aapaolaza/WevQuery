@@ -48,6 +48,7 @@ io.sockets.on('connection', function (socket) {
 
   socket.on('saveXMLQuery', function (data) {
     log("saveXMLQuery, saving the following XML query: " + data.title);
+    log(data.xmlData)
 
     mongoDAO.isQueryTitleInCatalog(data.title, function (err, isTitleCorrect) {
       if (isTitleCorrect) {

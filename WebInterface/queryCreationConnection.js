@@ -8,7 +8,7 @@
 function requestSaveXmlQuery(title,xmlData){
  socket.emit('saveXMLQuery', {
                 "title": title,
-                "data": xmlData
+                "xmlData": xmlData
               });
 }
 

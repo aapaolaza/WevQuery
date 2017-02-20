@@ -141,7 +141,7 @@ console.log(eventNameList);
     // Transition each segment to full opacity and then reactivate it.
     d3.selectAll("path")
       .transition()
-      .duration(1000)
+      //.duration(1000)//Rewmoved the animation, as it left the diagram unusable during that period
       .style("opacity", 1)
       .each("end", function () {
         d3.select(this).on("mouseover", mouseover);
@@ -677,7 +677,7 @@ function sunburstGraphOrig() {
 /**
  * Erases the sunburst chart so it can be redrawn
  */
-function eraseSunburst(){
+function sunburstErase(){
   $("#sunburstSequence").empty();
   $("#sunburstChart svg").remove();
   $("#sunburstLegend").empty();
