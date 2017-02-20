@@ -23,3 +23,4 @@ module.exports.deleteCompletedQuery = queryDocument.deleteCompletedQuery;
 module.exports.deleteCatalogQuery = queryDocument.deleteCatalogQuery;
 
 module.exports.stackedChart = analyseData.stackedChart;
+module.exports.getEventSequences = analyseData.getEventSequences;

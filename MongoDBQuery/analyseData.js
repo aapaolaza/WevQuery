@@ -106,24 +106,24 @@ function stackedChartCSV(callback) {
 
             //For each URL, create a row
             uniqueUrls.forEach(function (urlItem, index) {
-              csvLine="";
-              csvLine = urlItem.replace(homeURL,homeURLReplace) + ",";
+              csvLine = "";
+              csvLine = urlItem.replace(homeURL, homeURLReplace) + ",";
 
               allCollectionsList.forEach(function (collectionItem, index) {
-                var csvAddToLine =""                
+                var csvAddToLine = ""
                 if (typeof collectionItem[urlItem] === 'undefined')
                   csvAddToLine += 0;
                 else
                   csvAddToLine += collectionItem[urlItem];
-                
+
                 if (index == 0)
-                csvLine += csvAddToLine;
-              else
-                csvLine += "," + csvAddToLine;
+                  csvLine += csvAddToLine;
+                else
+                  csvLine += "," + csvAddToLine;
               });
               dataOutput.write(csvLine + "\n");
             });
-            
+
             //dataOutput.close();
             callback(null, filename);
             //all behaviours finished
@@ -177,11 +177,11 @@ function stackedChart(callback) {
               else {
                 collectionUrlCountList[docElem._id.url]++;
               }
-              if (uniqueUrls.indexOf(docElem._id.url) == -1){
+              if (uniqueUrls.indexOf(docElem._id.url) == -1) {
                 uniqueUrls.push(docElem._id.url);
-                urlFreqCount[uniqueUrls.indexOf(docElem._id.url)]=0;
+                urlFreqCount[uniqueUrls.indexOf(docElem._id.url)] = 0;
               }
-              else{
+              else {
                 urlFreqCount[uniqueUrls.indexOf(docElem._id.url)]++;
               }
             });
@@ -190,8 +190,8 @@ function stackedChart(callback) {
 
 
           collectionsProcessed++;
-          if (countProperties(collectionUrlCountList)>0){
-            var resultObject={}
+          if (countProperties(collectionUrlCountList) > 0) {
+            var resultObject = {}
             resultObject.key = resultCollectionTitle.title;
             resultObject.valuesObjectArray = collectionUrlCountList;
             allCollectionsList.push(resultObject);
@@ -199,24 +199,25 @@ function stackedChart(callback) {
           if (collectionsProcessed === collectionsArray.length) {
             //all behaviours finished asynchronously
 
-            var freqUrlList = returnTop(uniqueUrls,urlFreqCount,urlCountThreshold)
-            
-            
+            var freqUrlList = returnTop(uniqueUrls, urlFreqCount, urlCountThreshold)
+
+
             //Once we have processed all the data, I need to crate an array of x,y values for the graph
             //in this case, it will be an array of url, count pairs, but it needs to be an array for the graph to interpret it
 
             //We basically translate references to a URL into a number.
             //This number corresponds to the position of that URL in the freqUrlList list
             allCollectionsList.forEach(function (collectionObject, index) {
-              
+
               collectionObject.values = [];
               var urlObjectArray = collectionObject.valuesObjectArray;
               for (var valueIndex in urlObjectArray) {
-                if(urlObjectArray.hasOwnProperty(valueIndex) ) {
-                  if (freqUrlList.indexOf(valueIndex)>-1){
-                  collectionObject.values.push({
-                    x: freqUrlList.indexOf(valueIndex),
-                    y: urlObjectArray[valueIndex]});
+                if (urlObjectArray.hasOwnProperty(valueIndex)) {
+                  if (freqUrlList.indexOf(valueIndex) > -1) {
+                    collectionObject.values.push({
+                      x: freqUrlList.indexOf(valueIndex),
+                      y: urlObjectArray[valueIndex]
+                    });
                   }
                 }
               }
@@ -230,8 +231,8 @@ function stackedChart(callback) {
                  collectionItem.values[urlItem]= 0;
               });
             });*/
-            
-            callback(null, allCollectionsList,freqUrlList);
+
+            callback(null, allCollectionsList, freqUrlList);
           }
         });
       });
@@ -240,10 +241,87 @@ function stackedChart(callback) {
   });
 }
 
+
+
+/**
+ * Queries all finished queries and retrieves the event sequences
+ * It groups them and counts them
+ * @param [callback] Returns an array of event sequences, with a key value in the format "event1-event2-event3", and the value of the resulting count for that sequence.
+ */
+
+function getEventSequences(callback) {
+
+  //It will keep all sequences using the event names as indexes.
+  var sequenceList = {};
+  
+  //keep a list of all unique event names
+  var eventNameList = [];
+
+  constants.connectAndValidateNodeJs(function (err, db) {
+    if (err) return console.error("getEventSequences() ERROR connecting to DB" + err);
+
+    mongoDAO.getCompletedQueries(function (err, resultCollectionList) {
+      if (err) return console.error("getEventSequences() ERROR REQUESTING COMPLETED QUERIES" + err);
+      var collectionsProcessed = 0;
+
+      resultCollectionList.forEach(function (resultCollectionTitle, index, collectionsArray) {
+        console.log("getEventSequences(): Processing " + resultCollectionTitle.title);
+        db.collection(queryCollectionPrefix + resultCollectionTitle.title).find({ "value.xmlQueryCounter": { $gt: 0 } }).toArray(function (err, documents) {
+          //for each document, loop for each event name
+          documents.forEach(function (documentItem, index) {
+            var eventList = "";
+
+            //The xmlQuery collection is nested twice (noted as a bug)
+            documentItem.value.xmlQuery[0].forEach(function (eventItem, index) {
+              if (eventNameList.indexOf(eventItem.event)==-1)
+                eventNameList.push(eventItem.event);
+
+              if (index == 0)
+                eventList += eventItem.event;
+              else
+                eventList += "-" + eventItem.event;
+            });
+
+            //using eventList as the index, increase the count for this sequence
+            if (typeof sequenceList[eventList] === 'undefined') {
+              sequenceList[eventList] = 1;
+            }
+            else {
+              sequenceList[eventList]++;
+            }
+
+          });
+
+          collectionsProcessed++;
+          if (collectionsProcessed === collectionsArray.length) {
+
+            console.log("getEventSequences(): All collections processed");
+            //All documents for all resultCollectionList have been collectionsProcessed
+            //transform the object array into an array of key,values
+            var sequenceArray = [];
+
+            for (var prop in sequenceList) {
+              console.log("adding property to array");
+              if (sequenceList.hasOwnProperty(prop)) {
+                var seqItem = {}
+                seqItem.key = prop;
+                seqItem.value = sequenceList[prop];
+                sequenceArray.push(seqItem);
+              }
+            }
+
+            callback(null, sequenceArray, eventNameList);
+          }
+        });
+      });
+    });
+  });
+}
+
 /**
  * Given a frequency array, and a content array, it returns the top X most recurring elements
  */
-function returnTop(contentArray,freqArray,threshold){
+function returnTop(contentArray, freqArray, threshold) {
   console.log("returnTop()");
   console.log(contentArray);
   freqArray.forEach(function (freqItem, index) {
@@ -257,11 +335,11 @@ function returnTop(contentArray,freqArray,threshold){
   var index;
   var maxTemp;
   //Makes the max operation threshold times
-  while (result.length<threshold){
-    maxTemp = freqArray.reduce(function (a, b) {return Math.max(a, b);}, 0);
+  while (result.length < threshold) {
+    maxTemp = freqArray.reduce(function (a, b) { return Math.max(a, b); }, 0);
     index = freqArray.indexOf(maxTemp);
 
-    console.log("biggest element was:"+maxTemp);
+    console.log("biggest element was:" + maxTemp);
     console.log(contentArray[index]);
     console.log(index);
     result.push(contentArray[index]);
@@ -273,14 +351,14 @@ function returnTop(contentArray,freqArray,threshold){
 }
 
 function countProperties(obj) {
-    var count = 0;
+  var count = 0;
 
-    for(var prop in obj) {
-        if(obj.hasOwnProperty(prop))
-            ++count;
-    }
+  for (var prop in obj) {
+    if (obj.hasOwnProperty(prop))
+      ++count;
+  }
 
-    return count;
+  return count;
 }
 
 function safeCsv(field) {
@@ -288,3 +366,4 @@ function safeCsv(field) {
 }
 
 module.exports.stackedChart = stackedChart;
+module.exports.getEventSequences = getEventSequences;

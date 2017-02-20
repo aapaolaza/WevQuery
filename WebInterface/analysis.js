@@ -20,6 +20,7 @@ function initialiseInterface() {
   });
 
   updateGeneralOverview();
+  updateSunburst();
 }
 
 /**
@@ -274,7 +275,7 @@ function editQueryCatalog(queryData) {
  * Shows a general overview of the results, with the provided data
  */
 
-var spinner;
+var spinnerGeneralView;
 function updateGeneralOverview() {
   var opts = {
     lines: 9, // The number of lines to draw
@@ -286,17 +287,43 @@ function updateGeneralOverview() {
     trail: 40, // Afterglow percentage
     className: 'spinner', // The CSS class to assign to the spinner
   };
-  spinner = new Spinner(opts).spin(document.getElementById("loadingSpin"));
+  spinnerGeneralView = new Spinner(opts).spin(document.getElementById("generalGraphLoadingSpin"));
   console.log("starting spin");
   requestAnalysisData();
 }
 
 function generalOverviewDataReceived(generalOverviewData, urlIndexes) {
   console.log("stopping spin");
-  spinner.stop();
-  nvdStackedChart(generalOverviewData, urlIndexes);
+  //only update the graph when it's visible
+  if ($("#generalGraph").is(":visible")) {
+    spinnerGeneralView.stop();
+    nvdStackedChart(generalOverviewData, urlIndexes);
+  }
 }
 
+var spinnerSunBurst;
+function updateSunburst() {
+  var opts = {
+    lines: 9, // The number of lines to draw
+    length: 9, // The length of each line
+    width: 5, // The line thickness
+    radius: 14, // The radius of the inner circle
+    color: '#EE3124', // #rgb or #rrggbb or array of colors
+    speed: 1.9, // Rounds per second
+    trail: 40, // Afterglow percentage
+    className: 'spinner', // The CSS class to assign to the spinner
+  };
+  spinnerSunBurst = new Spinner(opts).spin(document.getElementById("sequenceCountGraphLoadingSpin"));
+  requestAnalysisCount();
+}
+
+function sunburstDataReceived(eventSeqCountList,eventNameList) {
+  //only update the graph when it's visible
+  if ($("#generalGraph").is(":visible")) {
+    spinnerSunBurst.stop();
+    sunburstGraph(eventSeqCountList, eventNameList);
+  }
+}
 
 /**
  * Debugging purposes. Prints out all mouse interaction

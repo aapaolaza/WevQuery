@@ -4,13 +4,13 @@ var testUrlIndexes;
 /**
  * Requests the list of all available collections
  */
- 
-function requestCompletedQueries(){
+
+function requestCompletedQueries() {
   socket.emit('serverRequestCompletedQueries');
 }
 
 socket.on('clientCompletedQueriesFinished', function (data) {
-  notifyUser(data.queryList.length + " finished queries have been retrieved",data.isError);
+  notifyUser(data.queryList.length + " finished queries have been retrieved", data.isError);
   updateCompletedQueries(data.queryList);
 });
 
@@ -18,8 +18,8 @@ socket.on('clientCompletedQueriesFinished', function (data) {
 /**
  * Requests the list of all queries in Catalog
  */
- 
-function requestCatalogQueries(){
+
+function requestCatalogQueries() {
   socket.emit('serverRequestCatalogQueries');
 }
 
@@ -31,8 +31,8 @@ socket.on('serverRequestCatalogQueriesFinished', function (data) {
 /**
  * Requests the list of all currently running queries
  */
- 
-function requestRunningQueries(){
+
+function requestRunningQueries() {
   socket.emit('serverRequestRunningQueries');
 }
 
@@ -45,15 +45,15 @@ socket.on('serverRequestRunningQueriesFinished', function (data) {
 /**
  * Requests the deletion of a results collections
  */
-function requestQueryResultsDeletion(queryTitle){
-  console.log("Delete "+queryTitle + " results");
+function requestQueryResultsDeletion(queryTitle) {
+  console.log("Delete " + queryTitle + " results");
   socket.emit('serverDeleteResults', {
-                "queryTitle":queryTitle
-            });
+    "queryTitle": queryTitle
+  });
 }
 
 socket.on('deleteResultFinished', function (data) {
-  notifyUser("Results deleted" + data.message,false);
+  notifyUser("Results deleted" + data.message, false);
   requestCompletedQueries();
 });
 
@@ -61,15 +61,15 @@ socket.on('deleteResultFinished', function (data) {
 /**
  * Requests the deletion of a Catalog element
  */
-function requestQueryCatalogDeletion(queryTitle){
-  console.log("Delete "+queryTitle + " Catalog");
+function requestQueryCatalogDeletion(queryTitle) {
+  console.log("Delete " + queryTitle + " Catalog");
   socket.emit('serverDeleteCatalog', {
-                "queryTitle":queryTitle
-            });
+    "queryTitle": queryTitle
+  });
 }
 
 socket.on('deleteCatalogFinished', function (data) {
-  notifyUser("Catalog deleted" + data.message,false);
+  notifyUser("Catalog deleted" + data.message, false);
   requestCatalogQueries();
 });
 
@@ -80,14 +80,14 @@ socket.on('deleteCatalogFinished', function (data) {
  * @param [string] queryTitle for the query to be run.
  * @param [string] queryData is the XML string of the query to run.
  */
-function requestExecuteQuery(email, isQueryStrict, queryTitle,queryData){
+function requestExecuteQuery(email, isQueryStrict, queryTitle, queryData) {
   socket.emit('serverRunXMLQuery', {
-                "email":email,
-                "isStrictMode":isQueryStrict,
-                "xmlTitle":queryTitle,
-                "xmlData":queryData,
-                "timestamp": new Date().getTime()
-            });
+    "email": email,
+    "isStrictMode": isQueryStrict,
+    "xmlTitle": queryTitle,
+    "xmlData": queryData,
+    "timestamp": new Date().getTime()
+  });
 }
 
 socket.on('clientXmlQueryFinished', function (data) {
@@ -97,17 +97,27 @@ socket.on('clientXmlQueryFinished', function (data) {
 /**
  * Request the data for a query
  */
-function requestQueryData(title){
-  socket.emit('serverRequestQueryData', {"queryTitle":title});
+function requestQueryData(title) {
+  socket.emit('serverRequestQueryData', { "queryTitle": title });
 }
 
-function requestAnalysisData(){
-    socket.emit('serverAnalyseGeneralOverview');
+function requestAnalysisData() {
+  socket.emit('serverAnalyseGeneralOverview');
 }
 
 socket.on('analyseGeneralOverviewProcessed', function (data) {
-    notifyUser("analyseGeneralOverviewProcessed and " + data.generalOverviewData.length + " collections were received");
-    generalOverviewDataReceived(data.generalOverviewData,data.urlIndexes);
+  notifyUser("analyseGeneralOverviewProcessed and " + data.generalOverviewData.length + " collections were received");
+  generalOverviewDataReceived(data.generalOverviewData, data.urlIndexes);
+});
+
+
+function requestAnalysisCount() {
+  socket.emit('serverEventSequences');
+}
+
+socket.on('eventSequenceCountProcessed', function (data) {
+  notifyUser("eventSequenceCountProcessed and " + data.eventSeqCountList.length + " event sequence counts have been received");
+  sunburstDataReceived(data.eventSeqCountList,data.eventNameList);
 });
 
 /**
@@ -115,7 +125,7 @@ socket.on('analyseGeneralOverviewProcessed', function (data) {
  * TODO: I don't like the idea of downloading the whole collection to the client. I think it's better to abstract him from that.
  */
 socket.on('clientQueryDataProcessed', function (data) {
-    notifyUser("A document for the query " + data.queryTitle + " has been received");
-    console.log("A document for the query " + data.queryTitle + " has been received");
-    console.log("The file is available in " + data.queryPath);
+  notifyUser("A document for the query " + data.queryTitle + " has been received");
+  console.log("A document for the query " + data.queryTitle + " has been received");
+  console.log("The file is available in " + data.queryPath);
 });

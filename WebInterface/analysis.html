@@ -40,6 +40,9 @@
   <!-- The event creation and interaction logic is stored in a different file -->
   <script src="./analysis.js"></script>
   <script src="./stackedChart.js"></script>
+  <script src="./sankeyChart.js"></script>
+  <script src="./sunburst.js"></script>
+  <link rel="stylesheet" href="./sunburst.css">
 
 
   <!-- server.js code script start-->
@@ -192,7 +195,8 @@
       <img src="./res/WevQueryLogo.png" alt="WevQuery tool logo">
     </div>
     <div>
-      <input id="pageToggle" type="checkbox" checked data-toggle="toggle" data-on="Query Creation" data-off="Analysis" data-onstyle="primary" data-offstyle="info">
+      <input id="pageToggle" type="checkbox" checked data-toggle="toggle" data-on="Query Creation" data-off="Analysis" data-onstyle="primary"
+        data-offstyle="info">
     </div>
     <div class="btn-group">
       <button type="button" class="btn  btn-lg btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -285,22 +289,36 @@
     <h2>Analysis panel</h2>
     <ul class="nav nav-tabs">
       <li class="active"><a data-toggle="tab" href="#tabGeneral">General View</a></li>
-      <li><a data-toggle="tab" href="#tabRaw">Raw Data</a></li>
+      <li><a data-toggle="tab" href="#tabTransitions">Transition View</a></li>
       <li><a data-toggle="tab" href="#tabDescrStat">Descriptive statistics</a></li>
       <li><a data-toggle="tab" href="#tabTemp">Temporal description</a></li>
     </ul>
 
 
     <div class="tab-content">
-          
+
       <div id="tabGeneral" class="tab-pane fade in active">
-        <div id="loadingSpin"></div>
+        <div id="generalGraphLoadingSpin"></div>
         <svg id="generalGraph" width="960" height="500"></svg>
+        <div id="sequenceCountGraphLoadingSpin"></div>
+        <div id="sequenceCountGraph">
+          <div id="sunburstSequence"></div>
+          <div id="sunburstChart">
+            <div id="sunburstExplanation" style="visibility: hidden;">
+              <span id="sunburstPercentage"></span><br/>
+              of visits begin with this sequence of pages
+            </div>
+          </div>
+        </div>
+        <div id="sunburstSidebar">
+          <input type="checkbox" id="sunburstTogglelegend"> Legend<br/>
+          <div id="sunburstLegend" style="visibility: hidden;"></div>
+        </div>
       </div>
-      <div id="tabRaw" class="tab-pane fade">
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
-          aliqua.
-        </p>
+      
+      <div id="tabTransitions" class="tab-pane fade">
+        <div id="sankey-chart-simple" class="nvd3"></div>
+        <div id="sankey-chart-advanced" class="nvd3"></div>
       </div>
       <div id="tabDescrStat" class="tab-pane fade">
         <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>

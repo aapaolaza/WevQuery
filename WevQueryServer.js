@@ -112,6 +112,11 @@ io.sockets.on('connection', function (socket) {
     analyseQueryData();
   });
 
+  socket.on('serverEventSequences', function (data) {
+    log("serverEventSequences, requesting count for all event sequences");
+    getEventSeqCount();
+  });
+
   socket.on('serverRequestQueryData', function (data) {
     log("serverRequestQueryData, requesting the following query: " + data.queryTitle);
     requestQueryDataForClient(data.queryTitle);
@@ -168,7 +173,7 @@ function startXmlQuery(xmlData) {
 
 function completedQueriesFinished(err, queryList) {
   if (err) return console.error("completedQueriesFinished() ERROR retrieving available queries " + err);
-  log("Available queries retrieved: " + queryList);
+  log("Available queries retrieved: " + queryList.length);
   io.sockets.emit('clientCompletedQueriesFinished', { 'queryList': queryList });
 }
 
@@ -288,13 +293,30 @@ function analyseQueryData() {
   mongoDAO.stackedChart(analyseQueryDataReady);
 }
 
-function analyseQueryDataReady(err, allCollectionsList,uniqueUrls){
+function analyseQueryDataReady(err, allCollectionsList, uniqueUrls) {
   if (err) return console.error("analyseQueryDataReady() ERROR retrieving data" + err);
-      io.sockets.emit('analyseGeneralOverviewProcessed', {
-      'generalOverviewData' : allCollectionsList,
-      'urlIndexes' : uniqueUrls
-    });
+  io.sockets.emit('analyseGeneralOverviewProcessed', {
+    'generalOverviewData': allCollectionsList,
+    'urlIndexes': uniqueUrls
+  });
 }
+
+/**
+ * Request the count for all event sequences
+ */
+function getEventSeqCount() {
+  mongoDAO.getEventSequences(getEventSeqCountReady);
+}
+
+function getEventSeqCountReady(err, sequenceList, eventNameList) {
+  if (err) return console.error("getEventSeqCountReady() ERROR retrieving data" + err);
+  log("Received the sequences count, responding client");
+  io.sockets.emit('eventSequenceCountProcessed', {
+    'eventSeqCountList': sequenceList,
+    'eventNameList': eventNameList
+  });
+}
+
 
 /**
  * Requests the information for a particular query
