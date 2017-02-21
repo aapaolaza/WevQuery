@@ -105,3 +105,12 @@ table.tablesorter thead tr .headerSortDown:after{
   border-style: solid;
   border-color: transparent transparent #aaaaaa transparent;
 }
+
+.spinner{
+  margin-top: 50px;
+}
+.spinnerMessage{
+  display:none;
+  text-align: center;
+  padding-top: 50px;
+}

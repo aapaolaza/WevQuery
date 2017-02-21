@@ -275,19 +275,24 @@ function editQueryCatalog(queryData) {
  * Shows a general overview of the results, with the provided data
  */
 
+//http://spin.js.org/
+
 var spinnerGeneralView;
+var spinnerOptions = {
+  lines: 9, // The number of lines to draw
+  length: 9, // The length of each line
+  width: 5, // The line thickness
+  radius: 14, // The radius of the inner circle
+  color: '#EE3124', // #rgb or #rrggbb or array of colors
+  speed: 1.9, // Rounds per second
+  trail: 40, // Afterglow percentage
+  className: 'spinner', // The CSS class to assign to the spinner
+  position: 'relative'
+};
+
 function updateGeneralOverview() {
-  var opts = {
-    lines: 9, // The number of lines to draw
-    length: 9, // The length of each line
-    width: 5, // The line thickness
-    radius: 14, // The radius of the inner circle
-    color: '#EE3124', // #rgb or #rrggbb or array of colors
-    speed: 1.9, // Rounds per second
-    trail: 40, // Afterglow percentage
-    className: 'spinner', // The CSS class to assign to the spinner
-  };
-  spinnerGeneralView = new Spinner(opts).spin(document.getElementById("generalGraphLoadingSpin"));
+  spinnerGeneralView = new Spinner(spinnerOptions).spin(document.getElementById("generalGraphLoadingSpin"));
+  $("#generalGraphLoadingSpin p").show();
   console.log("starting spin");
   requestAnalysisData();
 }
@@ -297,30 +302,26 @@ function generalOverviewDataReceived(generalOverviewData, urlIndexes) {
   //only update the graph when it's visible
   if ($("#generalGraph").is(":visible")) {
     spinnerGeneralView.stop();
+    $("#generalGraphLoadingSpin p").hide();
     nvdStackedChart(generalOverviewData, urlIndexes);
   }
 }
 
 var spinnerSunBurst;
 function updateSunburst() {
-  var opts = {
-    lines: 9, // The number of lines to draw
-    length: 9, // The length of each line
-    width: 5, // The line thickness
-    radius: 14, // The radius of the inner circle
-    color: '#EE3124', // #rgb or #rrggbb or array of colors
-    speed: 1.9, // Rounds per second
-    trail: 40, // Afterglow percentage
-    className: 'spinner', // The CSS class to assign to the spinner
-  };
-  spinnerSunBurst = new Spinner(opts).spin(document.getElementById("sequenceCountGraphLoadingSpin"));
+
+  spinnerSunBurst = new Spinner(spinnerOptions).spin(document.getElementById("sequenceCountGraphLoadingSpin"));
+  $("#sequenceCountGraphLoadingSpin p").show();
+
   requestAnalysisCount();
 }
 
-function sunburstDataReceived(eventSeqCountList,eventNameList) {
+function sunburstDataReceived(eventSeqCountList, eventNameList) {
   //only update the graph when it's visible
   if ($("#generalGraph").is(":visible")) {
     spinnerSunBurst.stop();
+    $("#sequenceCountGraphLoadingSpin p").hide();
+
     sunburstGraph(eventSeqCountList, eventNameList);
   }
 }
