@@ -253,7 +253,7 @@ function getEventSequences(callback) {
 
   //It will keep all sequences using the event names as indexes.
   var sequenceList = {};
-  
+
   //keep a list of all unique event names
   var eventNameList = [];
 
@@ -273,7 +273,7 @@ function getEventSequences(callback) {
 
             //The xmlQuery collection is nested twice (noted as a bug)
             documentItem.value.xmlQuery[0].forEach(function (eventItem, index) {
-              if (eventNameList.indexOf(eventItem.event)==-1)
+              if (eventNameList.indexOf(eventItem.event) == -1)
                 eventNameList.push(eventItem.event);
 
               if (index == 0)
@@ -301,7 +301,6 @@ function getEventSequences(callback) {
             var sequenceArray = [];
 
             for (var prop in sequenceList) {
-              console.log("adding property to array");
               if (sequenceList.hasOwnProperty(prop)) {
                 var seqItem = {}
                 seqItem.key = prop;
@@ -311,6 +310,97 @@ function getEventSequences(callback) {
             }
 
             callback(null, sequenceArray, eventNameList);
+          }
+        });
+      });
+    });
+  });
+}
+
+/**
+ * Queries all finished queries and retrieves the event transitions
+ * It groups them and counts them
+ * @param [callback] Returns a single object containing two arrays:
+ * nodes: A list of labels for the transitions
+ * "nodes":[{"name":"Agricultural 'waste'"},{"name":"Bio-conversion"}]
+ * links: A list of weighed transitions, referencing the index of the labels
+ * "links":[{"source":0,"target":1,"value":124.729},{"source":1,"target":2,"value":0.597}]
+ */
+
+function getAllEventTransitions(callback) {
+  //It will keep all sequences using the union of 2 event names as indexes.
+  var transitionIndex = "";
+  var sequenceList = {};
+
+  //keep a list of all unique event names
+  var eventNameList = [];
+
+  //keep a list of all unique event names to ease the search of the index
+  var nodesIndex = [];
+  //Keep another list with pairs "name": label, to return to the client
+  var nodes = [];
+
+  //It will keep all sequences using the event names as indexes.
+  var links = [];
+
+  constants.connectAndValidateNodeJs(function (err, db) {
+    if (err) return console.error("getEventTransitions() ERROR connecting to DB" + err);
+
+    mongoDAO.getCompletedQueries(function (err, resultCollectionList) {
+      if (err) return console.error("getEventTransitions() ERROR REQUESTING COMPLETED QUERIES" + err);
+      var collectionsProcessed = 0;
+
+      resultCollectionList.forEach(function (resultCollectionTitle, index, collectionsArray) {
+        console.log("getEventTransitions(): Processing " + resultCollectionTitle.title);
+        db.collection(queryCollectionPrefix + resultCollectionTitle.title).find({ "value.xmlQueryCounter": { $gt: 0 } }).toArray(function (err, documents) {
+          //for each document, loop for each event name
+          documents.forEach(function (documentItem, index) {
+            var predecesor = "";
+
+            //The xmlQuery collection is nested twice (noted as a bug)
+            documentItem.value.xmlQuery[0].forEach(function (eventItem, index) {
+              if (nodesIndex.indexOf(eventItem.event) == -1){
+                nodesIndex.push(eventItem.event);
+                nodes.push({"name":eventItem.event});
+              }
+
+              //If there has been a previous event, store the transition to the current one
+              if (predecesor !== "") {
+                //use both events as the index
+                transitionIndex = predecesor + "_" + eventItem.event;
+                if (typeof sequenceList[transitionIndex] === 'undefined') {
+                  sequenceList[transitionIndex] = 1;
+                }
+                else {
+                  sequenceList[transitionIndex]++;
+                }
+              }
+              predecesor = eventItem.event;
+            });
+          });
+
+          collectionsProcessed++;
+          if (collectionsProcessed === collectionsArray.length) {
+
+            console.log("getEventTransitions(): All collections processed");
+            //All documents for all resultCollectionList have been processed
+            
+            //transform the array of transitions into source,target,value pairs, using nodes' indexes
+            
+
+            for (var prop in sequenceList) {
+              if (sequenceList.hasOwnProperty(prop)) {
+                var seqItem = {}
+                //For each source and target, look for their corresponding index
+                seqItem.source = nodesIndex.indexOf(prop.split("_")[0]);
+                seqItem.target = nodesIndex.indexOf(prop.split("_")[1]);
+                seqItem.value = sequenceList[prop];
+                links.push(seqItem);
+              }
+            }
+            var transitionObject = {nodes,links};
+
+            callback(null, transitionObject);
           }
         });
       });
@@ -367,3 +457,4 @@ function safeCsv(field) {
 
 module.exports.stackedChart = stackedChart;
 module.exports.getEventSequences = getEventSequences;
+module.exports.getAllEventTransitions = getAllEventTransitions;

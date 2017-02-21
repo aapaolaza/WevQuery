@@ -21,6 +21,7 @@ function initialiseInterface() {
 
   updateGeneralOverview();
   updateSunburst();
+  updateSankey();
 }
 
 /**
@@ -300,11 +301,11 @@ function updateGeneralOverview() {
 function generalOverviewDataReceived(generalOverviewData, urlIndexes) {
   console.log("stopping spin");
   //only update the graph when it's visible
-  if ($("#generalGraph").is(":visible")) {
+ // if ($("#generalGraphLoadingSpin").is(":visible")) {
     spinnerGeneralView.stop();
     $("#generalGraphLoadingSpin p").hide();
     nvdStackedChart(generalOverviewData, urlIndexes);
-  }
+  //}
 }
 
 var spinnerSunBurst;
@@ -318,12 +319,28 @@ function updateSunburst() {
 
 function sunburstDataReceived(eventSeqCountList, eventNameList) {
   //only update the graph when it's visible
-  if ($("#generalGraph").is(":visible")) {
+  //if ($("#sequenceCountGraphLoadingSpin").is(":visible")) {
     spinnerSunBurst.stop();
     $("#sequenceCountGraphLoadingSpin p").hide();
 
     sunburstGraph(eventSeqCountList, eventNameList);
-  }
+  //}
+}
+
+var spinnerSankey;
+function updateSankey() {
+  spinnerSankey = new Spinner(spinnerOptions).spin(document.getElementById("sankeyGraphLoadingSpin"));
+  $("#sankeyGraphLoadingSpin p").show();
+
+  requestAllEventTransitions();
+}
+
+function sankeyDataReceived(transitionObject) {
+  //if ($("#sankeyGraphLoadingSpin").is(":visible")) {
+    spinnerSankey.stop();
+    $("#sankeyGraphLoadingSpin p").hide();
+    sankeyDiagram("sankeyGraph",transitionObject);
+  //}
 }
 
 /**

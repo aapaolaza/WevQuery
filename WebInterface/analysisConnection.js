@@ -1,5 +1,6 @@
 var testData;
 var testUrlIndexes;
+var testTransitions={};
 
 /**
  * Requests the list of all available collections
@@ -118,6 +119,19 @@ function requestAnalysisCount() {
 socket.on('eventSequenceCountProcessed', function (data) {
   notifyUser("eventSequenceCountProcessed and " + data.eventSeqCountList.length + " event sequence counts have been received");
   sunburstDataReceived(data.eventSeqCountList,data.eventNameList);
+});
+
+
+function requestAllEventTransitions() {
+  socket.emit('serverAllEventTransitions');
+}
+
+socket.on('serverAllEventTransitionsProcessed', function (data) {
+  console.log("serverAllEventTransitionsProcessed signal");
+  notifyUser("serverAllEventTransitionsProcessed and " + data.transitionObject.links.length + " event transitions have been received");
+  testTransitions = data.transitionObject;
+  console.log(data.transitionObject);
+  sankeyDataReceived(data.transitionObject);
 });
 
 /**

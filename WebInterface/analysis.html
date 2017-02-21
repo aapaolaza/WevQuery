@@ -24,7 +24,7 @@
   <script type="text/javascript" src="./tablesorter/jquery.tablesorter.js"></script>
 
   <!--<script type="text/javascript" src="./bower_components/d3/d3.js"></script> -->
-  <script src="./nvd3/d3.v3.js"></script>
+  <script src="./d3/d3.v3.js"></script>
   <script src="./nvd3/nv.d3.js"></script>
   <script src="./spin/spin.js"></script>
   <link rel="stylesheet" href="./nvd3/nv.d3.css">
@@ -38,11 +38,18 @@
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
   <!-- The event creation and interaction logic is stored in a different file -->
+  
   <script src="./analysis.js"></script>
-  <script src="./stackedChart.js"></script>
-  <script src="./sankeyChart.js"></script>
-  <script src="./sunburst.js"></script>
-  <link rel="stylesheet" href="./sunburst.css">
+  <script src="./stackedChart/stackedChart.js"></script>
+  <!--NV3 versionof the sankeychart, not as good as the original d3
+    <script src="./sankey/sankeyChart.js"></script>-->
+
+  <script src="./sunburst/sunburst.js"></script>
+  <link rel="stylesheet" href="./sunburst/sunburst.css">
+
+  <script src="./sankey/sankey.js"></script>
+  <script src="./sankey/sankeyDiagramCustom.js"></script>
+  <link rel="stylesheet" href="./sankey/sankey.css">
 
 
   <!-- server.js code script start-->
@@ -290,6 +297,7 @@
     <ul class="nav nav-tabs">
       <li class="active"><a data-toggle="tab" href="#tabGeneral">General View</a></li>
       <li><a data-toggle="tab" href="#tabTransitions">Transition View</a></li>
+      <li><a data-toggle="tab" href="#tabSunburst">Sunburst View</a></li>
       <li><a data-toggle="tab" href="#tabDescrStat">Descriptive statistics</a></li>
       <li><a data-toggle="tab" href="#tabTemp">Temporal description</a></li>
     </ul>
@@ -302,6 +310,18 @@
           <p class="spinnerMessage">Loading general graph</p>
         </div>
         <svg id="generalGraph" width="960" height="500"></svg>
+        
+      </div>
+      
+      <div id="tabTransitions" class="tab-pane fade">
+        <div id="sankeyGraphLoadingSpin">
+          <p class="spinnerMessage">Loading transitions</p>
+        </div>
+        <div id="sankeyGraph"></div>
+        <!--<div id="sankey-chart-simple" class="nvd3"></div>
+        <div id="sankey-chart-advanced" class="nvd3"></div>-->
+      </div>
+      <div id="tabSunburst" class="tab-pane fade">
         <div id="sequenceCountGraphLoadingSpin">
           <p class="spinnerMessage">Loading sunburst graph</p>
         </div>
@@ -320,10 +340,6 @@
         </div>
       </div>
       
-      <div id="tabTransitions" class="tab-pane fade">
-        <div id="sankey-chart-simple" class="nvd3"></div>
-        <div id="sankey-chart-advanced" class="nvd3"></div>
-      </div>
       <div id="tabDescrStat" class="tab-pane fade">
         <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
       </div>

@@ -118,6 +118,13 @@ io.sockets.on('connection', function (socket) {
     getEventSeqCount();
   });
 
+
+  socket.on('serverAllEventTransitions', function (data) {
+    log("serverAllEventTransitions, requesting transitions for all event sequences");
+    getAllEventTransitions();
+  });
+
+
   socket.on('serverRequestQueryData', function (data) {
     log("serverRequestQueryData, requesting the following query: " + data.queryTitle);
     requestQueryDataForClient(data.queryTitle);
@@ -311,10 +318,27 @@ function getEventSeqCount() {
 
 function getEventSeqCountReady(err, sequenceList, eventNameList) {
   if (err) return console.error("getEventSeqCountReady() ERROR retrieving data" + err);
-  log("Received the sequences count, responding client");
+  log("getEventSeqCountReady() Received the sequences count, responding client");
   io.sockets.emit('eventSequenceCountProcessed', {
     'eventSeqCountList': sequenceList,
     'eventNameList': eventNameList
+  });
+}
+
+
+/**
+ * Request the transitions for all event sequences
+ */
+function getAllEventTransitions() {
+  mongoDAO.getAllEventTransitions(getAllEventTransitionsReady);
+}
+
+function getAllEventTransitionsReady(err, transitionObject) {
+  if (err) return console.error("getAllEventTransitionsReady() ERROR retrieving data" + err);
+  log("getAllEventTransitionsReady() Received the transition sequences, responding client");
+  //console.log(JSON.stringify(transitionObject, null, 2));
+  io.sockets.emit('serverAllEventTransitionsProcessed', {
+    'transitionObject': transitionObject
   });
 }
 
