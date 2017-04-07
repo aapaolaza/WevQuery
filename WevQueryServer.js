@@ -15,7 +15,7 @@ var logFile = "./wevQuery.log";
 var connect = require('connect');
 var serveStatic = require('serve-static');
 var app = connect().use(serveStatic(__dirname)).listen(8080, function () {
-  console.log('Server running on ' + port + '...');
+  console.log('WevQuery Server running on ' + port + '...');
 });
 
 var io = require('socket.io').listen(app);
@@ -98,7 +98,7 @@ io.sockets.on('connection', function (socket) {
 
   socket.on('serverRequestCatalogQueries', function (data) {
     log("serverRequestCatalogQueries, requesting Catalog queries");
-    mongoDAO.getCatalogQueries(CatalogQueriesFinished);
+    mongoDAO.getCatalogQueries(catalogQueriesFinished);
   });
 
   socket.on('serverRequestRunningQueries', function (data) {
@@ -188,8 +188,8 @@ function completedQueriesFinished(err, queryList) {
 /**
  * When the database retrieves all Catalog queries it returns an array of query documents
  */
-function CatalogQueriesFinished(err, queryList) {
-  if (err) return console.error("CatalogQueriesFinished() ERROR retrieving Catalog queries " + err);
+function catalogQueriesFinished(err, queryList) {
+  if (err) return console.error("catalogQueriesFinished() ERROR retrieving Catalog queries " + err);
   io.sockets.emit('serverRequestCatalogQueriesFinished', { 'queryList': queryList });
 }
 

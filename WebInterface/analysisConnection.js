@@ -1,6 +1,6 @@
 var testData;
 var testUrlIndexes;
-var testTransitions={};
+var testTransitions = {};
 
 /**
  * Requests the list of all available collections
@@ -26,6 +26,7 @@ function requestCatalogQueries() {
 
 socket.on('serverRequestCatalogQueriesFinished', function (data) {
   updateCatalogQueries(data.queryList);
+  console.log(data.queryList);
   notifyUser(data.queryList.length + " Catalog queries have been retrieved");
 });
 
@@ -108,7 +109,10 @@ function requestAnalysisData() {
 
 socket.on('analyseGeneralOverviewProcessed', function (data) {
   notifyUser("analyseGeneralOverviewProcessed and " + data.generalOverviewData.length + " collections were received");
-  generalOverviewDataReceived(data.generalOverviewData, data.urlIndexes);
+
+  generalOverviewDataReceived({
+    generalOverviewData:data.generalOverviewData, 
+    urlIndexes:data.urlIndexes });
 });
 
 
@@ -118,7 +122,9 @@ function requestAnalysisCount() {
 
 socket.on('eventSequenceCountProcessed', function (data) {
   notifyUser("eventSequenceCountProcessed and " + data.eventSeqCountList.length + " event sequence counts have been received");
-  sunburstDataReceived(data.eventSeqCountList,data.eventNameList);
+  sunburstDataReceived({
+    eventSeqCountList:data.eventSeqCountList,
+    eventNameList:data.eventNameList});
 });
 
 

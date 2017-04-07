@@ -1,3 +1,4 @@
+
 /**
  * Called when the page is loaded. Runs all the initialisation functions
  * 
@@ -34,6 +35,7 @@ function updateCompletedQueries(queryList) {
   queryList.forEach(function (queryObject, index) {
     var newFinishedQueryObject = $("#queryResultItemTemplate").clone();
     newFinishedQueryObject.removeAttr("id");
+    newFinishedQueryObject.attr("queryTitle", queryObject.title);
     $(".title", newFinishedQueryObject).text(queryObject.title);
     $(".date", newFinishedQueryObject).text(queryObject.readableDate.split("T")[0]);
     $(".numberOfObjects", newFinishedQueryObject).text(queryObject.count);
@@ -57,6 +59,9 @@ function updateCatalogQueries(queryList) {
 
     var newCatalogQueryObject = $("#queryCatalogItemTemplate").clone();
     newCatalogQueryObject.removeAttr("id");
+    console.log("filling title:" + queryObject.title);
+    newCatalogQueryObject.attr("queryTitle", queryObject.title);
+    newCatalogQueryObject.attr("queryData", queryObject.queryXML);
     $(".title", newCatalogQueryObject).text(queryObject.title);
     $(".date", newCatalogQueryObject).text(queryObject.readableDate.split("T")[0]);
 
@@ -65,7 +70,6 @@ function updateCatalogQueries(queryList) {
     else
       $(".processTime", newCatalogQueryObject).text("NA");
     $(".numberOfObjects", newCatalogQueryObject).text(queryObject.count);
-    $(".queryData", newCatalogQueryObject).text(queryObject.queryXML);
 
     $("#queryCatalogList").append(newCatalogQueryObject);
     //$('#queryCatalogList tr:last').after(newCatalogQueryObject);
@@ -278,7 +282,6 @@ function editQueryCatalog(queryData) {
 
 //http://spin.js.org/
 
-var spinnerGeneralView;
 var spinnerOptions = {
   lines: 9, // The number of lines to draw
   length: 9, // The length of each line
@@ -291,56 +294,101 @@ var spinnerOptions = {
   position: 'relative'
 };
 
+var spinnerGeneralView;
+const generalOverviewDataKey = "stackedChartKey";
 function updateGeneralOverview() {
-  spinnerGeneralView = new Spinner(spinnerOptions).spin(document.getElementById("generalGraphLoadingSpin"));
-  $("#generalGraphLoadingSpin p").show();
-  console.log("starting spin");
-  requestAnalysisData();
+  var stackedChartData = sessionStorage.getItem(generalOverviewDataKey);
+
+  if (stackedChartData === null) {
+    spinnerGeneralView = new Spinner(spinnerOptions).spin(document.getElementById("generalGraphLoadingSpin"));
+    $("#generalGraphLoadingSpin p").show();
+    console.log("starting spin");
+    requestAnalysisData();
+  }
+  else
+    generalOverviewDataReceived($.parseJSON(stackedChartData));
 }
 
-function generalOverviewDataReceived(generalOverviewData, urlIndexes) {
-  console.log("stopping spin");
-  //only update the graph when it's visible
- // if ($("#generalGraphLoadingSpin").is(":visible")) {
+function refreshGeneralOverview() {
+  sessionStorage.removeItem(generalOverviewDataKey);
+  nvdStackedChartErase();
+  updateGeneralOverview();
+}
+
+
+function generalOverviewDataReceived(stackedChartData) {
+  if (spinnerGeneralView != null) {
     spinnerGeneralView.stop();
     $("#generalGraphLoadingSpin p").hide();
-    nvdStackedChart(generalOverviewData, urlIndexes);
-  //}
+  }
+  sessionStorage.setItem(generalOverviewDataKey, JSON.stringify(stackedChartData));
+
+  nvdStackedChart(stackedChartData);
+  
+  //For some reason the chart takes more space than it should
+  //any interaction triggering an update fixes it.
+  setTimeout(function () {
+    stackedChartObject.update();
+  }, 1500);
 }
 
 var spinnerSunBurst;
+const sunburstDataKey = "sunburstDataKey";
+
 function updateSunburst() {
-
-  spinnerSunBurst = new Spinner(spinnerOptions).spin(document.getElementById("sequenceCountGraphLoadingSpin"));
-  $("#sequenceCountGraphLoadingSpin p").show();
-
-  requestAnalysisCount();
+  var sunburstData = sessionStorage.getItem(sunburstDataKey);
+  if (sunburstData === null) {
+    spinnerSunBurst = new Spinner(spinnerOptions).spin(document.getElementById("sequenceCountGraphLoadingSpin"));
+    $("#sequenceCountGraphLoadingSpin p").show();
+    requestAnalysisCount();
+  }
+  else
+    sunburstDataReceived($.parseJSON(sunburstData));
 }
 
-function sunburstDataReceived(eventSeqCountList, eventNameList) {
-  //only update the graph when it's visible
-  //if ($("#sequenceCountGraphLoadingSpin").is(":visible")) {
+function refreshSunburst() {
+  sessionStorage.removeItem(sunburstDataKey);
+  sunburstErase();
+  updateSunburst();
+}
+
+function sunburstDataReceived(sunburstData) {
+  if (spinnerSunBurst != null) {
     spinnerSunBurst.stop();
     $("#sequenceCountGraphLoadingSpin p").hide();
-
-    sunburstGraph(eventSeqCountList, eventNameList);
-  //}
+  }
+  sessionStorage.setItem(sunburstDataKey, JSON.stringify(sunburstData));
+  sunburstGraph(sunburstData);
 }
 
 var spinnerSankey;
-function updateSankey() {
-  spinnerSankey = new Spinner(spinnerOptions).spin(document.getElementById("sankeyGraphLoadingSpin"));
-  $("#sankeyGraphLoadingSpin p").show();
+const sankeyDataKey = "sankeyDataKey";
 
-  requestAllEventTransitions();
+function updateSankey() {
+  var sankeyData = sessionStorage.getItem(sankeyDataKey);
+  if (sankeyData === null) {
+    spinnerSankey = new Spinner(spinnerOptions).spin(document.getElementById("sankeyGraphLoadingSpin"));
+    $("#sankeyGraphLoadingSpin p").show();
+
+    requestAllEventTransitions();
+  }
+  else
+    sankeyDataReceived($.parseJSON(sankeyData));
+}
+
+function refreshSankey() {
+  sessionStorage.removeItem(sankeyDataKey);
+  sankeyDiagramErase()
+  updateSankey();
 }
 
 function sankeyDataReceived(transitionObject) {
-  //if ($("#sankeyGraphLoadingSpin").is(":visible")) {
+  if (spinnerSankey != null) {
     spinnerSankey.stop();
     $("#sankeyGraphLoadingSpin p").hide();
-    sankeyDiagram("sankeyGraph",transitionObject);
-  //}
+  }
+  sessionStorage.setItem(sankeyDataKey, JSON.stringify(transitionObject));
+  sankeyDiagram("sankeyGraph", transitionObject);
 }
 
 /**

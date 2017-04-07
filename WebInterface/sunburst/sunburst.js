@@ -7,7 +7,10 @@ var testJson;
 /**
  * Given an array of event sequences and their counts, it creates a sunburst graph
  */
-function sunburstGraph(eventSeqCountList, eventNameList) {
+function sunburstGraph(sunburstData) {
+  var eventSeqCountList = sunburstData.eventSeqCountList;
+  var eventNameList = sunburstData.eventNameList;
+
   console.log("sunburstGraph()");
   // Dimensions of sunburst.
   var width = 750;

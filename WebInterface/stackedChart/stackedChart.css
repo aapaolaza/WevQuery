@@ -1,0 +1,7 @@
+#generalGraph .nv-axis.nv-x .tick {
+  display:none;
+}
+
+#generalGraph .nv-axislabel{
+ font-size: 20px;
+}

@@ -42,7 +42,7 @@ function initialiseDB() {
  */
 function addNewQueryDocument(queryTitle, queryData) {
 
-  console.log("Adding the following document to the db");
+  console.log("addNewQueryDocument(): Adding the following document to the db");
   console.log(queryTitle);
   console.log(queryData);
 

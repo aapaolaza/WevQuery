@@ -1,24 +1,42 @@
-///Same as MapReduceConstants, but I changed it so it can be used with Node JS  http://stackoverflow.com/questions/5625569/include-external-js-file-in-node-js-app
+//Version
+//LOG 2017-03-23 10:42:05
+
+///Same as MapReduceConstants, but I changed it so it can be used with Node JS http://stackoverflow.com/questions/5625569/include-external-js-file-in-node-js-app
 
 ///Module exports to act as interface can be found at the end, after all variables and functions are defined
 var MongoClient = require('mongodb').MongoClient
   , Server = require('mongodb').Server;
 
+//This tag can be found in the "msg" field in the current ops command of MapReduce commands
+const mapReduceTag = "m/r";
+const xmlQueryResults = "xmlQueryResults";
+const xmlQueryCatalog = "xmlQueryCatalog";
+
+const mongoLogCollection = "log";
+const userProfileCollection = "userProfiles";
+
+//This prefix will be added to all queries
+const queryCollectionPrefix = "xmlQuery_"
 
 ///MongoDB connection info
-var mongoPath = "localhost/ucivitdb";//SERVERIP/DATABASENAME
-var mongoAuthenticateDB = "admin";//DO NOT CHANGE
-var mongoQueryDB = "ucivitdb";
-var mongoUser = "DBUSERNAME";
-var mongoPass = "DBPASSWORD";
+const mongoPath = "localhost/ucivitdb";//SERVERIP/DATABASENAME
+const mongoAuthenticateDB = "admin";//DO NOT CHANGE
+const mongoQueryDB = "ucivitdb";
+const mongoUser = "DBUSERNAME";
+const mongoPass = "DBPASSWORD";
 
-var mongoTimeout = 300000;//0
+//Depending on the implementation, we might want to either use fields created after processing the data (urlSessionCounter, sdSessionCounter), or client created fields(episodeCount)
+const episodeField = "urlSessionCounter"
 
-var userCollection = "activeUsers";
-var eventCollection = "events";
+const mongoTimeout = 0;//0
+
+const userCollection = "activeUsers";
+const eventCollection = "events";
 
 //web site to be analysed, determined by its "sd" value. 10002 is kupb, 10006 is CS
-var websiteId = "10006";
+const websiteId = "10006";
+
+var globalDbConnection = null
 
 
 /** Connects to the database, authenticates the connection against the correspondent
@@ -42,39 +60,65 @@ function connectAndValidate() {
 }
 
 /**
- * Connect to the mongoDB and authenticate (if necessary)
+ * Connect to the mongoDB and authenticate (if necessary).
+ * If a connection already exists, return it.
  */
 function connectAndValidateNodeJs(callback) {
   //var mongoclient = new MongoClient(new Server(mongoPath), {native_parser: true});
 
-  mongoConnectionPath = mongoPath;
-  //For authentication we add the parameter to the mongoPath
-  //From http://mongodb.github.io/node-mongodb-native/2.0/tutorials/connecting/
-  //Authentication > Indirectly Against Another Database
-  if (mongoUser !== "" && mongoUser !== "DBUSERNAME")
-    mongoConnectionPath = mongoUser + ":" + mongoPass + "@" + mongoPath
-      + "?authSource=" + mongoAuthenticateDB;
+  if (globalDbConnection) {
+      callback(err, globalDbConnection);
+  }
+  else {
+    mongoConnectionPath = mongoPath;
+    //For authentication we add the parameter to the mongoPath
+    //From http://mongodb.github.io/node-mongodb-native/2.0/tutorials/connecting/
+    //Authentication > Indirectly Against Another Database
+    if (mongoUser !== "" && mongoUser !== "DBUSERNAME")
+      mongoConnectionPath = mongoUser + ":" + mongoPass + "@" + mongoPath
+        + "?authSource=" + mongoAuthenticateDB;
 
-  var options = { 
-    server: { 
-      socketOptions: { 
-        keepAlive: mongoTimeout, connectTimeoutMS: mongoTimeout 
-      } 
-    }, 
-    replset: { 
-      socketOptions: { 
-        keepAlive: mongoTimeout, 
-        connectTimeoutMS : mongoTimeout 
+    var options = {
+      server: {
+        socketOptions: {
+          keepAlive: mongoTimeout, 
+          connectTimeoutMS: mongoTimeout,
+          socketTimeoutMS: mongoTimeout
+        }
+      },
+      replset: {
+        socketOptions: {
+          keepAlive: mongoTimeout,
+          connectTimeoutMS: mongoTimeout,
+          socketTimeoutMS: mongoTimeout
+        }
       }
-    }
-  };
+    };
 
-  // Open the connection to the server
-  MongoClient.connect("mongodb://" + mongoPath, options, function (err, db) {
-    if (err) { callback(err, null); }
-    callback(err, db);
-  });
+    // Open the connection to the server
+    MongoClient.connect("mongodb://" + mongoPath, options, function (err, globalDbConnection) {
+      if (err) { callback(err, null); }
+      callback(err, globalDbConnection);
+    });
+  }
 }
+
+/**
+ * If there is an existing connection to reuse. Overwrites existing connection
+ */
+function reuseConnection(db){
+  globalDbConnection = db;
+}
+
+function closeConnection(){
+  if (globalDbConnection) globalDbConnection.close();
+}
+
+function getCurrentConnectionOptions(){
+  return ("mongoTimeout = " + mongoTimeout);
+}
+
+
 
 /** Completes single-digit numbers by a "0"-prefix
  * This is a special case for milliseconds, in which we will add up to two zeros 
@@ -90,11 +134,11 @@ function completeDateValsMilliseconds(dateVal) {
 /////////////////////////////////////////////START OF CONSTANTS/////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var scopeObject = {};
+const scopeObject = {};
 
 //list of banned IP addresses
-//var bannedIPlist = [ { "ip" : "130.88.193.26"} , { "ip" : "IP1"} , { "ip" : "IP2"}];
-var bannedIPlist = ["130.88.193.26", "IP1", "IP2"];
+//const bannedIPlist = [ { "ip" : "130.88.193.26"} , { "ip" : "IP1"} , { "ip" : "IP2"}];
+const bannedIPlist = ["130.88.193.26", "IP1", "IP2"];
 //the following query tests that the sid related with the ip 130.88.193.26 are filtered (it should be empty).
 //db.map_reduce_example.find({"_id.sid":{$in:["8hgYRPR2x1Jz", "7O25l3TPWVkp", "1l8yDX2ehiEv", "ZrZ2OrGb6fAY", "qptygSdE0H1z", "uAWrwKFf00rY", "5ZGlnqS1CPAE", "EVJZCfwAXF7j", "01v2m0HonZ3r", "pSaMH85B0Adz", "dzJnQXxQBKJT", "Qcs4OFkpPIbB", "x8UVE8L4598v", "4YWnL6iA0UpF"]}});
 
@@ -102,47 +146,49 @@ scopeObject["bannedIPlist"] = bannedIPlist;
 
 
 //These events should be ignored when calculating active times.
-var incorrectActTimeEvents = ["mobileGyroscopeEvent", "mouseOverEvent", "resizeEvent"]
+const incorrectActTimeEvents = ["mobileGyroscopeEvent", "mouseOverEvent", "resizeEvent"]
 scopeObject["incorrectActTimeEvents"] = incorrectActTimeEvents;
 
 ///////////List of events
-var loadEvent = "load";
+const loadEvent = "load";
 scopeObject["loadEvent"] = loadEvent;
 
-var mouseWheelEvent = "mousewheel";
+const mouseWheelEvent = "mousewheel";
 scopeObject["mouseWheelEvent"] = mouseWheelEvent;
 
-var mouseDownEvent = "mousedown";
+const mouseDownEvent = "mousedown";
 scopeObject["mouseDownEvent"] = mouseDownEvent;
 
-var mouseUpEvent = "mouseup";
+const mouseUpEvent = "mouseup";
 scopeObject["mouseUpEvent"] = mouseUpEvent;
 
-var mouseOverEvent = "mouseover";
+const mouseOverEvent = "mouseover";
 scopeObject["mouseOverEvent"] = mouseOverEvent;
 
-var mouseOutEvent = "mouseout";
+const mouseOutEvent = "mouseout";
 scopeObject["mouseOutEvent"] = mouseOutEvent;
 
-var mouseMoveEvent = "mousemove";
+const mouseMoveEvent = "mousemove";
 scopeObject["mouseMoveEvent"] = mouseMoveEvent;
 
-var dblclickEvent = "dblclick";
+const dblclickEvent = "dblclick";
 scopeObject["dblclickEvent"] = dblclickEvent;
 
-var mobileGyroscopeEvent = "mobileGyroscope";
+const mobileGyroscopeEvent = "mobileGyroscope";
 scopeObject["mobileGyroscope"] = mobileGyroscopeEvent;
 
-var scrollEvent = "scroll";
+const scrollEvent = "scroll";
 scopeObject["scrollEvent"] = scrollEvent;
 
-var resizeEvent = "resize";
+const resizeEvent = "resize";
 scopeObject["resize"] = resizeEvent;
 
 
 //////Session timeout
-var sessionTimeout = 40 * 60 * 1000;//40 mintues
+const sessionTimeout = 40 * 60 * 1000;//40 mintues
 scopeObject["sessionTimeout"] = sessionTimeout;
+scopeObject["episodeField"] = episodeField;
+
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -186,7 +232,6 @@ function datestamp() {
     + ":" + completeDateVals(currentDate.getMinutes())
     + ":" + completeDateVals(currentDate.getSeconds())
     + ":" + completeDateValsMilliseconds(currentDate.getMilliseconds());
-
 }
 
 /** Completes single-digit numbers by a "0"-prefix
@@ -207,6 +252,39 @@ function completeDateValsMilliseconds(dateVal) {
   else return dateVal;
 }
 
+/**
+ * Given an epoch date, it returns a readable format of the date
+ * @param {epoch date} datems 
+ */
+function datestampToReadable(datems) {
+  var currentDate = new Date(datems);
+  return currentDate.getFullYear() + "-" + completeDateVals(currentDate.getMonth() + 1) + "-"
+    + completeDateVals(currentDate.getDate()) + "," + completeDateVals(currentDate.getHours())
+    + ":" + completeDateVals(currentDate.getMinutes())
+    + ":" + completeDateVals(currentDate.getSeconds())
+    + ":" + completeDateValsMilliseconds(currentDate.getMilliseconds());
+}
+
+
+/**
+* We need our own compare function in order to be able to sort the array according to the timestamp
+*/
+function compareEventTS(objectA, objectB) {
+
+  var objectATime = Number(objectA.timestampms);
+  var objectBTime = Number(objectB.timestampms);
+
+  if (objectATime < objectBTime) {
+    //timeDifference += "##" + objectATime+ "is SMALLER than " + objectBTime;
+    return -1;
+  }
+  if (objectATime > objectBTime) {
+    //timeDifference += "##" + objectATime+ "is BIGGER than " + objectBTime;
+    return 1;
+  }
+  //timeDifference += "##" + objectATime+ "is EQUALS to " + objectBTime;
+  return 0;
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////END OF CONSTANTS/////////////////////////////////////////////////
@@ -215,13 +293,22 @@ function completeDateValsMilliseconds(dateVal) {
 //////Modules
 module.exports.mongoQueryDB = mongoQueryDB;
 module.exports.connectAndValidateNodeJs = connectAndValidateNodeJs;
+module.exports.closeConnection = closeConnection;
+module.exports.reuseConnection = reuseConnection;
+module.exports.getCurrentConnectionOptions = getCurrentConnectionOptions;
 module.exports.completeDateValsMilliseconds = completeDateValsMilliseconds;
 module.exports.parseDateToMs2 = parseDateToMs2;
 module.exports.datestamp = datestamp;
 module.exports.completeDateVals = completeDateVals;
 module.exports.completeDateValsMilliseconds = completeDateValsMilliseconds;
+module.exports.datestampToReadable = datestampToReadable;
+module.exports.compareEventTS = compareEventTS;
 module.exports.websiteId = websiteId;
 module.exports.userCollection = userCollection;
 module.exports.scopeObject = scopeObject;
 module.exports.eventCollection = eventCollection;
 module.exports.bannedIPlist = bannedIPlist;
+module.exports.sessionTimeout = sessionTimeout;
+module.exports.mongoLogCollection = mongoLogCollection;
+module.exports.userProfileCollection = userProfileCollection;
+module.exports.episodeField = episodeField;

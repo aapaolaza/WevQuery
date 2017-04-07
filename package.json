@@ -5,15 +5,18 @@
   "main": "WevQueryServer.js",
   "dependencies": {
     "connect": "^3.5.0",
+    "mongodb": "^2.2.25",
     "nodemailer": "^3.0.1",
     "serve-static": "^1.11.2",
-    "socket.io": "^1.7.2"
+    "socket.io": "^1.7.2",
+    "xmldom": "^0.1.27",
+    "xpath": "0.0.24"
   },
   "devDependencies": {
     "grunt": "^1.0.1"
   },
   "scripts": {
-    "test": "node WevQueryServer.js"
+    "start": "node WevQueryServer.js"
   },
   "repository": {
     "type": "git",

@@ -9,9 +9,16 @@
  * "links":[{"source":0,"target":1,"value":124.729},{"source":1,"target":2,"value":0.597}]
  */
 function sankeyDiagram(containerID, dataObject) {
+
+  const svgWidth = 1000;
+  const svgHeight = 750;
+  const nodeWidth = 15;
+  const nodePadding = 30;
+
+
   var margin = { top: 1, right: 1, bottom: 6, left: 1 },
-    width = 960 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+    width = svgWidth - margin.left - margin.right,
+    height = svgHeight - margin.top - margin.bottom;
 
   var formatNumber = d3.format(",.0f"),
     format = function (d) { return formatNumber(d) + " occurrences"; },
@@ -24,8 +31,8 @@ function sankeyDiagram(containerID, dataObject) {
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
   var sankey = d3.sankey()
-    .nodeWidth(15)
-    .nodePadding(10)
+    .nodeWidth(nodeWidth)
+    .nodePadding(nodePadding)
     .size([width, height]);
 
   var path = sankey.link();
@@ -81,4 +88,8 @@ function sankeyDiagram(containerID, dataObject) {
     link.attr("d", path);
   }
 
+}
+
+function sankeyDiagramErase(){
+  $("#sankeyGraph").empty();
 }

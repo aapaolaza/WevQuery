@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="Content-Language" content="en">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
@@ -41,6 +42,7 @@
   
   <script src="./analysis.js"></script>
   <script src="./stackedChart/stackedChart.js"></script>
+  <link rel="stylesheet" href="./stackedChart/stackedChart.css">
   <!--NV3 versionof the sankeychart, not as good as the original d3
     <script src="./sankey/sankeyChart.js"></script>-->
 
@@ -60,7 +62,6 @@
 
   <script>
     $(function () {
-      initialiseInterface();
 
       $("#updateQueryResults").click(function () {
         console.log("Clicked on update queries");
@@ -97,7 +98,6 @@
         updateOptionsMenu();
       });
 
-      updateLeftMenu();
 
       //To improve usability, left Menu options are toggabble
       //Toggling the lists will immediately remove any highlighted rows
@@ -155,8 +155,7 @@
       $("#deleteResults", "#queryResultsOptions").click(function () {
         // Add code to delete the query from the DB
         deleteQueryResults(
-          $("tr.active", "#queryResultsList")
-            .find("td.title").text());
+          $("tr.active", "#queryResultsList").attr("queryTitle"));
       });
 
       /**
@@ -169,29 +168,43 @@
 
       $("#runCatalogQuery", "#queryCatalogOptions").click(function () {
         runQueryCatalog("", false,
-          $("tr.active", "#queryCatalogList").find("td.title").text(),
-          $("tr.active", "#queryCatalogList").find("td.queryData").text());
+          $("tr.active", "#queryCatalogList").attr("queryTitle"),
+          $("tr.active", "#queryCatalogList").attr("queryData"));
       });
       $("#runCatalogQueryStrict", "#queryCatalogOptions").click(function () {
         // Add code to run the query
         runQueryCatalog("", true,
-          $("tr.active", "#queryCatalogList").find("td.title").text(),
-          $("tr.active", "#queryCatalogList").find("td.queryData").text());
+          $("tr.active", "#queryCatalogList").attr("queryTitle"),
+          $("tr.active", "#queryCatalogList").attr("queryData"));
 
       });
 
       $("#editCatalogQuery", "#queryCatalogOptions").click(function () {
         // Add code to load the results to the analysis panel
         editQueryCatalog($("tr.active", "#queryCatalogList")
-          .find("td.queryData").text());
+          .attr("queryData"));
       });
 
       $("#deleteCatalogQuery", "#queryCatalogOptions").click(function () {
         deleteQueryCatalog(
-          $("tr.active", "#queryCatalogList")
-            .find("td.title").text());
+          $("tr.active", "#queryCatalogList").attr("queryTitle"));
       });
 
+      //Analysis panel listeners
+       $("#updateTabGeneral").click(function () {
+        refreshGeneralOverview();
+      });
+      $("#updateTabTransitions").click(function () {
+        refreshSankey();
+      });
+      $("#updateSunburst").click(function () {
+        refreshSunburst();
+      });
+  
+
+      updateLeftMenu();
+      initialiseInterface();
+      
     });
   </script>
 </head>
@@ -295,9 +308,21 @@
   <div id="analysisPanel" class="container-fluid">
     <h2>Analysis panel</h2>
     <ul class="nav nav-tabs">
-      <li class="active"><a data-toggle="tab" href="#tabGeneral">General View</a></li>
-      <li><a data-toggle="tab" href="#tabTransitions">Transition View</a></li>
-      <li><a data-toggle="tab" href="#tabSunburst">Sunburst View</a></li>
+      <li class="active">
+        <a data-toggle="tab" href="#tabGeneral">General View
+          <i id="updateTabGeneral" class="glyphicon glyphicon-refresh"></i>
+        </a>
+      </li>
+      <li>
+        <a data-toggle="tab" href="#tabTransitions">Transition View
+          <i id="updateTabTransitions" class="glyphicon glyphicon-refresh"></i>
+        </a>
+      </li>
+      <li>
+        <a data-toggle="tab" href="#tabSunburst">Sunburst View
+          <i id="updateSunburst" class="glyphicon glyphicon-refresh"></i>
+        </a>
+      </li>
       <li><a data-toggle="tab" href="#tabDescrStat">Descriptive statistics</a></li>
       <li><a data-toggle="tab" href="#tabTemp">Temporal description</a></li>
     </ul>
@@ -306,6 +331,7 @@
     <div class="tab-content">
 
       <div id="tabGeneral" class="tab-pane fade in active">
+        <h3> Number of occurrences of each sequence per URL</h3>
         <div id="generalGraphLoadingSpin">
           <p class="spinnerMessage">Loading general graph</p>
         </div>
@@ -314,6 +340,7 @@
       </div>
       
       <div id="tabTransitions" class="tab-pane fade">
+        <h3> Sankey diagram detailing the transitions between events for all sequences</h3>
         <div id="sankeyGraphLoadingSpin">
           <p class="spinnerMessage">Loading transitions</p>
         </div>
@@ -358,19 +385,18 @@
 
   <!-- TEMPLATES FOR THE CREATION OF WEB PAGE ELEMENTS -->
   <table style='display:none'>
-    <tr id="queryResultItemTemplate" class="queryResultItem" style='display:none'>
+    <tr id="queryResultItemTemplate" class="queryResultItem" style='display:none' queryTitle="">
       <td class="title">NA</td>
       <td class="date">NA</td>
       <td class="numberOfObjects">NA</td>
     </tr>
 
 
-    <tr id="queryCatalogItemTemplate" class="queryCatalogItem" style='display:none'>
+    <tr id="queryCatalogItemTemplate" class="queryCatalogItem" style='display:none' queryTitle="" queryData="">
       <td class="title">NA</td>
       <td class="date">NA</td>
       <td class="processTime">NA</td>
       <td class="numberOfObjects">NA</td>
-      <td class="queryData" style='display:none'>NA</td>
     </tr>
   </table>
 

@@ -22,14 +22,18 @@
 //////We need to load the constants file
 var constants = require("./MapReduceConstantsNode.js");
 
-var mongoLog = require("./mongoLog.js");
-
 var xpath = require('xpath')
   , dom = require('xmldom').DOMParser
 
 //This prefix will be added to all queries
 var queryCollectionPrefix = "xmlQuery_"
 
+//db = connectAndValidate();
+
+//list of events to be processed, this will speed up the query, as only the relevant events will be considered
+//var eventList = [loadEvent,mouseDownEvent,mouseUpEvent,mouseOverEvent,mouseMoveEvent,dblclickEvent];
+
+//var userList = db.activeUsers.distinct("sid",{"sd" : websiteId});
 
 //This command gives the nodelist the functionality to use "forEach"
 //From http://stackoverflow.com/questions/24775725/loop-through-childnodes
@@ -230,7 +234,21 @@ function xmlReady(xmlQuery, xmlDoc, mapReduceVars, endCallback, launchedCallback
 function prepareMapReduce(xmlQuery, xmlDoc, mapReduceVars, endCallback, launchedCallback) {
 
   console.log("Current database", mapReduceVars.db.databaseName);
-  mapReduceScript(xmlQuery, xmlDoc, mapReduceVars, endCallback, launchedCallback);
+  var userCollection = mapReduceVars.db.collection(constants.userCollection);
+
+  console.log("Getting distinct users from the following Web site: " + constants.websiteId);
+
+  //Both following queries are working now. I will need some real data to test this. I might just run it in the virtual box.
+  /*var eventList = userCollection.distinct("event", function(err, docs) {
+       console.log(docs);
+  });*/
+  userCollection.distinct("sid", { "sd": constants.websiteId },
+    function (err, docs) {
+      if (err) console.log("prepareMapReduce():userList query ERROR " + err);
+      //console.log(docs);
+      mapReduceVars.userList = docs;
+      mapReduceScript(xmlQuery, xmlDoc, mapReduceVars, endCallback, launchedCallback);
+    });
 }
 
 /**
@@ -245,15 +263,10 @@ function uniqueArray(array) {
 
 
 function mapReduceScript(xmlQuery, xmlDoc, mapReduceVars, endCallback, launchedCallback) {
-
-  var startTimems = new Date();
-
   var eventCollection = mapReduceVars.db.collection(constants.eventCollection);
-  //The xml needs to be processed, and transformed into JavaScript objects that MapReduce can process
-  var mapReduceXMLQueryObject = parseXMLToMapReduceObject(xmlDoc);
-  constants.scopeObject["xmlQueryObject"] = mapReduceXMLQueryObject;
-  constants.scopeObject["requiredFieldList"] = retrieveQueriedFields(mapReduceXMLQueryObject);
 
+  //The xml needs to be processed, and transformed into JavaScript objects that MapReduce can process
+  constants.scopeObject["xmlQueryObject"] = parseXMLToMapReduceObject(xmlDoc);
   constants.scopeObject["isQueryStrict"] = mapReduceVars.isQueryStrict;
 
   console.log("mapReduceScript() start with the following parameters:");
@@ -269,12 +282,13 @@ function mapReduceScript(xmlQuery, xmlDoc, mapReduceVars, endCallback, launchedC
   console.log("sessionstartms: $exists: " + true);
   var value = eventCollection.mapReduce(
     mapFunction.toString(),
-    reduceFunction.toString(),
-    //skinnyReduceFunction.toString(),
+    //reduceFunction.toString(),
+    skinnyReduceFunction.toString(),
     {
       out: { replace: queryCollectionPrefix + mapReduceVars.title },
       query: {
         "sd": constants.websiteId
+        //, "sid": { $in: mapReduceVars.userList }
         , "ip": { $nin: constants.bannedIPlist }
         , "event": { $in: mapReduceVars.eventList }
         , "sessionstartms": { "$exists": true }
@@ -287,16 +301,7 @@ function mapReduceScript(xmlQuery, xmlDoc, mapReduceVars, endCallback, launchedC
     },
     function (err, results, stats) {   // stats provided by verbose
       console.log("mapReduceScript() end");
-
-      if (err) {
-        mongoLog.logMessage("optime", "mapReduceScript",
-          constants.websiteId, "MapReduce failed", startTimems, new Date());
-        return console.error("mapReduceScript() ERROR " + err);
-      }
-
-      mongoLog.logMessage("optime", "mapReduceScript",
-        constants.websiteId, "MapReduce finished successfully", startTimems, new Date());
-
+      if (err) return console.error("mapReduceScript() ERROR " + err);
       console.log(results);
       console.log(stats);
       console.log("Query finished in " + stats.processtime + " ms");
@@ -316,10 +321,6 @@ function mapReduceScript(xmlQuery, xmlDoc, mapReduceVars, endCallback, launchedC
   }
 }
 
-/**
- * Given an XML string, it converts it into a JavaScript Object, so the MapReduce query can interpret it
- * @param {string} xmlDoc 
- */
 function parseXMLToMapReduceObject(xmlDoc) {
   console.log();
 
@@ -344,16 +345,16 @@ function parseXMLToMapReduceObject(xmlDoc) {
   eventQueryObject.occurrences = xpath.select("string(//event[@pre='null']/@occurrences)", xmlDoc);
 
   //Get the context for that event
-  eventQueryObject.context = new Object();
-  eventQueryObject.context.typeList = [];
-  eventQueryObject.context.valueList = [];
+  eventQueryObject.contextList = new Object();
+  eventQueryObject.contextList.type = [];
+  eventQueryObject.contextList.value = [];
 
-  var context = xpath.select("//event[@pre='null']/context", xmlDoc);
-  console.log(context.length + "context elements have been found");
+  var contextList = xpath.select("//event[@pre='null']/context", xmlDoc);
+  console.log(contextList.length + "context elements have been found");
 
-  for (i = 0; i < context.length; i++) {
-    eventQueryObject.context.typeList[i] = context[i].getAttributeNode("type").toString();
-    eventQueryObject.context.valueList[i] = context[i].getAttributeNode("value").toString();
+  for (i = 0; i < contextList.length; i++) {
+    eventQueryObject.contextList.type[i] = contextList[i].getAttributeNode("type").toString();
+    eventQueryObject.contextList.value[i] = contextList[i].getAttributeNode("value").toString();
   }
 
   var currentID = xpath.select("string(//event[@pre='null']/@id)", xmlDoc);
@@ -383,16 +384,16 @@ function parseXMLToMapReduceObject(xmlDoc) {
       eventQueryObject.occurrences = xpath.select("string(//event[@pre='" + currentID + "']/@occurrences)", xmlDoc);
 
       //Get the context for that event
-      eventQueryObject.context = new Object();
-      eventQueryObject.context.typeList = [];
-      eventQueryObject.context.valueList = [];
+      eventQueryObject.contextList = new Object();
+      eventQueryObject.contextList.type = [];
+      eventQueryObject.contextList.value = [];
 
-      var context = xpath.select("//event[@pre='" + currentID + "']/context", xmlDoc);
-      console.log(context.length + "context elements have been found");
+      var contextList = xpath.select("//event[@pre='" + currentID + "']/context", xmlDoc);
+      console.log(contextList.length + "context elements have been found");
 
-      for (i = 0; i < context.length; i++) {
-        eventQueryObject.context.typeList[i] = context[i].getAttributeNode("type").toString();
-        eventQueryObject.context.valueList[i] = context[i].getAttributeNode("value").toString();
+      for (i = 0; i < contextList.length; i++) {
+        eventQueryObject.contextList.type[i] = contextList[i].getAttributeNode("type").toString();
+        eventQueryObject.contextList.value[i] = contextList[i].getAttributeNode("value").toString();
       }
 
       currentID = xpath.select("string(//event[@pre='" + currentID + "']/@id)", xmlDoc);
@@ -452,54 +453,58 @@ function parseXMLToMapReduceObject(xmlDoc) {
 }
 
 /**
- * Given an XML query transformed into JavaScript object, it retrieves the fields necessary to run the query.
- * Alternatively, this function could be modified to use the original XML and query all "context" nodes
- * @param {Object} mapReduceXMLQueryObject 
- */
-function retrieveQueriedFields(mapReduceXMLQueryObject) {
-  //fields that are required for the MapReduce
-  var requiredFieldList = ["_id", "sd", "sid", "timestampms", "event", constants.episodeField];
-
-  //Additional fields to support the MapReduce query
-  mapReduceXMLQueryObject.eventList.forEach(function (eventObject, index) {
-    //CAUTION the context is not actually a list, but an object that contains a list of type and value
-    eventObject.context.typeList.forEach(function (contextTypeField, index) {
-      if (requiredFieldList.indexOf(contextTypeField) == -1)
-        requiredFieldList.push(contextTypeField);
-    });
-  });
-  return requiredFieldList;
-}
-
-/**
  * This function filters out all unwanted events.
  * It gets executed for each object, and gives access to internal variables via "this".
  **/
 function mapFunction() {
-  /* 
-    I am still not sure why, but accessing this with a variable returns undefined
-    this[requiredField] where requiredField="event" won't work, but this["event"] will
-    Instead, use eventToEmit as a copy of "this"
-  */
-  var eventToEmit = this;
 
+  //we filter out the events we don't want to consider
+  //if (eventArray.indexOf(this.event) > -1){
   /*
    * "emit" function takes two arguments: 1) the key on which to group the data, 2) data itself to group. Both of them can be objects ({this.id, this.userId},{this.time, this.value}) for example
    */
-
-  var emitData = {};
-
-  requiredFieldList.forEach(function (requiredField, index) {
-    emitData[requiredField] = eventToEmit[requiredField];
-  });
-
-
   //emit({sid:this.sid, sessionstartms:this.sessionstartms, url:this.url, urlSessionCounter:this.urlSessionCounter},
-  emit({ sid: this.sid, url: this.url, episodeCount: this[episodeField] },
+  emit({ sid: this.sid, url: this.url, urlSessionCounter: this.urlSessionCounter },
     {
       "episodeEvents":
       [
-        emitData
+        {
+          event: this.event,
+          timestamp: this.timestamp,
+          timestampms: this.timestampms,
+          //sid: this.sid,
+          ip: this.ip,
+          //url: this.url,
+          sessionstartms: this.sessionstartms,
+          sessionstartparsed: this.sessionstartparsed,
+          visitCounter: this.visitCounter,
+          visitDuration: this.visitDuration,
+
+          sdSessionCounter: this.sdSessionCounter,
+          sdTimeSinceLastSession: this.sdTimeSinceLastSession,
+          urlSessionCounter: this.urlSessionCounter,
+          urlSinceLastSession: this.urlSinceLastSession,
+          urlEpisodeLength: this.urlEpisodeLength,
+
+          episodeUrlActivity: this.episodeUrlActivity,
+          episodeSdActivity: this.episodeSdActivity,
+
+
+          htmlSize: this.htmlSize,
+          resolution: this.resolution,
+          size: this.size,
+          usableSize: this.usableSize,
+
+          idleTime: this.idleTime,
+          calculatedActiveTime: this.calculatedActiveTime,
+          idleTimeSoFar: this.idleTimeSoFar,
+          sdCalculatedActiveTime: this.sdCalculatedActiveTime,
+
+          usertimezoneoffset: this.usertimezoneoffset,
+          mouseCoordinates: this.mouseCoordinates,
+          nodeInfo: this.nodeInfo,
+          count: 1
+        }
       ]
     }
   );
@@ -528,22 +533,39 @@ function reduceFunction(key, values) {
 
 /**
  * Same as reduceFunction, but after the first value, it will strip down all unnecessary data.
- * All necessary data has been stored in scope["requiredFieldList"] by retrieveQueriedFields)=
+ * 
  */
 function skinnyReduceFunction(key, values) {
+  var deleteList = ["sessionstartms",
+    "sessionstartparsed",
+    "visitCounter",
+    "visitDuration",
+    "sdSessionCounter",
+    "sdTimeSinceLastSession",
+    "urlSessionCounter",
+    "urlSinceLastSession",
+    "urlEpisodeLength",
+    "episodeUrlActivity",
+    "episodeSdActivity",
+    "htmlSize",
+    "resolution",
+    "size",
+    "usableSize",
+    "idleTime",
+    "idleTimeSoFar",
+    "sdCalculatedActiveTime",
+    "usertimezoneoffset"];
 
   var reduced = { "episodeEvents": [] };
   for (var i in values) {
     var inter = values[i];
     for (var j in inter.episodeEvents) {
       //for all elements except the first one
-      //if (reduced.episodeEvents.length > 1) {
-      for (var fieldIndex in reduced.episodeEvents[j]) {
-        if (requiredFieldList.indexOf(fieldIndex) == -1) {
-          delete inter.episodeEvents[j][fieldIndex];
+      if (reduced.episodeEvents.length > 1) {
+        for (var deleteIndex in deleteList) {
+          delete inter.episodeEvents[j][deleteList[deleteIndex]];
         }
       }
-      //}
       reduced.episodeEvents.push(inter.episodeEvents[j]);
     }
   }
@@ -593,6 +615,52 @@ function finalizeFunction(key, reduceOutput) {
       + nodeInfo.nodeTextContent + ", nodeTextValue=" + nodeInfo.nodeTextValue + "]");
   }
 
+	/**
+	 * Parse a date in "yyyy-mm-dd,HH:mm:ss:SSS" format, and return the ms.
+	 * I will do it manually to avoid problems with implementation dependant functions
+	 * new Date(year, month [, date [, hours[, minutes[, seconds[, ms]]]]])
+	 * 2013-07-05,09:25:53:970
+	 */
+  function parseDateToMs(input) {
+
+    var dateString = input;
+    var parts = dateString.split(',');
+
+    var date = parts[0].split('-');
+		/*var year = date[0];
+		var month = date[1];
+		var day = date[2];*/
+
+    var time = parts[1].split(':');
+		/*var hour = time[0];
+		var minute = time[1];
+		var secs = time[2];
+		var millisecs = time[3];*/
+    // new Date(year, month [, day [, hours[, minutes[, seconds[, ms]]]]])
+    return new Date(date[0], date[1] - 1, date[2], time[0], time[1], time[2], time[3]).getTime();
+    // Note: we use  date[1]-1 because months are 0-based
+  }
+
+	/**
+	 * This function will "fix" the events, by overriding the given timestampms, which doesn't exist in some of them,
+	 * with the result of parseDateToMs on the regular timestamp
+	 */
+
+  function fixEventTS(event) {
+    event.timestampms = parseDateToMs(event.timestamp);
+    return event;
+  }
+
+  /**
+  * Same as fixEventTS, but it will fix an entire array of events
+  */
+  function fixEventArrayTS(eventArray) {
+
+    for (var i in eventArray) {
+      eventArray[i].timestampms = parseDateToMs(eventArray[i].timestamp);
+    }
+    return eventArray;
+  }
   /**
  * This function just returns the median of a given array of numbers
  */
@@ -608,6 +676,43 @@ function finalizeFunction(key, reduceOutput) {
       return (values[half - 1] + values[half]) / 2.0;
   }
 
+
+
+	/**
+	 * This function will just augmentate the object with the extra information I get from the
+	 * eventObject
+	 */
+
+  function addInfoToBehaviour(behaviourObject, eventObject) {
+
+    behaviourObject.timestamp = eventObject.timestamp;
+
+    behaviourObject.timestampms = eventObject.timestampms;
+    behaviourObject.sortingtimestampms = eventObject.timestampms;
+
+    behaviourObject.sessionstartms = eventObject.sessionstartms;
+    behaviourObject.sessionstartparsed = eventObject.sessionstartparsed;
+    behaviourObject.visitCounter = eventObject.visitCounter;
+    behaviourObject.visitDuration = eventObject.visitDuration;
+
+    behaviourObject.sdSessionCounter = eventObject.sdSessionCounter;
+    behaviourObject.sdTimeSinceLastSession = eventObject.sdTimeSinceLastSession;
+    behaviourObject.urlSessionCounter = eventObject.urlSessionCounter;
+    behaviourObject.urlSinceLastSession = eventObject.urlSinceLastSession;
+    behaviourObject.urlEpisodeLength = eventObject.urlEpisodeLength;
+
+    behaviourObject.htmlSize = eventObject.htmlSize;
+    behaviourObject.resolution = eventObject.resolution;
+    behaviourObject.size = eventObject.size;
+    behaviourObject.usableSize = eventObject.usableSize;
+
+    behaviourObject.idleTime = eventObject.idleTime;
+    behaviourObject.calculatedActiveTime = eventObject.calculatedActiveTime;
+    behaviourObject.idleTimeSoFar = eventObject.idleTimeSoFar;
+    behaviourObject.sdCalculatedActiveTime = eventObject.sdCalculatedActiveTime;
+
+    return behaviourObject
+  }
   ///////////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////END OF Auxiliary Functions/////////////////////////////
 
@@ -656,7 +761,7 @@ function finalizeFunction(key, reduceOutput) {
     this.xmlQueryCandidatesList.forEach(function (xmlQueryCandidate, index) {
       var indexToMatch = xmlQueryCandidate.length;
       if (xmlQueryObject.eventList[indexToMatch].nameList.indexOf(currentEvent.event) > -1
-        && matchContextInfo(currentEvent.event, xmlQueryObject.eventList[indexToMatch].context)) {
+        && matchContextInfo(currentEvent.event, xmlQueryObject.eventList[indexToMatch].contextList)) {
 
         //the event matches, add it to the list, and test temporal constraints.
         xmlQueryCandidate.push(currentEvent);
@@ -756,8 +861,8 @@ function finalizeFunction(key, reduceOutput) {
   }
 
   function matchContextInfo(currentEvent, contextInfo) {
-    for (i = 0; i < contextInfo.typeList.length; i++) {
-      if (currentEvent[contextInfo.typeList[i]] != contextInfo.valueList[i])
+    for (i = 0; i < contextInfo.type.length; i++) {
+      if (currentEvent[contextInfo.type[i]] != contextInfo.value[i])
         return false;
     }
     return true;
@@ -773,10 +878,36 @@ function finalizeFunction(key, reduceOutput) {
   ////////////////////////////////////////////////////////////////////////////////////////////////////////
   var valuesArray = reduceOutput.episodeEvents;
 
+  valuesArray = fixEventArrayTS(valuesArray);
+
+
   valuesArraySorted = valuesArray.sort(compare);
-  //valuesArraySorted.sort(compare);
+  valuesArraySorted.sort(compare);
+
 
   var debugLog = "";
+
+  //general statistics and error control, such as number of events processed, and correct sorting test
+  var generalStatistics = new Object();
+  generalStatistics.count = 0;
+  generalStatistics.isArrayOrdered = 0;
+  generalStatistics.previousvalueObject = 0;
+  generalStatistics.timeDifference = 0;
+  generalStatistics.valuesBiggerThanPrevious = 0;
+  generalStatistics.valuesSmallerThanPrevious = 0;
+  generalStatistics.sdSessionCounter = 0;
+  generalStatistics.sdTimeSinceLastSession = 0;
+  generalStatistics.urlSessionCounter = 0;
+  generalStatistics.urlSinceLastSession = 0;
+  generalStatistics.calculatedActiveTimeMedian = 0;
+  generalStatistics.sessionstartmsMedian = 0;
+  generalStatistics.sdCalculatedActiveTimeMedian = 0;
+  generalStatistics.urlEpisodeLength = 0;
+
+  var calculatedActiveTimeList = [];
+  var sessionstartmsList = [];
+
+  var sdCalculatedActiveTimeList = [];
 
   //Behaviour Objects
   var xmlQuery = new XmlQuery();
@@ -784,7 +915,99 @@ function finalizeFunction(key, reduceOutput) {
   for (var i in valuesArraySorted) {
     valueObject = valuesArraySorted[i];
 
+    //Overwrite the timestampms with the parseDateToMs(regularTimestamp)
+    //valueObject = fixEventTS(valueObject);
+
+    generalStatistics.count++;
+
+    /////////////CODE TO OBTAIN THE HTML SIZE!////////////
+    /*
+          if (valueObject.event == loadEvent || valueObject.event == resizeEvent){
+            pageSize.htmlSize = valueObject.htmlSize;
+            pageSize.resolution = valueObject.resolution;
+            pageSize.size = valueObject.size;
+            pageSize.usableSize = valueObject.usableSize;
+            pageSize.isPageSizeEstimated = false;
+          }
+    
+          //if we don't have an htmlsize yet, loop until you find the first next one
+          if (pageSize.htmlSize == ""){
+            var j = i;
+    
+            while (pageSize.htmlSize == "" && j < valuesArraySorted.length){
+              if (valuesArraySorted[i].event == loadEvent || valuesArraySorted[i].event == resizeEvent){
+                pageSize.htmlSize = valueObject.htmlSize;
+                pageSize.resolution = valueObject.resolution;
+                pageSize.size = valueObject.size;
+                pageSize.usableSize = valueObject.usableSize;
+                pageSize.isPageSizeEstimated = true;
+              }
+              j++;
+            }
+          }
+      */
+    /////////////END OF CODE TO OBTAIN THE HTML SIZE!////////////
+
     xmlQuery.processEvent(valueObject);
+
+    //We add what urlSession this object refers to. Depending on the mapReduce emit function, sdSession OR urlSession will remain the same.
+    if (generalStatistics.sdSessionCounter == 0) {
+      generalStatistics.sdSessionCounter = valueObject.sdSessionCounter;
+      generalStatistics.sdTimeSinceLastSession = valueObject.sdTimeSinceLastSession;
+      generalStatistics.urlSessionCounter = valueObject.urlSessionCounter;
+      generalStatistics.urlSinceLastSession = valueObject.urlSinceLastSession;
+      generalStatistics.urlEpisodeLength = valueObject.urlEpisodeLength;
+
+      generalStatistics.episodeUrlActivity = valueObject.episodeUrlActivity;
+      generalStatistics.episodeSdActivity = valueObject.episodeSdActivity;
+
+    }
+    else {
+      //If any of them is different, store -1 (this will always happen with at least one of them
+      if (generalStatistics.sdSessionCounter != valueObject.sdSessionCounter) { generalStatistics.sdSessionCounter = -1; }
+      if (generalStatistics.sdTimeSinceLastSession != valueObject.sdTimeSinceLastSession) { generalStatistics.sdTimeSinceLastSession = -1; }
+      if (generalStatistics.urlSessionCounter != valueObject.urlSessionCounter) { generalStatistics.urlSessionCounter = -1; }
+      if (generalStatistics.urlSinceLastSession != valueObject.urlSinceLastSession) { generalStatistics.urlSinceLastSession = -1; }
+      if (generalStatistics.episodeUrlActivity != valueObject.episodeUrlActivity) { generalStatistics.episodeUrlActivity = -1; }
+      if (generalStatistics.episodeSdActivity != valueObject.episodeSdActivity) { generalStatistics.episodeSdActivity = -1; }
+    }
+
+    //Getting the episode timestamp and active time medians
+    if (incorrectActTimeEvents.indexOf(valueObject.event) < 0) {
+      calculatedActiveTimeList.push(parseInt(valueObject.calculatedActiveTime));
+      generalStatistics.calculatedActiveTimeMedian = median(calculatedActiveTimeList);
+
+      sessionstartmsList.push(parseInt(valueObject.sessionstartms));
+      generalStatistics.sessionstartmsMedian = median(sessionstartmsList);
+
+      sdCalculatedActiveTimeList.push(parseInt(valueObject.sdCalculatedActiveTime));
+      generalStatistics.sdCalculatedActiveTimeMedian = median(sdCalculatedActiveTimeList);
+
+    }
+
+    /***
+     * SORTING TEST
+     */
+    //if it's not the first element
+    if (generalStatistics.previousvalueObject != 0) {
+      //previous object's timestamp should be smaller that current's
+
+      var previousTimeNumber = Number(generalStatistics.previousvalueObject.timestampms);
+      var currentTimeNumber = Number(valueObject.timestampms);
+
+      if (previousTimeNumber > currentTimeNumber) {
+        generalStatistics.isArrayOrdered = -1;
+        //timeDifference +="##" + previousTimeNumber +" is BIGGER than " + currentTimeNumber+"##";
+        generalStatistics.valuesBiggerThanPrevious++;
+      }
+      else {
+        //timeDifference += "##" + previousTimeNumber+" is SMALLER than " + currentTimeNumber+"##";
+        //timeDifference += valueObject+",";
+        generalStatistics.valuesSmallerThanPrevious++;
+        generalStatistics.timeDifference += currentTimeNumber - previousTimeNumber;
+      }
+    }
+    generalStatistics.previousvalueObject = valueObject;
   }
 
   //debugLog +=
@@ -792,36 +1015,24 @@ function finalizeFunction(key, reduceOutput) {
   xmlQuery.endBehaviour();
 
   return {
+    generalStatistics: generalStatistics,
     xmlQuery: xmlQuery.outputResult(),
     xmlQueryCounter: xmlQuery.outputResult().length,
     isQueryStrict: isQueryStrict,
     tempConstrList: xmlQueryObject.tempConstrList
+
+    /*
+        episodeStartms: fixEventTS(valuesArraySorted[0]).timestampms,
+        episodeEndms: fixEventTS(valuesArraySorted[valuesArraySorted.length - 1]).timestampms,
+    
+        episodeDurationms: Number(fixEventTS(valuesArraySorted[valuesArraySorted.length - 1]).timestampms) - Number(fixEventTS(valuesArraySorted[0]).timestampms),
+    
+        eventsInEpisodeCounter: valuesArraySorted.length,
+    
+        debugLog: debugLog
+    */
   }
 }
-
-
-/**
- * Takes a query title as input, and replaces all the event results with the corresponding
- * data from the database
- * @param {string} queryTitle with the name of the query results to feed back
- */
-function feedQueryResultsInformation(queryTitle) {
-  constants.connectAndValidateNodeJs(function (err, db) {
-    //Retrieve all documents with at least one result
-    db.collection(queryCollectionPrefix + queryTitle).find({ "value.xmlQueryCounter": { $gt: 0 } }, function (err, documents) {
-      //For each document, retrieve each result
-      documents.forEach(function (xmlQueryResult) {
-        //For each event in the result, retrieve the corresponding information from the database
-        xmlQueryResult.forEach(function (event) {
-
-        });
-      });
-    });
-
-  });
-
-}
-
 
 /**
  * Returns current date in a readable format
