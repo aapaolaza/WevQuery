@@ -4,8 +4,10 @@
 ///Same as MapReduceConstants, but I changed it so it can be used with Node JS http://stackoverflow.com/questions/5625569/include-external-js-file-in-node-js-app
 
 ///Module exports to act as interface can be found at the end, after all variables and functions are defined
-var mongoClient = require('mongodb').MongoClient
-  , Server = require('mongodb').Server;
+var mongodb = require('mongodb');
+
+var mongoClient = mongodb.MongoClient
+  , Server = mongodb.Server;
 
 //This tag can be found in the "msg" field in the current ops command of MapReduce commands
 const mapReduceTag = "m/r";
@@ -298,6 +300,7 @@ function compareEventTS(objectA, objectB) {
 
 
 //////Modules
+module.exports.mongodb = mongodb;
 module.exports.mapReduceTag = mapReduceTag;
 module.exports.xmlQueryResults = xmlQueryResults;
 module.exports.xmlQueryCatalog = xmlQueryCatalog;

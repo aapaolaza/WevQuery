@@ -23,17 +23,20 @@
 var constants;
 var mongoLog;
 
-function setConstants(mapReduceConstants,mongoLogConstants){
+function setConstants(mapReduceConstants, mongoLogConstants) {
   constants = mapReduceConstants;
   mongoLog = mongoLogConstants;
 }
 
 
 var xpath = require('xpath')
-  , dom = require('xmldom').DOMParser
+  , dom = require('xmldom').DOMParser;
+var async = require('async');
+
+
 
 //This prefix will be added to all queries
-var queryCollectionPrefix = "xmlQuery_"
+var queryCollectionPrefix = "xmlQuery_";
 
 
 //This command gives the nodelist the functionality to use "forEach"
@@ -306,7 +309,7 @@ function mapReduceScript(xmlQuery, xmlDoc, mapReduceVars, endCallback, launchedC
       console.log(stats);
       console.log("Query finished in " + stats.processtime + " ms");
       mapReduceVars.db.close();
-      //feedQueryResultsInformation(mapReduceVars.title);
+      feedQueryResultsInformation(mapReduceVars.title);
       endCallback(null, mapReduceVars.title, stats.processtime);
     }
   );
@@ -825,49 +828,101 @@ function feedQueryResultsInformation(queryTitle) {
 
   constants.connectAndValidateNodeJs(function (err, db) {
     //Retrieve all documents with at least one result
-    db.collection(queryCollectionPrefix + queryTitle).find({ "value.xmlQueryCounter": { $gt: 0 } }, function (err, documents) {
+    //db.collection(queryCollectionPrefix + queryTitle).find({ "value.xmlQueryCounter": { $gt: 0 } }, function (err, documents) {
+    db.collection(queryCollectionPrefix + queryTitle).find({ "value.xmlQueryCounter": { $gt: 0 } })
+      .toArray(function (err, documents) {
+        //docElem = documents[0];
 
-      //For each document, retrieve each result
-      documents.forEach(function (docElem) {
-
-        var documentId = docElem._id;
-
-        //For each result
-        for (var xmlQueryIndex in docElem.value.xmlQuery) {
-          xmlQueryResult = docElem.value.xmlQuery[xmlQueryIndex];
-
-
-          //For each event in the result, retrieve the corresponding information from the database
-          xmlQueryResult.forEach(function (event) {
-            db.collection(constants.eventCollection).find({ _id: event._id }, function (err, eventFullInfo) {
-              //Once the event is retrieved, we need to update the correspoding object in the results collection
-
-              //Create an index so we can access this particular occurrence
-              //http://stackoverflow.com/questions/6702450/variable-with-mongodb-dotnotation
-              //We are updating the specific use of a particular event inside that collection.
-              var xmlQueryIndex = {}
-              xmlQueryIndex['_id'] = docElem._id;
-              xmlQueryIndex['value.xmlQuery.' + xmlQueryIndex + "._id"] = event._id;
-              //With this, I don't think I need the positional operator `$` any more.
-              //http://stackoverflow.com/questions/9200399/replacing-embedded-document-in-array-in-mongodb
-              db.collection(queryCollectionPrefix + queryTitle).update(
-                { xmlQueryIndex },
-                { $set: eventFullInfo }, function (err) {
-                  if (err)
-                  mongoLog.logMessage("error", "feedQueryResultsInformation",
-                    constants.websiteId, "feedQueryResultsInformation() failed", startTimems, new Date());
-                  else
-                    mongoLog.logMessage("optime", "feedQueryResultsInformation",
-                    constants.websiteId, "feedQueryResultsInformation finished successfully", startTimems, new Date());
-                });
-            });
+        //async.eachLimit(documents, 1,
+        async.each(documents,
+          function (docElem, callback) {
+            updateXmlQueryDocument(docElem, db, queryTitle, callback);
+          },
+          function (err) {
+            if (err) {
+              console.error(err.message);
+              mongoLog.logMessage("error", "feedQueryResultsInformation",
+                constants.websiteId, "feedQueryResultsInformation() failed", startTimems, new Date());
+            }
+            else
+              mongoLog.logMessage("optime", "feedQueryResultsInformation",
+                constants.websiteId, "feedQueryResultsInformation finished successfully " + queryTitle, startTimems, new Date());
           });
-        }
       });
-    });
-
   });
 
+}
+
+/**
+ * Given a xmlQuery result document, augments all the events with information from the main event DB
+ * @param {xmlQueryDocument} docElem 
+ * @param {mongoDBConnection} db
+ * @param {string} queryTitle
+ */
+function updateXmlQueryDocument(docElem, db, queryTitle, callback) {
+  var documentId = docElem._id;
+  /*console.log("feedQueryResultsInformation of document:");
+  console.log(documentId);*/
+
+  var resultTotal = 0;
+  var resultCount = 0;
+
+  //quick loop through the object (no db operations) to count how many elements will be processed.
+  for (var xmlQueryIndex in docElem.value.xmlQuery) {
+    xmlQueryResult = docElem.value.xmlQuery[xmlQueryIndex];
+    xmlQueryResult.forEach(function (eventInQuery, eventIndexInResult) {
+      resultTotal++;
+    });
+  }
+
+  //For each result
+  for (var xmlQueryIndex in docElem.value.xmlQuery) {
+    xmlQueryResult = docElem.value.xmlQuery[xmlQueryIndex];
+
+    //For each event in the result, retrieve the corresponding information from the database
+    xmlQueryResult.forEach(function (eventInQuery, eventIndexInResult) {
+      //."toArray()" is necessary so the eventFullInfo is not a cursor, and can be used to update the database directly
+      db.collection(constants.eventCollection).find({ _id: eventInQuery._id }).toArray(function (err, eventFullInfo) {
+        //Once the event is retrieved, we need to update the correspoding object in the results collection
+        //Only one event will match a single ID, get rid of the list
+        eventFullInfo = eventFullInfo[0];
+
+        //Create an index so we can access this particular occurrence
+        //http://stackoverflow.com/questions/6702450/variable-with-mongodb-dotnotation
+        //We are updating the specific use of a particular event inside that collection.
+        var xmlQueryEventIndex = {}
+        for (objectIndex in docElem._id) {
+          xmlQueryEventIndex['_id.' + objectIndex] = docElem._id[objectIndex];
+        }
+
+        //xmlQueryEventIndex["value.xmlQuery." + xmlQueryIndex + "._id"] = new constants.mongodb.ObjectID(eventInQuery._id);
+        xmlQueryEventIndex["value.xmlQuery." + xmlQueryIndex + "._id"] = eventInQuery._id;
+        //I don';t know why using the ID is not working. Testing with other values.
+        //xmlQueryEventIndex["value.xmlQuery." + xmlQueryIndex + ".timestampms"] = eventInQuery.timestampms;
+        //http://stackoverflow.com/questions/9200399/replacing-embedded-document-in-array-in-mongodb
+
+        var xmlQueryEventUpdatedValue = {};
+        xmlQueryEventUpdatedValue["value.xmlQuery." + xmlQueryIndex + ".$"] = eventFullInfo;
+        /*
+        console.log("Finding ID:");
+        console.log(xmlQueryEventIndex);
+        console.log("Updating it with:");
+        console.log(xmlQueryEventUpdatedValue);
+        */
+        db.collection(queryCollectionPrefix + queryTitle).updateOne(
+          xmlQueryEventIndex,
+          { $set: xmlQueryEventUpdatedValue }, function (err, doc) {
+            resultCount++;
+            if (err)
+              callback(err);
+            else {
+              if (resultCount >= resultTotal)
+                callback();
+            }
+          });
+      });
+    });
+  }
 }
 
 
