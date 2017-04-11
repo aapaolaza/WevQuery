@@ -1,4 +1,9 @@
-var constants = require("./MapReduceConstantsNode.js");
+var constants;
+
+function setConstants(mapReduceConstants){
+  constants = mapReduceConstants;
+}
+
 
 const APPNAME = "WevQuery";
 
@@ -35,5 +40,5 @@ function logMessage(type, operation, sd, message, startTimems, endTimems) {
 }
 
 
-
+module.exports.setConstants = setConstants;
 module.exports.logMessage = logMessage;

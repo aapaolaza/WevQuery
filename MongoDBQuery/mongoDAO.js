@@ -6,6 +6,15 @@ var queryDocument = require("./queryDocumentBean.js");
 var xmlToMongoDB = require("./XMLtoMongoDB.js");
 var analyseData = require("./analyseData.js");
 
+//The database connection is shared within the app, to reduce the number of opened connections
+var mapReduceConstants = require("./MapReduceConstantsNode.js");
+var mongoLogConstants = require("./mongoLog.js");
+
+mongoLogConstants.setConstants(mapReduceConstants);
+xmlToMongoDB.setConstants(mapReduceConstants,mongoLogConstants);
+queryDocument.setConstants(mapReduceConstants,mongoLogConstants);
+analyseData.setConstants(mapReduceConstants,mongoLogConstants,this)
+
 module.exports.runXmlQuery = xmlToMongoDB.runXmlQuery;
 module.exports.getQueryData = xmlToMongoDB.getQueryData;
 module.exports.deleteResultCollection = xmlToMongoDB.deleteResultCollection;

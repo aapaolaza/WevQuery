@@ -3,8 +3,17 @@
  * analysis of data in the client
  */
 
-var constants = require("./MapReduceConstantsNode.js");
-var mongoDAO = require("./mongoDAO.js");
+//////We need to load the constants file
+var constants;
+var mongoLog;
+var mongoDAO;
+
+function setConstants(mapReduceConstants,mongoLogConstants,mongoDAOConstants){
+  constants = mapReduceConstants;
+  mongoLog = mongoLogConstants;
+  mongoDAO = mongoDAOConstants;
+}
+
 
 var fs = require('fs');
 var util = require('util');
@@ -61,7 +70,8 @@ function stackedChartCSV(callback) {
           documents.forEach(function (docElem, index) {
 
             //each document might have several occurrences of the same behaviour
-            docElem.value.xmlQuery.forEach(function (seqOccurence, index) {
+            for (var index in docElem.value.xmlQuery) {
+              seqOccurence = docElem.value.xmlQuery[index];
               if (typeof collectionUrlCountList[docElem._id.url] === 'undefined') {
                 collectionUrlCountList[docElem._id.url] = 1;
               }
@@ -80,7 +90,7 @@ function stackedChartCSV(callback) {
               csvLine += safeCsv(seqOccurence.length);
               //write csvLine to file
               dataOutput.write(csvLine + "\n");*/
-            });
+            }
           });
           collectionsProcessed++;
 
@@ -170,7 +180,9 @@ function stackedChart(callback) {
           documents.forEach(function (docElem, index) {
 
             //each document might have several occurrences of the same behaviour
-            docElem.value.xmlQuery.forEach(function (seqOccurence, index) {
+
+            for (var index in docElem.value.xmlQuery) {
+              seqOccurence = docElem.value.xmlQuery[index];
               if (typeof collectionUrlCountList[docElem._id.url] === 'undefined') {
                 collectionUrlCountList[docElem._id.url] = 1;
               }
@@ -184,7 +196,7 @@ function stackedChart(callback) {
               else {
                 urlFreqCount[uniqueUrls.indexOf(docElem._id.url)]++;
               }
-            });
+            }
           });
 
 
@@ -359,9 +371,9 @@ function getAllEventTransitions(callback) {
 
             //The xmlQuery collection is nested twice (noted as a bug)
             documentItem.value.xmlQuery[0].forEach(function (eventItem, index) {
-              if (nodesIndex.indexOf(eventItem.event) == -1){
+              if (nodesIndex.indexOf(eventItem.event) == -1) {
                 nodesIndex.push(eventItem.event);
-                nodes.push({"name":eventItem.event});
+                nodes.push({ "name": eventItem.event });
               }
 
               //If there has been a previous event, store the transition to the current one
@@ -384,9 +396,9 @@ function getAllEventTransitions(callback) {
 
             console.log("getEventTransitions(): All collections processed");
             //All documents for all resultCollectionList have been processed
-            
+
             //transform the array of transitions into source,target,value pairs, using nodes' indexes
-            
+
 
             for (var prop in sequenceList) {
               if (sequenceList.hasOwnProperty(prop)) {
@@ -398,7 +410,7 @@ function getAllEventTransitions(callback) {
                 links.push(seqItem);
               }
             }
-            var transitionObject = {nodes,links};
+            var transitionObject = { nodes, links };
 
             callback(null, transitionObject);
           }
@@ -455,6 +467,7 @@ function safeCsv(field) {
   return (util.format("%s", field).replace(",", "_"));
 }
 
+module.exports.setConstants = setConstants;
 module.exports.stackedChart = stackedChart;
 module.exports.getEventSequences = getEventSequences;
 module.exports.getAllEventTransitions = getAllEventTransitions;

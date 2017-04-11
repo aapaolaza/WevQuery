@@ -20,9 +20,14 @@
 
 
 //////We need to load the constants file
-var constants = require("./MapReduceConstantsNode.js");
+var constants;
+var mongoLog;
 
-var mongoLog = require("./mongoLog.js");
+function setConstants(mapReduceConstants,mongoLogConstants){
+  constants = mapReduceConstants;
+  mongoLog = mongoLogConstants;
+}
+
 
 var xpath = require('xpath')
   , dom = require('xmldom').DOMParser
@@ -301,6 +306,7 @@ function mapReduceScript(xmlQuery, xmlDoc, mapReduceVars, endCallback, launchedC
       console.log(stats);
       console.log("Query finished in " + stats.processtime + " ms");
       mapReduceVars.db.close();
+      //feedQueryResultsInformation(mapReduceVars.title);
       endCallback(null, mapReduceVars.title, stats.processtime);
     }
   );
@@ -713,10 +719,18 @@ function finalizeFunction(key, reduceOutput) {
 
   }
 
+  /**
+   * Transforms the array into an object before returning it
+   */
   XmlQuery.prototype.outputResult = function () {
     //return ("##OUTPUT: outputting " + this.controlledBehaviourList.length+" elements");
-
-    return this.xmlQueryList;
+    function toObject(arr) {
+      var rv = {};
+      for (var i = 0; i < arr.length; ++i)
+        rv[i] = arr[i];
+      return rv;
+    }
+    return toObject(this.xmlQueryList);
   }
 
   /**
@@ -793,7 +807,7 @@ function finalizeFunction(key, reduceOutput) {
 
   return {
     xmlQuery: xmlQuery.outputResult(),
-    xmlQueryCounter: xmlQuery.outputResult().length,
+    xmlQueryCounter: Object.keys(xmlQuery.outputResult()).length,
     isQueryStrict: isQueryStrict,
     tempConstrList: xmlQueryObject.tempConstrList
   }
@@ -806,15 +820,49 @@ function finalizeFunction(key, reduceOutput) {
  * @param {string} queryTitle with the name of the query results to feed back
  */
 function feedQueryResultsInformation(queryTitle) {
+  console.log("Starting the feed of the information");
+  var startTimems = new Date();
+
   constants.connectAndValidateNodeJs(function (err, db) {
     //Retrieve all documents with at least one result
     db.collection(queryCollectionPrefix + queryTitle).find({ "value.xmlQueryCounter": { $gt: 0 } }, function (err, documents) {
-      //For each document, retrieve each result
-      documents.forEach(function (xmlQueryResult) {
-        //For each event in the result, retrieve the corresponding information from the database
-        xmlQueryResult.forEach(function (event) {
 
-        });
+      //For each document, retrieve each result
+      documents.forEach(function (docElem) {
+
+        var documentId = docElem._id;
+
+        //For each result
+        for (var xmlQueryIndex in docElem.value.xmlQuery) {
+          xmlQueryResult = docElem.value.xmlQuery[xmlQueryIndex];
+
+
+          //For each event in the result, retrieve the corresponding information from the database
+          xmlQueryResult.forEach(function (event) {
+            db.collection(constants.eventCollection).find({ _id: event._id }, function (err, eventFullInfo) {
+              //Once the event is retrieved, we need to update the correspoding object in the results collection
+
+              //Create an index so we can access this particular occurrence
+              //http://stackoverflow.com/questions/6702450/variable-with-mongodb-dotnotation
+              //We are updating the specific use of a particular event inside that collection.
+              var xmlQueryIndex = {}
+              xmlQueryIndex['_id'] = docElem._id;
+              xmlQueryIndex['value.xmlQuery.' + xmlQueryIndex + "._id"] = event._id;
+              //With this, I don't think I need the positional operator `$` any more.
+              //http://stackoverflow.com/questions/9200399/replacing-embedded-document-in-array-in-mongodb
+              db.collection(queryCollectionPrefix + queryTitle).update(
+                { xmlQueryIndex },
+                { $set: eventFullInfo }, function (err) {
+                  if (err)
+                  mongoLog.logMessage("error", "feedQueryResultsInformation",
+                    constants.websiteId, "feedQueryResultsInformation() failed", startTimems, new Date());
+                  else
+                    mongoLog.logMessage("optime", "feedQueryResultsInformation",
+                    constants.websiteId, "feedQueryResultsInformation finished successfully", startTimems, new Date());
+                });
+            });
+          });
+        }
       });
     });
 
@@ -870,6 +918,7 @@ function interruptExecution(message) {
 /**
  * Available functions from this module
  */
+module.exports.setConstants = setConstants;
 module.exports.runXmlQuery = runXmlQuery;
 module.exports.getQueryData = getQueryData;
 module.exports.deleteResultCollection = deleteResultCollection;

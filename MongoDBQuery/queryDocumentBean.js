@@ -1,5 +1,5 @@
 /**
- * For each query, the following object is created in xmlQueryResults:
+ * For each query, the following object is created in constants.xmlQueryResults:
  * 
  ```json
  {title:queryTitle,
@@ -13,26 +13,28 @@
   count:usableCount,
   totalCount:totalNumberOfEpisodes};
   ```
- * Once deleted, it's moved to the xmlQueryCatalog
+ * Once deleted, it's moved to the constants.xmlQueryCatalog
  */
 
 
-var constants = require("./MapReduceConstantsNode.js");
+//////We need to load the constants file
+var constants;
+var mongoLog;
 
-//This tag can be found in the "msg" field in the current ops command of MapReduce commands
-const mapReduceTag = "m/r";
-const xmlQueryResults = "xmlQueryResults";
-const xmlQueryCatalog = "xmlQueryCatalog";
+function setConstants(mapReduceConstants,mongoLogConstants){
+  constants = mapReduceConstants;
+  mongoLog = mongoLogConstants;
+  initialiseDB();
+}
 
 //This prefix will be added to all queries
-const queryCollectionPrefix = "xmlQuery_"
+const queryCollectionPrefix = "xmlQuery_";
 
-initialiseDB();
 function initialiseDB() {
   constants.connectAndValidateNodeJs(function (err, db) {
     if (err) return console.error("initialiseDB() ERROR connecting to DB" + err);
-    db.collection(xmlQueryResults).createIndex({ "title": 1 }, { unique: true });
-    db.collection(xmlQueryCatalog).createIndex({ "title": 1 }, { unique: true });
+    db.collection(constants.xmlQueryResults).createIndex({ "title": 1 }, { unique: true });
+    db.collection(constants.xmlQueryCatalog).createIndex({ "title": 1 }, { unique: true });
   });
 }
 
@@ -58,7 +60,7 @@ function addNewQueryDocument(queryTitle, queryData) {
         //ucivitdb with the smallest time
         if (opObject.ns.indexOf(constants.mongoQueryDB) > -1 &&
           typeof opObject.msg !== 'undefined' &&
-          opObject.msg.substring(0, mapReduceTag.length) == mapReduceTag) {
+          opObject.msg.substring(0, constants.mapReduceTag.length) == constants.mapReduceTag) {
           //we found an operation running on the ucivitdb database
           console.log(opObject.opid + " has been running for " + opObject.secs_running
             + "secs and " + opObject.microsecs_running + "microsecs");
@@ -88,7 +90,7 @@ function addNewQueryDocument(queryTitle, queryData) {
           progress: traduceProgress(queryMessage),
           finished: false
         };
-        db.collection(xmlQueryResults).insert(document, function (err, records) {
+        db.collection(constants.xmlQueryResults).insert(document, function (err, records) {
           if (err) return console.error("insertNewDocument() ERROR INSERTING QUERY DOCUMENT " + err);
           else console.log("new query document stored correctly");
         });
@@ -101,7 +103,7 @@ function addNewQueryDocument(queryTitle, queryData) {
           datems: new Date().getTime(),
           readableDate: new Date().toISOString()
         };
-        db.collection(xmlQueryCatalog).insert(document, function (err, records) {
+        db.collection(constants.xmlQueryCatalog).insert(document, function (err, records) {
           if (err) return console.error("insertNewDocument() ERROR INSERTING QUERY Catalog DOCUMENT " + err);
           else console.log("new Catalog document stored correctly");
         });
@@ -120,8 +122,8 @@ function isQueryTitleUnique(queryTitle, callback) {
   constants.connectAndValidateNodeJs(function (err, db) {
     if (err) return console.error("isQueryTitleUnique() ERROR connecting to DB" + err);
     console.log("isQueryTitleUnique() Successfully connected to DB");
-    db.collection(xmlQueryResults).distinct("title", function (err, items) {
-      if (err) return console.error("isQueryTitleUnique() ERROR REQUESTING DISTINCT TITLES from " + xmlQueryResults + err);
+    db.collection(constants.xmlQueryResults).distinct("title", function (err, items) {
+      if (err) return console.error("isQueryTitleUnique() ERROR REQUESTING DISTINCT TITLES from " + constants.xmlQueryResults + err);
       if (items.indexOf(queryTitle) > -1) {
         //Query title is in use
         callback(null, false);
@@ -139,8 +141,8 @@ function isQueryTitleUnique(queryTitle, callback) {
 function isQueryTitleInCatalog(queryTitle, callback) {
   constants.connectAndValidateNodeJs(function (err, db) {
     if (err) return console.error("isQueryTitleInCatalog() ERROR connecting to DB" + err);
-    db.collection(xmlQueryCatalog).distinct("title", function (err, items) {
-      if (err) return console.error("isQueryTitleInCatalog() ERROR REQUESTING DISTINCT TITLES" + xmlQueryCatalog + err);
+    db.collection(constants.xmlQueryCatalog).distinct("title", function (err, items) {
+      if (err) return console.error("isQueryTitleInCatalog() ERROR REQUESTING DISTINCT TITLES" + constants.xmlQueryCatalog + err);
       console.log("looking for " + queryTitle + " in");
       console.log(items);
       if (items.indexOf(queryTitle) > -1) {
@@ -170,7 +172,7 @@ function saveQuery(queryTitle, queryData) {
       datems: new Date().getTime(),
       readableDate: new Date().toISOString()
     };
-    db.collection(xmlQueryCatalog).insert(document, function (err, records) {
+    db.collection(constants.xmlQueryCatalog).insert(document, function (err, records) {
       if (err) return console.error("saveQuery() ERROR INSERTING QUERY Catalog DOCUMENT " + err);
       else console.log("saveQuery() new Catalog document stored correctly");
     });
@@ -183,7 +185,7 @@ function updateQueryStatus(callback) {
   constants.connectAndValidateNodeJs(function (err, db) {
     if (err) return console.error("updateQueryStatus() ERROR connecting to DB" + err);
     //get all registered queries
-    db.collection(xmlQueryResults).find().toArray(function (err, queryCatalogList) {
+    db.collection(constants.xmlQueryResults).find().toArray(function (err, queryCatalogList) {
       //retrieve all runnning processes
       db.eval("return db.currentOp()", function (err, opList) {
 
@@ -196,7 +198,7 @@ function updateQueryStatus(callback) {
               if (queryCatalogObject.operationID == opObject.opid) {
                 queryCatalogObject.finished = false;
                 //update the queryCatalogObject with the information from the database
-                db.collection(xmlQueryResults).update({ _id: queryCatalogObject._id },
+                db.collection(constants.xmlQueryResults).update({ _id: queryCatalogObject._id },
                   {
                     $set: {
                       microsecs_running: opObject.microsecs_running,
@@ -208,7 +210,7 @@ function updateQueryStatus(callback) {
             });
             //If it's still true, then the query has finished, update
             if (queryCatalogObject.finished == true) {
-              db.collection(xmlQueryResults).update({ _id: queryCatalogObject._id },
+              db.collection(constants.xmlQueryResults).update({ _id: queryCatalogObject._id },
                 {
                   $set: {
                     microsecs_running: -1,
@@ -260,10 +262,10 @@ function traduceProgress(progressString) {
 function setQueryFinished(queryTitle, timems) {
   constants.connectAndValidateNodeJs(function (err, db) {
     if (err) return console.error("updateQueryCatalog() ERROR connecting to DB" + err);
-    db.collection(xmlQueryCatalog).update({ title: queryTitle },
+    db.collection(constants.xmlQueryCatalog).update({ title: queryTitle },
       { $set: { processtimems: timems } });
 
-    db.collection(xmlQueryResults).update({ title: queryTitle },
+    db.collection(constants.xmlQueryResults).update({ title: queryTitle },
       {
         $set: {
           microsecs_running: -1,
@@ -277,13 +279,13 @@ function setQueryFinished(queryTitle, timems) {
     db.collection(queryCollectionPrefix + queryTitle)
       .find({ "value.xmlQueryCounter": { $gt: 0 } })
       .count(function (err, count) {
-        db.collection(xmlQueryResults).update({ title: queryTitle },
+        db.collection(constants.xmlQueryResults).update({ title: queryTitle },
           {
             $set: {
               count: count
             }
           });
-        db.collection(xmlQueryCatalog).update({ title: queryTitle },
+        db.collection(constants.xmlQueryCatalog).update({ title: queryTitle },
           {
             $set: {
               count: count
@@ -295,13 +297,13 @@ function setQueryFinished(queryTitle, timems) {
     db.collection(queryCollectionPrefix + queryTitle)
       .find()
       .count(function (err, count) {
-        db.collection(xmlQueryResults).update({ title: queryTitle },
+        db.collection(constants.xmlQueryResults).update({ title: queryTitle },
           {
             $set: {
               totalCount: count
             }
           });
-        db.collection(xmlQueryCatalog).update({ title: queryTitle },
+        db.collection(constants.xmlQueryCatalog).update({ title: queryTitle },
           {
             $set: {
               totalCount: count
@@ -320,7 +322,8 @@ function getCompletedQueries(callback) {
   constants.connectAndValidateNodeJs(function (err, db) {
     if (err) return console.error("getCompletedQueries() ERROR connecting to DB" + err);
     console.log("getCompletedQueries() Successfully connected to DB");
-    db.collection(xmlQueryResults).find().toArray(function (err, queryResultsList) {
+    db.collection(constants.xmlQueryResults).find().toArray(function (err, queryResultsList) {
+      if (err) callback(err);
       var queryList = []
       queryResultsList.forEach(function (queryResultsItem, index) {
         if (queryResultsItem.finished) {
@@ -341,7 +344,7 @@ function getCatalogQueries(callback) {
     if (err) return console.error("getCatalogQueries() ERROR connecting to DB" + err);
     console.log("getCatalogQueries() Successfully connected to DB");
 
-    db.collection(xmlQueryCatalog).find().toArray(function (err, queryCatalogList) {
+    db.collection(constants.xmlQueryCatalog).find().toArray(function (err, queryCatalogList) {
       callback(null, queryCatalogList);
     });
   });
@@ -357,7 +360,7 @@ function getRunningQueries(callback) {
     constants.connectAndValidateNodeJs(function (err, db) {
       if (err) return console.error("getRunningQueries() ERROR connecting to DB" + err);
       //get all nonfinished queries
-      db.collection(xmlQueryResults).find({ finished: false }).toArray(function (err, nonFinishedQueryList) {
+      db.collection(constants.xmlQueryResults).find({ finished: false }).toArray(function (err, nonFinishedQueryList) {
         if (err) return console.error("getRunningQueries() ERROR retrieving non finished queries " + err);
         callback(null, nonFinishedQueryList);
       });
@@ -372,7 +375,7 @@ function getRunningQueries(callback) {
 function deleteCompletedQuery(queryTitle, callback) {
   constants.connectAndValidateNodeJs(function (err, db) {
     if (err) return console.error("deleteResultCollection() ERROR connecting to DB" + err);
-    db.collection(xmlQueryResults).remove({ "title": queryTitle }, function (err, result) {
+    db.collection(constants.xmlQueryResults).remove({ "title": queryTitle }, function (err, result) {
       if (err) {
         console.log(err);
       }
@@ -388,7 +391,7 @@ function deleteCompletedQuery(queryTitle, callback) {
 function deleteCatalogQuery(queryTitle, callback) {
   constants.connectAndValidateNodeJs(function (err, db) {
     if (err) return console.error("deleteCatalogQuery() ERROR connecting to DB" + err);
-    db.collection(xmlQueryCatalog).remove({ "title": queryTitle }, function (err, result) {
+    db.collection(constants.xmlQueryCatalog).remove({ "title": queryTitle }, function (err, result) {
       if (err) {
         console.log(err);
       }
@@ -398,6 +401,8 @@ function deleteCatalogQuery(queryTitle, callback) {
   });
 }
 
+
+module.exports.setConstants = setConstants;
 module.exports.addNewQueryDocument = addNewQueryDocument;
 module.exports.isQueryTitleUnique = isQueryTitleUnique;
 module.exports.isQueryTitleInCatalog = isQueryTitleInCatalog;
