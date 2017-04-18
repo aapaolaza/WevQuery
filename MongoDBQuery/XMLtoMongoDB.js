@@ -309,7 +309,7 @@ function mapReduceScript(xmlQuery, xmlDoc, mapReduceVars, endCallback, launchedC
       console.log(stats);
       console.log("Query finished in " + stats.processtime + " ms");
       mapReduceVars.db.close();
-      feedQueryResultsInformation(mapReduceVars.title);
+      //feedQueryResultsInformation(mapReduceVars.title);
       endCallback(null, mapReduceVars.title, stats.processtime);
     }
   );

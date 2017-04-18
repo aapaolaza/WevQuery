@@ -34,21 +34,14 @@ if (!fs.existsSync(resultsFolder)) {
   fs.mkdirSync(resultsFolder);
 }
 
-var clientsLogFolder = "./ClientLogs/";
-
-//Create results folder if it doesn't exist
-if (!fs.existsSync(clientsLogFolder)) {
-  fs.mkdirSync(clientsLogFolder);
-}
-
 var config = require('./config.js');
 
 // listen for commands from the Web dashboard
 io.sockets.on('connection', function (socket) {
 
   socket.on('saveXMLQuery', function (data) {
-    log("saveXMLQuery, saving the following XML query: " + data.title);
-    log(data.xmlData)
+    console.log("saveXMLQuery, saving the following XML query: " + data.title);
+    console.log(data.xmlData)
 
     mongoDAO.isQueryTitleInCatalog(data.title, function (err, isTitleCorrect) {
       if (isTitleCorrect) {
@@ -57,7 +50,7 @@ io.sockets.on('connection', function (socket) {
         io.sockets.emit('clientXmlQuerySaved', {});
       }
       else {
-        log("On saveXMLQuery: Title is not valid, notify user that an error happened.");
+        console.log("On saveXMLQuery: Title is not valid, notify user that an error happened.");
         io.sockets.emit('clientXmlQuerySaved', { 'errorMessage': "The given title is not valid, please provide a different one. Is this title already in use?" });
       }
     });
@@ -65,10 +58,10 @@ io.sockets.on('connection', function (socket) {
 
   //To be triggered when a request to run a query is received
   socket.on('serverRunXMLQuery', function (data) {
-    log("serverRunXMLQuery, running the provided query");
+    console.log("serverRunXMLQuery, running the provided query");
     //validate XML before executing query
     validateXMLagainstXSD(data.xmlData, function (err, isXmlValid) {
-      if (err) { log(err); }
+      if (err) { console.log(err); }
       else {
         if (isXmlValid) {
           // XML validation was correct, run query
@@ -78,13 +71,13 @@ io.sockets.on('connection', function (socket) {
             else {
               console.log("Title is not valid, notify user that an error happened.");
               sendMessageToUser(socket.id, "The given title is not correct, provide a different one", true);
-              log("xml title is not valid");
+              console.log("xml title is not valid");
             }
           });
         } else {
           console.log("xml was invalid, notify user that an error happened.");
           sendMessageToUser(socket.id, "XML was not well formed", true);
-          log("xml query failed");
+          console.log("xml query failed");
         }
       }
     });
@@ -92,46 +85,46 @@ io.sockets.on('connection', function (socket) {
 
 
   socket.on('serverRequestCompletedQueries', function (data) {
-    log("serverRequestCompletedQueries, requesting available queries");
+    console.log("serverRequestCompletedQueries, requesting available queries");
     mongoDAO.getCompletedQueries(completedQueriesFinished);
   });
 
   socket.on('serverRequestCatalogQueries', function (data) {
-    log("serverRequestCatalogQueries, requesting Catalog queries");
+    console.log("serverRequestCatalogQueries, requesting Catalog queries");
     mongoDAO.getCatalogQueries(catalogQueriesFinished);
   });
 
   socket.on('serverRequestRunningQueries', function (data) {
-    log("serverRequestRunningQueries, requesting running queries");
+    console.log("serverRequestRunningQueries, requesting running queries");
     mongoDAO.getRunningQueries(runningQueriesFinished);
   });
 
 
 
   socket.on('serverAnalyseGeneralOverview', function (data) {
-    log("serverAnalyseGeneralOverview, requesting general information of all results");
+    console.log("serverAnalyseGeneralOverview, requesting general information of all results");
     analyseQueryData();
   });
 
   socket.on('serverEventSequences', function (data) {
-    log("serverEventSequences, requesting count for all event sequences");
+    console.log("serverEventSequences, requesting count for all event sequences");
     getEventSeqCount();
   });
 
 
   socket.on('serverAllEventTransitions', function (data) {
-    log("serverAllEventTransitions, requesting transitions for all event sequences");
+    console.log("serverAllEventTransitions, requesting transitions for all event sequences");
     getAllEventTransitions();
   });
 
 
   socket.on('serverRequestQueryData', function (data) {
-    log("serverRequestQueryData, requesting the following query: " + data.queryTitle);
+    console.log("serverRequestQueryData, requesting the following query: " + data.queryTitle);
     requestQueryDataForClient(data.queryTitle);
   });
 
   socket.on('serverDeleteResults', function (data) {
-    log("serverDeleteResults, deleting the following results: " + data.queryTitle);
+    console.log("serverDeleteResults, deleting the following results: " + data.queryTitle);
     mongoDAO.deleteResultCollection(data.queryTitle, function (err) {
       if (err) return console.error("serverDeleteResults() ERROR in deleteResultCollection callback " + err);
       mongoDAO.deleteCompletedQuery(data.queryTitle, function (err) {
@@ -142,7 +135,7 @@ io.sockets.on('connection', function (socket) {
   });
 
   socket.on('serverDeleteCatalog', function (data) {
-    log("serverDeleteCatalog, deleting the following Catalog: " + data.queryTitle);
+    console.log("serverDeleteCatalog, deleting the following Catalog: " + data.queryTitle);
     mongoDAO.deleteCatalogQuery(data.queryTitle, function (err) {
       if (err) return console.error("serverDeleteCatalog() ERROR in deleteCatalogQuery callback " + err);
       deleteCatalogFinished(data.queryTitle);
@@ -155,11 +148,11 @@ io.sockets.on('connection', function (socket) {
  * Runs the provided xmlQuery
  */
 function startXmlQuery(xmlData) {
-  log("XML should be run at this point with the following information:");
-  log("email:" + xmlData.email);
-  log("isStrictMode:" + xmlData.isStrictMode);
-  log("xmlTitle:" + xmlData.xmlTitle);
-  log("xmlData:" + xmlData.xmlData);
+  console.log("XML should be run at this point with the following information:");
+  console.log("email:" + xmlData.email);
+  console.log("isStrictMode:" + xmlData.isStrictMode);
+  console.log("xmlTitle:" + xmlData.xmlTitle);
+  console.log("xmlData:" + xmlData.xmlData);
   mongoDAO.runXmlQuery(xmlData.xmlTitle, xmlData.isStrictMode, xmlData.xmlData,
     function (err, queryTitle, processTime) {
       if (err) return console.error("startXmlQuery() ERROR in endCallback " + err);
@@ -181,7 +174,7 @@ function startXmlQuery(xmlData) {
 
 function completedQueriesFinished(err, queryList) {
   if (err) return console.error("completedQueriesFinished() ERROR retrieving available queries " + err);
-  log("Available queries retrieved: " + queryList.length);
+  console.log("Available queries retrieved: " + queryList.length);
   io.sockets.emit('clientCompletedQueriesFinished', { 'queryList': queryList });
 }
 
@@ -204,7 +197,7 @@ function runningQueriesFinished(err, queryList) {
  * When the xmlQuery finishes, an email will be sent, and the Web interface will be notified
  */
 function xmlQueryFinished(queryTitle, processTime) {
-  log("xmlQueryFinished()");
+  console.log("xmlQueryFinished()");
   mongoDAO.setQueryFinished(queryTitle, processTime);
   //Notify Web dashboard
   io.sockets.emit('clientXmlQueryFinished', { 'message': "The query called " + queryTitle + " finished without problems" });
@@ -214,7 +207,7 @@ function xmlQueryFinished(queryTitle, processTime) {
  * When the result has been deleted, notify the user
  */
 function deleteResultFinished(queryTitle) {
-  log("deleteResultFinished()");
+  console.log("deleteResultFinished()");
   io.sockets.emit('deleteResultFinished', { 'message': "The qresults of the query called " + queryTitle + " has been deleted" });
 }
 
@@ -222,7 +215,7 @@ function deleteResultFinished(queryTitle) {
  * When the Catalog has been deleted, notify the user
  */
 function deleteCatalogFinished(queryTitle) {
-  log("deleteCatalogFinished()");
+  console.log("deleteCatalogFinished()");
   io.sockets.emit('deleteCatalogFinished', { 'message': "The Catalog of the query called " + queryTitle + " has been deleted" });
 }
 
@@ -318,7 +311,7 @@ function getEventSeqCount() {
 
 function getEventSeqCountReady(err, sequenceList, eventNameList) {
   if (err) return console.error("getEventSeqCountReady() ERROR retrieving data" + err);
-  log("getEventSeqCountReady() Received the sequences count, responding client");
+  console.log("getEventSeqCountReady() Received the sequences count, responding client");
   io.sockets.emit('eventSequenceCountProcessed', {
     'eventSeqCountList': sequenceList,
     'eventNameList': eventNameList
@@ -335,7 +328,7 @@ function getAllEventTransitions() {
 
 function getAllEventTransitionsReady(err, transitionObject) {
   if (err) return console.error("getAllEventTransitionsReady() ERROR retrieving data" + err);
-  log("getAllEventTransitionsReady() Received the transition sequences, responding client");
+  console.log("getAllEventTransitionsReady() Received the transition sequences, responding client");
   //console.log(JSON.stringify(transitionObject, null, 2));
   io.sockets.emit('serverAllEventTransitionsProcessed', {
     'transitionObject': transitionObject
@@ -374,14 +367,9 @@ function sendMessageToUser(clientId, message, isError) {
     date.getHours() + ":" +
     date.getMinutes() + ":" +
     date.getSeconds();
-
+  
   var logEntry = datevalues + " " + message + "\n";
   console.log("log: " + logEntry);
-
-  var clientLogFile = clientsLogFolder + clientId + ".log";
-
-  var log = fs.createWriteStream(clientLogFile, { 'flags': 'a' });
-  log.write(logEntry);
 
   io.sockets.emit('messageToClient', {
     'message': logEntry,
@@ -426,7 +414,7 @@ function sendEmailNotification(email, title, query, result) {
 /**
  * Log a message into the server's log file
  */
-function log(message) {
+function logText(message) {
   var timestamp = new Date().getTime();
   date = new Date(timestamp);
   datevalues = date.getFullYear() + "," +

@@ -28,7 +28,7 @@ const mongoUser = "DBUSERNAME";
 const mongoPass = "DBPASSWORD";
 
 //Depending on the implementation, we might want to either use fields created after processing the data (urlSessionCounter, sdSessionCounter), or client created fields(episodeCount)
-const episodeField = "urlSessionCounter"
+const episodeField = "episodeCount"
 
 const mongoTimeout = 0;//0
 
