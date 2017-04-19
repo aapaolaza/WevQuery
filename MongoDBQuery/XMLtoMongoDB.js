@@ -114,21 +114,6 @@ function getQueryData(queryTitle, callback) {
           console.log("Returning " + documents.length + " items");
           callback(null, queryTitle, documents);
         });
-
-
-        // Execute the each command, triggers for each document
-        /*cursor.each(function(err, item) {
-            if (err) return console.error("getQueryData() CURSOR ERROR" + err);
-            // If the item is null then the cursor is exhausted/empty and closed
-            if(item == null) {
-                db.close();
-                callback(null,queryTitle,item,true);
-                return;
-            }
-            var itemJson = JSON.stringify(item)
-            //console.log(itemJson);
-            callback(null,queryTitle,itemJson,false);
-        });*/
       }
       else {
         //Collection doesn't exist, return an error
@@ -148,7 +133,6 @@ function deleteResultCollection(queryTitle, callback) {
       if (err) {
         console.log(err);
       }
-      db.close();
       callback(null);
     });
   });
@@ -308,7 +292,6 @@ function mapReduceScript(xmlQuery, xmlDoc, mapReduceVars, endCallback, launchedC
       console.log(results);
       console.log(stats);
       console.log("Query finished in " + stats.processtime + " ms");
-      mapReduceVars.db.close();
       //feedQueryResultsInformation(mapReduceVars.title);
       endCallback(null, mapReduceVars.title, stats.processtime);
     }

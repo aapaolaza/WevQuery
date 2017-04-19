@@ -379,7 +379,6 @@ function deleteCompletedQuery(queryTitle, callback) {
       if (err) {
         console.log(err);
       }
-      db.close();
       callback(null);
     });
   });
@@ -395,7 +394,6 @@ function deleteCatalogQuery(queryTitle, callback) {
       if (err) {
         console.log(err);
       }
-      db.close();
       callback(null);
     });
   });
