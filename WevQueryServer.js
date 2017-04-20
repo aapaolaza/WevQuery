@@ -35,7 +35,7 @@ if (!fs.existsSync(resultsFolder)) {
   fs.mkdirSync(resultsFolder);
 }
 
-var config = require('./config.js');
+var emailConfig = require('./emailConfig.js');
 
 // listen for commands from the Web dashboard
 io.sockets.on('connection', function (socket) {
@@ -384,19 +384,19 @@ function sendMessageToUser(clientId, message, isError) {
  * Sends a mail, using the credentials stored in mail
  */
 const nodemailer = require('nodemailer');
-console.log(config);
+console.log(emailConfig);
 // create reusable transporter object using the default SMTP transport
 let transporter = nodemailer.createTransport({
-  service: config.email.service,
+  service: emailConfig.email.service,
   auth: {
-    user: config.email.user,
-    pass: config.email.password
+    user: emailConfig.email.user,
+    pass: emailConfig.email.password
   }
 });
 
 function sendEmailNotification(email, title, query, result) {
   let mailOptions = {
-    from: '"config.email.user" <noone@noone.com>', // sender address
+    from: emailConfig.email.user + ' <noone@noone.com>', // sender address
     to: email, // list of receivers
     subject: title, // Subject line
     text: query, // plain text body

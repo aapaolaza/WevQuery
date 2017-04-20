@@ -52,7 +52,7 @@ bower_components
 # Yarn Integrity file
 .yarn-integrity
 
-config.js
+emailConfig.js
 WebInterface/tablesorter/tests/
 WebInterface/tablesorter/docs/
 WebInterface/energy.json
