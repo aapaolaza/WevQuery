@@ -296,7 +296,10 @@ function analyseQueryData() {
 }
 
 function analyseQueryDataReady(err, allCollectionsList, uniqueUrls) {
-  if (err) return console.error("analyseQueryDataReady() ERROR retrieving data" + err);
+  if (err) {
+    sendMessageToUser(socket.id, "analyseQueryDataReady ERROR" + err, true);
+    console.error("analyseQueryDataReady() ERROR retrieving data" + err);
+  }
   io.sockets.emit('analyseGeneralOverviewProcessed', {
     'generalOverviewData': allCollectionsList,
     'urlIndexes': uniqueUrls
@@ -368,7 +371,7 @@ function sendMessageToUser(clientId, message, isError) {
     date.getHours() + ":" +
     date.getMinutes() + ":" +
     date.getSeconds();
-  
+
   var logEntry = datevalues + " " + message + "\n";
   console.log("log: " + logEntry);
 

@@ -8,7 +8,7 @@ var constants;
 var mongoLog;
 var mongoDAO;
 
-function setConstants(mapReduceConstants,mongoLogConstants,mongoDAOConstants){
+function setConstants(mapReduceConstants, mongoLogConstants, mongoDAOConstants) {
   constants = mapReduceConstants;
   mongoLog = mongoLogConstants;
   mongoDAO = mongoDAOConstants;
@@ -165,6 +165,10 @@ function stackedChart(callback) {
       //We keep track of the number of occurrences per URL, so we can return only the most popular subset
       var urlFreqCount = [];
 
+      if (resultCollectionList.length == 0) {
+        callback(null, [], []);
+      }
+
       resultCollectionList.forEach(function (resultCollectionTitle, collectionIndex, collectionsArray) {
 
         //for each results collection, loop through its documents
@@ -276,6 +280,11 @@ function getEventSequences(callback) {
       if (err) return console.error("getEventSequences() ERROR REQUESTING COMPLETED QUERIES" + err);
       var collectionsProcessed = 0;
 
+
+      if (resultCollectionList.length == 0) {
+        callback(null, [], []);
+      }
+      
       resultCollectionList.forEach(function (resultCollectionTitle, index, collectionsArray) {
         console.log("getEventSequences(): Processing " + resultCollectionTitle.title);
         db.collection(queryCollectionPrefix + resultCollectionTitle.title).find({ "value.xmlQueryCounter": { $gt: 0 } }).toArray(function (err, documents) {
@@ -361,6 +370,15 @@ function getAllEventTransitions(callback) {
     mongoDAO.getCompletedQueries(function (err, resultCollectionList) {
       if (err) return console.error("getEventTransitions() ERROR REQUESTING COMPLETED QUERIES" + err);
       var collectionsProcessed = 0;
+
+      if (resultCollectionList.length == 0) {
+        var emptyTransitionObject = {
+          nodes: [],
+          links: []
+        };
+
+        callback(null, emptyTransitionObject);
+      }
 
       resultCollectionList.forEach(function (resultCollectionTitle, index, collectionsArray) {
         console.log("getEventTransitions(): Processing " + resultCollectionTitle.title);
