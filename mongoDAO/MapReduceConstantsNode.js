@@ -21,11 +21,12 @@ const userProfileCollection = "userProfiles";
 const queryCollectionPrefix = "xmlQuery_"
 
 ///MongoDB connection info
-const mongoPath = "localhost/ucivitdb";//SERVERIP/DATABASENAME
-const mongoAuthenticateDB = "admin";//DO NOT CHANGE
-const mongoQueryDB = "ucivitdb";
-const mongoUser = "DBUSERNAME";
-const mongoPass = "DBPASSWORD";
+var dbAccessData = require("./dbAccessData");
+const mongoPath = dbAccessData.mongoPath;
+const mongoAuthenticateDB = dbAccessData.mongoAuthenticateDB;
+const mongoQueryDB = dbAccessData.mongoQueryDB;
+const mongoUser = dbAccessData.mongoUser;
+const mongoPass = dbAccessData.mongoPass;
 
 //Depending on the implementation, we might want to either use fields created after processing the data (urlSessionCounter, sdSessionCounter), or client created fields(episodeCount)
 const episodeField = "episodeCount"

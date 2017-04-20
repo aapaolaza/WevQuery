@@ -25,7 +25,7 @@ var exec = require('child_process').exec;
 var path = require('path');
 var url = require("url");
 
-var mongoDAO = require("./MongoDBQuery/mongoDAO.js");
+var mongoDAO = require("./mongoDAO/mongoDAO.js");
 
 var resultsFolder = "./Results/";
 

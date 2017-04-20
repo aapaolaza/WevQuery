@@ -34,3 +34,5 @@ module.exports.deleteCatalogQuery = queryDocument.deleteCatalogQuery;
 module.exports.stackedChart = analyseData.stackedChart;
 module.exports.getEventSequences = analyseData.getEventSequences;
 module.exports.getAllEventTransitions = analyseData.getAllEventTransitions;
+
+module.exports.closeConnection = mapReduceConstants.closeConnection;
