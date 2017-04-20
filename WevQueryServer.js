@@ -15,11 +15,11 @@ var logFile = "./wevQuery.log";
 var connect = require('connect');
 var serveStatic = require('serve-static');
 
-var app = connect().use(serveStatic(__dirname)).listen(port, function () {
+var server = connect().use(serveStatic(__dirname)).listen(port, function () {
   console.log('WevQuery Server running on ' + port + '...');
 });
 
-var io = require('socket.io').listen(app);
+var io = require('socket.io').listen(server);
 //var socket = io.connect();
 var fs = require('fs');
 var exec = require('child_process').exec;
