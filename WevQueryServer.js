@@ -9,12 +9,13 @@
  * 3. node WevQueryServer.js
  */
 
-var port = 8080;
+const port = 2929;
 var logFile = "./wevQuery.log";
 
 var connect = require('connect');
 var serveStatic = require('serve-static');
-var app = connect().use(serveStatic(__dirname)).listen(8080, function () {
+
+var app = connect().use(serveStatic(__dirname)).listen(port, function () {
   console.log('WevQuery Server running on ' + port + '...');
 });
 
