@@ -52,6 +52,7 @@ bower_components
 # Yarn Integrity file
 .yarn-integrity
 
+.vscode
 emailConfig.js
 WebInterface/tablesorter/tests/
 WebInterface/tablesorter/docs/
