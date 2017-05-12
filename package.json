@@ -4,6 +4,7 @@
   "description": "Hypothesis Driven Interaction Behaviour Analysis",
   "main": "WevQueryServer.js",
   "dependencies": {
+    "async": "^2.4.0",
     "connect": "^3.5.0",
     "mongodb": "^2.2.25",
     "nodemailer": "^3.0.1",
