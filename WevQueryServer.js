@@ -1,4 +1,4 @@
-"use strict";
+"use strict";//necessary for old NODE versions. otherwise some functions will not work
 
 /**
  * WevQuery server.
@@ -40,14 +40,14 @@ if (!fs.existsSync(resultsFolder)) {
 
 var emailConfig = require('./emailConfig.js');
 
-var socketGeneric = require("./socketGeneric.js");
-var socketXmlQuery = require("./socketXmlQuery.js");
-var socketDataAnalysis = require("./socketDataAnalysis.js");
+var socketGeneric = require("./socketHandlers/socketGeneric.js");
+var socketXmlQuery = require("./socketHandlers/socketXmlQuery.js");
+var socketDataAnalysis = require("./socketHandlers/socketDataAnalysis.js");
 
 // listen for commands from the Web dashboard
 socketConnection.on('connection', function (socketInstance) {
-  socketXmlQuery.initialiseSockets(mongoDAO,socketConnection,socketInstance);
-  socketDataAnalysis.initialiseSockets(mongoDAO,socketConnection,socketInstance);
+  socketXmlQuery.initialiseSockets(mongoDAO,socketGeneric,socketConnection,socketInstance);
+  socketDataAnalysis.initialiseSockets(mongoDAO,socketGeneric,socketConnection,socketInstance);
 });
 
 

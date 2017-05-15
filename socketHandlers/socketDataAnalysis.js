@@ -1,30 +1,33 @@
 
 var mongoDAO;
 var socketConnection;
+var socketGeneric;
+var socketInstance;
 
-var socketGeneric = require("./socketGeneric.js");
+function initialiseSockets(generalMongoDAO, generalSocketGeneric,
+  generalSocketConnection, generalSocketInstance) {
 
-function initialiseSockets(generalMongoDAO, generalSocketConnection, socket) {
-
-  socketConnection = generalSocketConnection;
   mongoDAO = generalMongoDAO;
+  socketConnection = generalSocketConnection;
+  socketGeneric = generalSocketGeneric;
+  socketInstance = generalSocketInstance;
 
-  socket.on('serverAnalyseGeneralOverview', function (data) {
+  socketInstance.on('serverAnalyseGeneralOverview', function (data) {
     console.log("serverAnalyseGeneralOverview, requesting general information of all results");
     analyseQueryData();
   });
 
-  socket.on('serverEventSequences', function (data) {
+  socketInstance.on('serverEventSequences', function (data) {
     console.log("serverEventSequences, requesting count for all event sequences");
     getEventSeqCount();
   });
 
-  socket.on('serverAllEventTransitions', function (data) {
+  socketInstance.on('serverAllEventTransitions', function (data) {
     console.log("serverAllEventTransitions, requesting transitions for all event sequences");
     getAllEventTransitions();
   });
 
-  socket.on('serverRequestQueryData', function (data) {
+  socketInstance.on('serverRequestQueryData', function (data) {
     console.log("serverRequestQueryData, requesting the following query: " + data.queryTitle);
     requestQueryDataForClient(data.queryTitle);
   });
@@ -76,7 +79,7 @@ function analyseQueryData() {
 
 function analyseQueryDataReady(err, allCollectionsList, uniqueUrls) {
   if (err) {
-    socketGeneric.sendMessageToUser(socket.id, "analyseQueryDataReady ERROR" + err, true, socketConnection);
+    socketGeneric.sendMessageToUser(socketInstance.id, "analyseQueryDataReady ERROR" + err, true, socketConnection);
     console.error("analyseQueryDataReady() ERROR retrieving data" + err);
   }
   socketConnection.emit('analyseGeneralOverviewProcessed', {

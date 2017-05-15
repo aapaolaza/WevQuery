@@ -1,11 +1,16 @@
 
 var mongoDAO;
 var socketConnection;
+var socketGeneric;
+var socketInstance;
 
-function initialiseSockets(generalMongoDAO, generalSocketConnection, socketInstance) {
+function initialiseSockets(generalMongoDAO, generalSocketGeneric,
+  generalSocketConnection, generalSocketInstance) {
 
-  socketConnection = generalSocketConnection;
   mongoDAO = generalMongoDAO;
+  socketConnection = generalSocketConnection;
+  socketGeneric = generalSocketGeneric;
+  socketInstance = generalSocketInstance;
 
   socketInstance.on('saveXMLQuery', function (data) {
     console.log("saveXMLQuery, saving the following XML query: " + data.title);
