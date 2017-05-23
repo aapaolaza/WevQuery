@@ -268,7 +268,7 @@ function runQueryCatalog(email, isQueryStrict, queryTitle, queryData) {
 }
 
 /**
- * Edit Catalog item. Sotres teh selected queryData in a cookie, and opens a new window
+ * Edit Catalog item. Stores the selected queryData in a cookie, and opens the query creation window
  */
 function editQueryCatalog(queryData) {
   setCookie("queryXMLData", queryData, 1);

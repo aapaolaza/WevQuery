@@ -249,8 +249,8 @@ function mapReduceScript(xmlQuery, xmlDoc, mapReduceVars, endCallback, launchedC
   constants.scopeObject["isQueryStrict"] = mapReduceVars.isQueryStrict;
 
   console.log("mapReduceScript() start with the following parameters:");
-  console.log("sd: " + constants.websiteId);
-  console.log("sid: $in: " + mapReduceVars.userList.length + "users");
+  //console.log("sd: " + constants.websiteId);
+  //console.log("sid: $in: " + mapReduceVars.userList.length + "users");
   console.log("ip: $nin: " + constants.bannedIPlist);
   console.log("event: $in: " + mapReduceVars.eventList);
   console.log("isQueryStrict: " + constants.scopeObject["isQueryStrict"]);
@@ -266,10 +266,10 @@ function mapReduceScript(xmlQuery, xmlDoc, mapReduceVars, endCallback, launchedC
     {
       out: { replace: queryCollectionPrefix + mapReduceVars.title },
       query: {
-        "sd": constants.websiteId
-        , "ip": { $nin: constants.bannedIPlist }
-        , "event": { $in: mapReduceVars.eventList }
-        , "sessionstartms": { "$exists": true }
+        //"sd": constants.websiteId,
+        "ip": { $nin: constants.bannedIPlist },
+        "event": { $in: mapReduceVars.eventList },
+        "sessionstartms": { "$exists": true }
       },
       //I add a scope with all the required variables.
       scope: constants.scopeObject,
