@@ -132,6 +132,7 @@ function addEventTemplate() {
 
   //event list
   var eventList = $("#eventMultiSelector", "#eventTemplateForm").val();
+
   //occurrence
   var occurrenceValue = $("input[name='occurrenceValue']", "#eventTemplateForm").val();
   //context options
@@ -171,6 +172,12 @@ function addEventTemplate() {
   var newEventObject = $("#newEventTemplate").clone();
   newEventObject.removeAttr("id");
   $(".eventList", newEventObject).text(eventList.toString().replace(/,/g, ', '));
+  //Is the event matching or avoiding?
+  if($("#eventMatchToggle", "#eventTemplateForm").prop('checked'))
+    $(".eventMatchIndicator", newEventObject).removeClass("glyphicon glyphicon-remove").addClass("glyphicon glyphicon-ok")
+  else
+    $(".eventMatchIndicator", newEventObject).removeClass("glyphicon glyphicon-ok").addClass("glyphicon glyphicon-remove")
+
   $(".occurrenceValue", newEventObject).text(occurrenceValue);
 
   if (contextTypeArray.length > 0) {
@@ -331,6 +338,11 @@ function exportXML() {
     previousNode = $(this).attr("id");
     newEventTemplateNode.setAttribute("occurrences", $(".occurrenceValue", this).text());
 
+    if ($(".eventMatchIndicator",this).attr("class").indexOf("glyphicon-remove")!=-1)
+      newEventTemplateNode.setAttribute("matchCriteria", false);
+    else
+      newEventTemplateNode.setAttribute("matchCriteria", true);
+
     //For each event in the event list, create a node
     //Remember!!! there is a space after each comma
     eventList = $(".eventList", this).text().split(", ");
@@ -414,6 +426,14 @@ function importXML(xmlString) {
         eventList += ", " + $(this).text();
     });
     $(".eventList", newEventObject).text(eventList);
+
+    
+    //Is the event matching or avoiding? We also check the "not exist" situation to comply with old XMLs
+    if(xmlEventObject.attr("matchCriteria") || (xmlEventObject.attr("matchCriteria")==undefined))
+      $(".eventMatchIndicator", newEventObject).removeClass("glyphicon glyphicon-remove").addClass("glyphicon glyphicon-ok")
+    else
+      $(".eventMatchIndicator", newEventObject).removeClass("glyphicon glyphicon-ok").addClass("glyphicon glyphicon-remove")
+
 
     $(".occurrenceValue", newEventObject).text(xmlEventObject.attr("occurrences"));
 

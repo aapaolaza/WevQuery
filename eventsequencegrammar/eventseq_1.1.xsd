@@ -18,6 +18,7 @@
                 </xs:complexType>
               </xs:element>
             </xs:sequence>
+            <xs:attribute name="matchCriteria" type="xs:boolean"/>
             <xs:attribute name='id' type='xs:string' use='required'/>
             <xs:attribute name='pre' type='xs:string' use='required'/>
             <xs:attribute name='occurrences' type='xs:string' default='1'/>
