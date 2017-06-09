@@ -28,8 +28,8 @@ const mongoQueryDB = dbAccessData.mongoQueryDB;
 const mongoUser = dbAccessData.mongoUser;
 const mongoPass = dbAccessData.mongoPass;
 
-//Depending on the implementation, we might want to either use fields created after processing the data (urlSessionCounter, sdSessionCounter), or client created fields(episodeCount)
-const episodeField = "episodeCount"
+//Depending on the implementation, we might want to either use fields created after processing the data (urlSessionCounter, sdSessionCounter), or client created fields(episodecount)
+const episodeField = "episodecount"
 
 const mongoTimeout = 0;//0
 
