@@ -22,6 +22,7 @@ var server = connect().use(serveStatic(__dirname)).listen(port, function () {
 });
 
 var io = require('socket.io').listen(server);
+
 var socketConnection = io.sockets;
 //var socket = io.connect();
 var fs = require('fs');

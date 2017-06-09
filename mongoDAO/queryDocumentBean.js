@@ -337,7 +337,6 @@ function getCompletedQueries(callback) {
 
 /**
  * Requests the list of all Catalog queries
- * callback rec
  */
 function getCatalogQueries(callback) {
   constants.connectAndValidateNodeJs(function (err, db) {
@@ -349,6 +348,26 @@ function getCatalogQueries(callback) {
     });
   });
 }
+
+
+/**
+ * Given a query title, gets the information for that query
+ * 
+ */
+function getCatalogQueryInfo(queryName, callback) {
+  constants.connectAndValidateNodeJs(function (err, db) {
+    if (err) return console.error("getCatalogQueryInfo() ERROR connecting to DB" + err);
+    console.log("getCatalogQueryInfo() Successfully connected to DB");
+    
+    db.collection(constants.xmlQueryCatalog).find({"title": queryTitle}).toArray(function (err, queryCatalogInfo) {
+      if (queryCatalogInfo.length>0)
+        callback(null, queryCatalogInfo[0]);
+      else
+        callback(null, null);
+    });
+  });
+}
+
 
 /**
  * Updates the status of the queries, and retrieves all unfinished running queries
@@ -409,6 +428,7 @@ module.exports.updateQueryStatus = updateQueryStatus;
 module.exports.setQueryFinished = setQueryFinished;
 module.exports.getCompletedQueries = getCompletedQueries;
 module.exports.getCatalogQueries = getCatalogQueries;
+module.exports.getCatalogQueryInfo = getCatalogQueryInfo;
 module.exports.getRunningQueries = getRunningQueries;
 module.exports.deleteCompletedQuery = deleteCompletedQuery;
 module.exports.deleteCatalogQuery = deleteCatalogQuery;
