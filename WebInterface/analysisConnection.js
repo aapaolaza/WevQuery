@@ -103,6 +103,20 @@ function requestQueryData(title) {
   socket.emit('serverRequestQueryData', { "queryTitle": title });
 }
 
+/**
+ * Processes received json object
+ * TODO: I don't like the idea of downloading the whole collection to the client. I think it's better to abstract him from that.
+ */
+socket.on('clientQueryDataProcessed', function (data) {
+  notifyUser("A document for the query " + data.queryTitle + " has been received");
+  console.log("A document for the query " + data.queryTitle + " has been received");
+  console.log("The file is available in " + data.queryPath);
+
+  //Construct the path to the resulting json file
+  window.open(window.location.href.split("WebInterface")[0]+data.queryPath);
+});
+
+
 function requestAnalysisData() {
   socket.emit('serverAnalyseGeneralOverview');
 }
@@ -140,12 +154,3 @@ socket.on('serverAllEventTransitionsProcessed', function (data) {
   sankeyDataReceived(data.transitionObject);
 });
 
-/**
- * Processes received json object
- * TODO: I don't like the idea of downloading the whole collection to the client. I think it's better to abstract him from that.
- */
-socket.on('clientQueryDataProcessed', function (data) {
-  notifyUser("A document for the query " + data.queryTitle + " has been received");
-  console.log("A document for the query " + data.queryTitle + " has been received");
-  console.log("The file is available in " + data.queryPath);
-});

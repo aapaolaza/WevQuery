@@ -154,6 +154,12 @@
         // Add code to load the results to the analysis panel
       });
 
+      $("#downloadResults", "#queryResultsOptions").click(function () {
+        // Add code to load the results to the analysis panel
+        downloadQueryResults(
+          $("tr.active", "#queryResultsList").attr("queryTitle"));
+      });
+
       $("#deleteResults", "#queryResultsOptions").click(function () {
         // Add code to delete the query from the DB
         deleteQueryResults(
@@ -282,6 +288,9 @@
 
       <div class="queryOptionItem">
         <span id="loadResults" class="glyphicon glyphicon-folder-open" aria-hidden="true"></span> Load Results
+      </div>
+      <div class="queryOptionItem">
+        <span id="downloadResults" class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Download Results
       </div>
       <div class="queryOptionItem">
         <span id="deleteResults" class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete Results

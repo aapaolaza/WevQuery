@@ -48,7 +48,7 @@ var socketDataAnalysis = require("./socketHandlers/socketDataAnalysis.js");
 // listen for commands from the Web dashboard
 socketConnection.on('connection', function (socketInstance) {
   socketXmlQuery.initialiseSockets(mongoDAO,socketGeneric,socketConnection,socketInstance);
-  socketDataAnalysis.initialiseSockets(mongoDAO,socketGeneric,socketConnection,socketInstance);
+  socketDataAnalysis.initialiseSockets(mongoDAO,socketGeneric,socketConnection,socketInstance,resultsFolder);
 });
 
 

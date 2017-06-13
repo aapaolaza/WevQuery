@@ -16,8 +16,13 @@ queryDocument.setConstants(mapReduceConstants,mongoLogConstants);
 analyseData.setConstants(mapReduceConstants,mongoLogConstants,this)
 
 module.exports.runXmlQuery = xmlToMongoDB.runXmlQuery;
-module.exports.getQueryData = xmlToMongoDB.getQueryData;
+module.exports.runXmlTempQuery = xmlToMongoDB.runXmlTempQuery;
+module.exports.getXmlQueryData = xmlToMongoDB.getXmlQueryData;
+module.exports.getXmlQueryDataByCollection = xmlToMongoDB.getXmlQueryDataByCollection;
+module.exports.feedQueryInformationByCollection = xmlToMongoDB.feedQueryInformationByCollection;
+module.exports.feedQueryResultsByTitle = xmlToMongoDB.feedQueryResultsByTitle;
 module.exports.deleteResultCollection = xmlToMongoDB.deleteResultCollection;
+module.exports.deleteTempResultCollection = xmlToMongoDB.deleteTempResultCollection;
 
 module.exports.addNewQueryDocument = queryDocument.addNewQueryDocument;
 module.exports.isQueryTitleUnique = queryDocument.isQueryTitleUnique;
