@@ -3,13 +3,18 @@
  */
 
 
-/*var urlarr = window.location.href.split("/");
-var server = urlarr[0] + "//" + urlarr[2];*/
+var urlarr = window.location.href.split("/");
+var server = urlarr[0] + "//" + urlarr[2];
 
 //Link the socket server to the parent URL of WebInterface
-var server = window.location.href.split("WebInterface")[0];
+//var server = window.location.href.split("WebInterface")[0];
 
-var socket = io.connect(server);
+var socket;
+//Test if is production, and add the corresponding hardcoded path
+if (server.indexOf("moving")>-1)
+  socket = io(server, {path: '/wevquery/socket.io'});
+else
+  socket = io.connect(server);
 
 var logFile = [];
 

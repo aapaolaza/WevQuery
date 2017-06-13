@@ -103,7 +103,11 @@ function startXmlQuery(xmlData) {
   console.log("isStrictMode:" + xmlData.isStrictMode);
   console.log("xmlTitle:" + xmlData.xmlTitle);
   console.log("xmlData:" + xmlData.xmlData);
-  mongoDAO.runXmlQuery(xmlData.xmlTitle, xmlData.isStrictMode, xmlData.xmlData,
+  
+  var queryOptions = {};
+  queryOptions.isQueryStrict = xmlData.isStrictMode;
+
+  mongoDAO.runXmlQuery(xmlData.xmlTitle, xmlData.xmlData, queryOptions,
     function (err, queryTitle, processTime) {
       if (err) return console.error("startXmlQuery() ERROR in endCallback " + err);
 
