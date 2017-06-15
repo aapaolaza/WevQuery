@@ -2,6 +2,7 @@
  * Serves as the interface to the mongoDB modules.
  */
 
+var databaseInfo = require("./databaseInfo.js");
 var queryDocument = require("./queryDocumentBean.js");
 var xmlToMongoDB = require("./XMLtoMongoDB.js");
 var analyseData = require("./analyseData.js");
@@ -13,7 +14,13 @@ var mongoLogConstants = require("./mongoLog.js");
 mongoLogConstants.setConstants(mapReduceConstants);
 xmlToMongoDB.setConstants(mapReduceConstants,mongoLogConstants);
 queryDocument.setConstants(mapReduceConstants,mongoLogConstants);
-analyseData.setConstants(mapReduceConstants,mongoLogConstants,this)
+analyseData.setConstants(mapReduceConstants,mongoLogConstants,this);
+databaseInfo.setConstants(mapReduceConstants,mongoLogConstants,this);
+
+module.exports.requestDBname = databaseInfo.requestDBname;
+module.exports.requestIndexes = databaseInfo.requestIndexes;
+module.exports.requestEventCountList = databaseInfo.requestEventCountList;
+module.exports.requestUserListWithEvents = databaseInfo.requestUserListWithEvents;
 
 module.exports.runXmlQuery = xmlToMongoDB.runXmlQuery;
 module.exports.runXmlTempQuery = xmlToMongoDB.runXmlTempQuery;

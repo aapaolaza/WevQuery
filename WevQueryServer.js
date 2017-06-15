@@ -44,11 +44,13 @@ var emailConfig = require('./emailConfig.js');
 var socketGeneric = require("./socketHandlers/socketGeneric.js");
 var socketXmlQuery = require("./socketHandlers/socketXmlQuery.js");
 var socketDataAnalysis = require("./socketHandlers/socketDataAnalysis.js");
+var socketDataInfo = require("./socketHandlers/socketDataInfo.js");
 
 // listen for commands from the Web dashboard
 socketConnection.on('connection', function (socketInstance) {
   socketXmlQuery.initialiseSockets(mongoDAO,socketGeneric,socketConnection,socketInstance);
   socketDataAnalysis.initialiseSockets(mongoDAO,socketGeneric,socketConnection,socketInstance,resultsFolder);
+  socketDataInfo.initialiseSockets(mongoDAO,socketGeneric,socketConnection,socketInstance);
 });
 
 
