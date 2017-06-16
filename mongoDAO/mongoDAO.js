@@ -18,6 +18,7 @@ analyseData.setConstants(mapReduceConstants,mongoLogConstants,this);
 databaseInfo.setConstants(mapReduceConstants,mongoLogConstants,this);
 
 module.exports.requestDBname = databaseInfo.requestDBname;
+module.exports.requestDBCollections = databaseInfo.requestDBCollections;
 module.exports.requestIndexes = databaseInfo.requestIndexes;
 module.exports.requestEventCountList = databaseInfo.requestEventCountList;
 module.exports.requestUserListWithEvents = databaseInfo.requestUserListWithEvents;

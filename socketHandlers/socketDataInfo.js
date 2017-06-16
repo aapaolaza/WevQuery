@@ -18,6 +18,11 @@ function initialiseSockets(generalMongoDAO, generalSocketGeneric,
     getDatabaseName();
   });
 
+  socketInstance.on('serverRequestDatabaseCollections', function (data) {
+    console.log("serverRequestDatabaseCollections, requesting database collections");
+    getDatabaseCollections();
+  });
+
   socketInstance.on('serverRequestDatabaseIndexes', function (data) {
     console.log("serverRequestDatabaseIndexes, requesting database indexes");
     getDatabaseIndexes();
@@ -53,6 +58,27 @@ function requestDatabaseNameReady(err,dbName) {
 }
 
 
+function getDatabaseCollections() {
+  mongoDAO.requestDBCollections(requestCollectionsReady);
+}
+
+/**
+ * Recieves an array of strings describing each of the indexes
+ * @param {err} err 
+ * @param {array} indexList 
+ */
+function requestCollectionsReady(err, collectionList) {
+  if (err) {
+    socketGeneric.sendMessageToUser(socketInstance.id, "requestCollectionsReady ERROR" + err, true, socketConnection);
+    console.error("requestCollectionsReady() ERROR retrieving data" + err);
+  }
+  console.log("requestCollectionsReady() returning " + collectionList.length + " indexes");
+  socketConnection.emit('clientDatabaseCollectionsFinished', {
+    'collectionList': collectionList
+  });
+}
+
+
 /**
  * Gets the indexes for the current database
  */
@@ -74,6 +100,26 @@ function requestIndexesReady(err, indexList) {
   console.log("requestIndexesReady() returning " + indexList.length + " indexes");
   socketConnection.emit('clientDatabaseIndexesFinished', {
     'indexList': indexList
+  });
+}
+
+function getDatabaseCollections() {
+  mongoDAO.requestDBCollections(requestCollectionsReady);
+}
+
+/**
+ * Recieves an array of strings describing each of the indexes
+ * @param {err} err 
+ * @param {array} indexList 
+ */
+function requestCollectionsReady(err, collectionList) {
+  if (err) {
+    socketGeneric.sendMessageToUser(socketInstance.id, "requestCollectionsReady ERROR" + err, true, socketConnection);
+    console.error("requestCollectionsReady() ERROR retrieving data" + err);
+  }
+  console.log("requestCollectionsReady() returning " + collectionList.length + " indexes");
+  socketConnection.emit('clientDatabaseCollectionsFinished', {
+    'collectionList': collectionList
   });
 }
 

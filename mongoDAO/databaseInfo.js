@@ -14,6 +14,33 @@ function requestDBname(callback) {
   callback(null, constants.mongoQueryDB);
 }
 
+
+
+/**
+ * Returns the list of all collections in the database, with their count
+ * @param {callback} callback 
+ */
+function requestDBCollections(callback) {
+  var collectionList = [];
+  constants.connectAndValidateNodeJs(function (err, db) {
+    db.listCollections().toArray(function (err, collectionInDBList) {
+      
+      collectionInDBList.forEach(function(collectionInDBObject){
+        var collObjectTemp = {};
+        //console.log(collectionInDBObject);
+        collObjectTemp.name = collectionInDBObject.name;
+        db.collection(collectionInDBObject.name).count(function(err, count) {
+          collObjectTemp.count = count;
+          collectionList.push(collObjectTemp);
+          //check if all collections have been processed
+          if (collectionList.length >= collectionInDBList.length)
+            callback(null,collectionList);
+        });
+      });
+    });
+  });
+}
+
 /**
  * Returns the list of all indexes in the database, in string format
  * @param {callback} callback 
@@ -145,6 +172,7 @@ function requestEventCountForEventAndUser(eventName, userId, callback) {
 
 module.exports.setConstants = setConstants;
 module.exports.requestDBname = requestDBname;
+module.exports.requestDBCollections = requestDBCollections;
 module.exports.requestIndexes = requestIndexes;
 module.exports.requestEventCountList = requestEventCountList;
 module.exports.requestUserListWithEvents = requestUserListWithEvents;

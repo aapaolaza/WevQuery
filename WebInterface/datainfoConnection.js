@@ -2,13 +2,27 @@
  * Requests the database name
  */
 
-function requestDatabasename() {
+function requestDatabaseName() {
   socket.emit('serverRequestDatabaseName');
 }
 
 socket.on('clientDatabaseNameFinished', function (data) {
-  notifyUser("Database name has been retrieved: " + data, data.isError);
+  notifyUser("Database name has been retrieved: " + data.dbName, data.isError);
   fillDatabaseName(data.dbName);
+});
+
+/**
+ * Requests the list of collections and their document count
+ */
+
+function requestDatabaseCollection() {
+  socket.emit('serverRequestDatabaseCollections');
+}
+
+socket.on('clientDatabaseCollectionsFinished', function (data) {
+  notifyUser("List of collections from the database has been retrieved: "
+    + data.collectionList.length, data.isError);
+  fillCollectionList(data.collectionList);
 });
 
 

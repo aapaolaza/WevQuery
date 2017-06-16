@@ -3,7 +3,8 @@
  */
 function initialiseValues() {
   console.log("initialising interface");
-  requestDatabasename();
+  requestDatabaseName();
+  requestDatabaseCollection();
   requestDatabaseIndexes();
 
   $("#databaseEventList").append("<div>Loading event counts</div>");
@@ -27,6 +28,18 @@ function fillIndexList(indexList) {
   });
 }
 
+
+/**
+ * Fills in the collection list with the provided array of collection objects
+ * Each object in the array contains the name of the collection and its count of documents
+ */
+function fillCollectionList(collectionList) {
+  collectionList.forEach(function (collectionObject) {
+    $("#databaseCollectionList").append("<div>" + collectionObject.name
+      + ":" + collectionObject.count + "</div>");
+  });
+}
+
 /**
  * Receives a list of events, with a name and a count.
  * @param {array} eventList 
@@ -43,10 +56,8 @@ function fillEventCountList(eventCountList) {
  * with a name and a count for each.
  * @param {array} eventList 
  */
-var globalUserList;
 function fillUsersList(userList) {
   $("#databaseUserList").empty();
-  globalUserList = userList;
   userList.forEach(function (userObject) {
     var userElement = $(document.createElement('details'));
     userElement.append("<summary>" + userObject.name + "</summary>");
