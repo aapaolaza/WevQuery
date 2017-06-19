@@ -14,16 +14,37 @@
 const port = 2929;
 var logFile = "./wevQuery.log";
 
-var connect = require('connect');
+//Load libraries
+var express = require("express");
 var serveStatic = require('serve-static');
+var auth = require('basic-auth');
 
-var server = connect().use(serveStatic(__dirname)).listen(port, function () {
+//Load external files
+var userCredentials = require('./userCredentials.js');
+var socketGeneric = require("./socketHandlers/socketGeneric.js");
+var socketXmlQuery = require("./socketHandlers/socketXmlQuery.js");
+var socketDataAnalysis = require("./socketHandlers/socketDataAnalysis.js");
+var socketDataInfo = require("./socketHandlers/socketDataInfo.js");
+
+//Start Express server
+var app = express();
+
+//Only add authentication if there are users in the list (apart from default, if still there)
+if (Object.keys(userCredentials.userList).length > 1
+  || (Object.keys(userCredentials.userList).length == 1 && userCredentials.userList["user"] != "password")) {
+  app.use(authFunction);
+}
+else
+console.log("AUTHENTICATION DISABLED");
+
+var httpServer = app.use(serveStatic(__dirname)).listen(port, function () {
   console.log('WevQuery Server running on ' + port + '...');
 });
 
-var io = require('socket.io').listen(server);
+var io = require('socket.io')(httpServer);
 
 var socketConnection = io.sockets;
+
 //var socket = io.connect();
 var fs = require('fs');
 var exec = require('child_process').exec;
@@ -39,19 +60,22 @@ if (!fs.existsSync(resultsFolder)) {
   fs.mkdirSync(resultsFolder);
 }
 
-var emailConfig = require('./emailConfig.js');
-
-var socketGeneric = require("./socketHandlers/socketGeneric.js");
-var socketXmlQuery = require("./socketHandlers/socketXmlQuery.js");
-var socketDataAnalysis = require("./socketHandlers/socketDataAnalysis.js");
-var socketDataInfo = require("./socketHandlers/socketDataInfo.js");
 
 // listen for commands from the Web dashboard
 socketConnection.on('connection', function (socketInstance) {
-  socketXmlQuery.initialiseSockets(mongoDAO,socketGeneric,socketConnection,socketInstance);
-  socketDataAnalysis.initialiseSockets(mongoDAO,socketGeneric,socketConnection,socketInstance,resultsFolder);
-  socketDataInfo.initialiseSockets(mongoDAO,socketGeneric,socketConnection,socketInstance);
+  socketXmlQuery.initialiseSockets(mongoDAO, socketGeneric, socketConnection, socketInstance);
+  socketDataAnalysis.initialiseSockets(mongoDAO, socketGeneric, socketConnection, socketInstance, resultsFolder);
+  socketDataInfo.initialiseSockets(mongoDAO, socketGeneric, socketConnection, socketInstance);
 });
+
+function authFunction(req, res, next) {
+  var objUser = auth(req)
+  if (objUser === undefined || userCredentials.userList[objUser.name] !== objUser.pass) {
+    res.set("WWW-Authenticate", "Basic realm=Authorization Required")
+    res.status(401).end()
+  } else { next() }
+}
+
 
 
 
@@ -135,7 +159,7 @@ process.stdin.resume();//so the program will not close instantly
 
 function exitHandler(options, err) {
   if (options.adminInitiated) {
-    socketGeneric.sendMessageToUser(-1, "ADMINISTRATOR STOPPED THE SERVER", true,socketConnection);
+    socketGeneric.sendMessageToUser(-1, "ADMINISTRATOR STOPPED THE SERVER", true, socketConnection);
   } else {
     socketGeneric.sendMessageToUser(-1, "FATAL ERROR, CONTACT ADMINISTRATOR", true, socketConnection);
   }

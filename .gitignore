@@ -59,3 +59,4 @@ WebInterface/tablesorter/docs/
 WebInterface/energy.json
 WebInterface/visit-sequences.csv
 dbAccessData.js
+userCredentials.js
