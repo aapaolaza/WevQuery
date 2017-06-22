@@ -379,11 +379,6 @@ function executeXmlMapReduce(xmlQuery, xmlDoc, mapReduceVars, endCallback, launc
   queryObject.event = { $in: mapReduceVars.eventList };
   queryObject.sessionstartms = { "$exists": true };
 
-  ////TEMPORAL MODIFICATIONS
-  //process.exit();
-  mapReduceVars.userList = ["w62zkMya3kBE"];
-  /////
-
   if (mapReduceVars.userList) {
     queryObject.sid = { $in: mapReduceVars.userList };
   }
