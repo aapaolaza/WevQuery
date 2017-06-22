@@ -43,13 +43,13 @@ function initialiseSockets(generalMongoDAO, generalSocketGeneric,
               startXmlQuery(data);
             else {
               console.log("Title is not valid, notify user that an error happened.");
-              socketGeneric.sendMessageToUser(socket.id, "The given title is not correct, provide a different one", true, socketConnection);
+              socketGeneric.sendMessageToUser(socketInstance.id, "The given title is not correct, provide a different one", true, socketConnection);
               console.log("xml title is not valid");
             }
           });
         } else {
           console.log("xml was invalid, notify user that an error happened.");
-          socketGeneric.sendMessageToUser(socket.id, "XML was not well formed", true, socketConnection);
+          socketGeneric.sendMessageToUser(socketInstance.id, "XML was not well formed", true, socketConnection);
           console.log("xml query failed");
         }
       }

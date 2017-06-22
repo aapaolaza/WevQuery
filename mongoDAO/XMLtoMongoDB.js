@@ -369,6 +369,7 @@ function executeXmlMapReduce(xmlQuery, xmlDoc, mapReduceVars, endCallback, launc
   console.log("executeXmlMapReduce() start with the following parameters:");
   console.log("ip: $nin: " + constants.bannedIPlist);
   console.log("event: $in: " + mapReduceVars.eventList);
+  console.log("information from events: " + constants.scopeObject["requiredFieldList"]);
   console.log("isQueryStrict: " + constants.scopeObject["isQueryStrict"]);
   console.log("title: " + mapReduceVars.title);
   console.log("collection name: " + mapReduceVars.dbTitle);
@@ -377,6 +378,11 @@ function executeXmlMapReduce(xmlQuery, xmlDoc, mapReduceVars, endCallback, launc
   queryObject.ip = { $nin: constants.bannedIPlist };
   queryObject.event = { $in: mapReduceVars.eventList };
   queryObject.sessionstartms = { "$exists": true };
+
+  ////TEMPORAL MODIFICATIONS
+  //process.exit();
+  mapReduceVars.userList = ["w62zkMya3kBE"];
+  /////
 
   if (mapReduceVars.userList) {
     queryObject.sid = { $in: mapReduceVars.userList };
@@ -464,50 +470,18 @@ function parseXMLToMapReduceObject(xmlDoc) {
   //WARNING!!! "n" occurrences is not supported at the moment.
 
   //First event has predecesor null
+  currentID = "null";
   //each element in the eventList is an eventQueryObject
   //It will be identified by its index in the query array
-  var eventQueryObject = new Object();
-  eventQueryObject.nameList = xpath.select("//event[@pre='null']/eventList/text()", xmlDoc).toString().split(",");
-  eventQueryObject.occurrences = xpath.select("string(//event[@pre='null']/@occurrences)", xmlDoc);
-
-  //Get the context for that event
-  eventQueryObject.context = new Object();
-  eventQueryObject.context.typeList = [];
-  eventQueryObject.context.valueList = [];
-
-  var context = xpath.select("//event[@pre='null']/context", xmlDoc);
-  console.log(context.length + "context elements have been found");
-
-  for (i = 0; i < context.length; i++) {
-    eventQueryObject.context.typeList[i] = context[i].getAttributeNode("type").toString();
-    eventQueryObject.context.valueList[i] = context[i].getAttributeNode("value").toString();
-  }
-
-  var currentID = xpath.select("string(//event[@pre='null']/@id)", xmlDoc);
-  //Keep the index of this event in the table. The '-1' is necessary to obtain the index of the last element
-  eventIDTable[currentID] = xmlQueryObject.eventList.push(eventQueryObject) - 1;
-  console.log("eventQueryObject with id=" + currentID);
-  console.log(eventQueryObject);
-  console.log("Adding " + (parseInt(eventQueryObject.occurrences) - 1) + " more events");
-  //push as many event copies as the occurrences indicate
-  for (i = 0; i < parseInt(eventQueryObject.occurrences) - 1; i++) {
-    //LOG 2016-12-16 15:14:12 I cannot see any reason why I need a proper clone
-    //a reference will do so the algorithm can abstract itself and just loop through everything
-    //At the moment I don't Does not need
-    xmlQueryObject.eventList.push(eventQueryObject);
-    console.log(eventQueryObject);
-  }
-
   areEventsLeft = true;
   while (areEventsLeft) {
-    //Check if exists an event after last one processed
+    //Check if exists an event after last one processed (stored at currentID)
     //Instead of the "boolean" function, the length of the response can be checked:
     //if (xpath.select("//event[@pre='" + currentID + "']", xmlDoc).length>0) { 
     if (xpath.select("boolean(//event[@pre='" + currentID + "'])", xmlDoc)) {
-
-      eventQueryObject = new Object();
+      var eventQueryObject = new Object();
       eventQueryObject.nameList = xpath.select("//event[@pre='" + currentID + "']/eventList/text()", xmlDoc).toString().split(",");
-      eventQueryObject.occurrences = xpath.select("string(//event[@pre='" + currentID + "']/@occurrences)", xmlDoc);
+      eventQueryObject.occurrences = xpath.select("string(//event[@pre='null']/@occurrences)", xmlDoc);
 
       //Get the context for that event
       eventQueryObject.context = new Object();
@@ -518,9 +492,12 @@ function parseXMLToMapReduceObject(xmlDoc) {
       console.log(context.length + "context elements have been found");
 
       for (i = 0; i < context.length; i++) {
-        eventQueryObject.context.typeList[i] = context[i].getAttributeNode("type").toString();
-        eventQueryObject.context.valueList[i] = context[i].getAttributeNode("value").toString();
+        eventQueryObject.context.typeList[i] = context[i].getAttributeNode("type").value;
+        eventQueryObject.context.valueList[i] = context[i].getAttributeNode("value").value;
       }
+
+      //Modify the context list so it matches the corresponding values in the DB
+      eventQueryObject.context = fixContextValues(eventQueryObject.context);
 
       currentID = xpath.select("string(//event[@pre='" + currentID + "']/@id)", xmlDoc);
       //Keep the index of this event in the table. The '-1' is necessary to obtain the index of the last element
@@ -530,6 +507,8 @@ function parseXMLToMapReduceObject(xmlDoc) {
       console.log("Adding " + (parseInt(eventQueryObject.occurrences) - 1) + " more events");
       //push as many event copies as the occurrences indicate
       for (i = 0; i < parseInt(eventQueryObject.occurrences) - 1; i++) {
+        //LOG 2016-12-16 15:14:12 I cannot see any reason why I need a proper clone
+        //a reference will do so the algorithm can abstract itself and just loop through everything
         xmlQueryObject.eventList.push(eventQueryObject);
         console.log(eventQueryObject);
       }
@@ -579,6 +558,56 @@ function parseXMLToMapReduceObject(xmlDoc) {
 }
 
 /**
+ * Given an object with a list of types and values, fixes the
+ * context list so it matches the corresponding values in the db
+ * Needs to be kept up to date with the schema
+ * @param {Object} contextList 
+ */
+function fixContextValues(contextInfo) {
+  //XML schema to be used to read the possible context values
+  //For the time being, we will use a hardcoded list of the values that need processing
+  //it will be hardcoded anyway in order to give each context a different treatment
+  for (i = 0; i < contextInfo.typeList.length; i++) {
+    switch (contextInfo.typeList[i]) {
+      case "NodeID":
+        contextInfo.typeList[i] = "nodeInfo.nodeId";
+        break;
+      case "NodeType":
+        contextInfo.typeList[i] = "nodeInfo.nodeType";
+        contextInfo.valueList[i] = contextInfo.valueList[i].toUpperCase();
+        break;
+      case "NodeDom":
+        contextInfo.typeList[i] = "nodeInfo.nodeDom";
+        break;
+      case "NodeImg":
+        contextInfo.typeList[i] = "nodeInfo.nodeImg";
+        break;
+      case "NodeLink":
+        contextInfo.typeList[i] = "nodeInfo.nodeLink";
+        break;
+      case "NodeTextContent":
+        contextInfo.typeList[i] = "nodeInfo.nodeTextContent";
+        break;
+      case "NodeTextValue":
+        contextInfo.typeList[i] = "nodeInfo.nodeTextValue";
+        break;
+      case "URL":
+        contextInfo.typeList[i] = "url";
+        break;
+      case "ScrollState":
+        //This context will require more work, and can only be done live.
+        break;
+      default:
+        break;
+    }
+  }
+  console.log("fixContextValues(): context values have been adapted");
+  console.log(contextInfo);
+
+  return (contextInfo);
+}
+
+/**
  * Given an XML query transformed into JavaScript object, it retrieves the fields necessary to run the query.
  * Alternatively, this function could be modified to use the original XML and query all "context" nodes
  * @param {Object} mapReduceXMLQueryObject 
@@ -593,6 +622,7 @@ function retrieveQueriedFields(mapReduceXMLQueryObject) {
     eventObject.context.typeList.forEach(function (contextTypeField, index) {
       if (requiredFieldList.indexOf(contextTypeField) == -1)
         requiredFieldList.push(contextTypeField);
+
     });
   });
   return requiredFieldList;
@@ -617,7 +647,21 @@ function mapFunction() {
   var emitData = {};
 
   requiredFieldList.forEach(function (requiredField, index) {
-    emitData[requiredField] = eventToEmit[requiredField];
+    //is the requiredField a nested field? if so the nesting needs to be tackled.
+    if (requiredField.indexOf(".") > -1) {
+      var mainField = requiredField.split(".")[0];
+      var nestedField = requiredField.split(".")[1];
+      var contentToEmit = eventToEmit[mainField][nestedField];
+
+      //Does the nested field contain additional nest levels? If so, go down another level
+      while (nestedField.indexOf(".") > -1) {
+        nestedField = nestedField.split(".")[1];
+        contentToEmit = contentToEmit[nestedField];
+      }
+      emitData[requiredField] = contentToEmit;
+    }
+    else
+      emitData[requiredField] = eventToEmit[requiredField];
   });
 
 
@@ -640,7 +684,7 @@ function mapFunction() {
  * Aggregates different values for each given key. It will take each key, and all the values from Map step, and process them one by one.
  * It takes two parameters: 1) Key 2) array of values (number of values outputted from Map step)
  * Reduce function should just put values in the same list, as it doesn't have access to "all" data, only to a certain batch
-
+ 
  */
 function reduceFunction(key, values) {
   var reduced = { "episodeEvents": [] };
@@ -687,9 +731,9 @@ function finalizeFunction(key, reduceOutput) {
 
   //////////////////////////START OF Auxiliary Functions/////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////
-	/**
-	* We need our own compare function in order to be able to sort the array according to the timestamp
-	*/
+  /**
+  * We need our own compare function in order to be able to sort the array according to the timestamp
+  */
   function compare(objectA, objectB) {
 
     var objectATime = Number(objectA.timestampms);
@@ -707,11 +751,11 @@ function finalizeFunction(key, reduceOutput) {
     return 0;
   }
 
-	/**
-	 * Function to compare nodeInfos
-	 * My first approach was going to be the following, but I think using this function is more secure
-	 * if (JSON.stringify(currentEvent.nodeInfo) == JSON.stringify(this.lackOfMousePrecisionList[i].nodeInfo)){
-	 */
+  /**
+   * Function to compare nodeInfos
+   * My first approach was going to be the following, but I think using this function is more secure
+   * if (JSON.stringify(currentEvent.nodeInfo) == JSON.stringify(this.lackOfMousePrecisionList[i].nodeInfo)){
+   */
   function getNodeInfo(nodeInfo) {
     return ("NodeInfo [nodeId=" + nodeInfo.nodeId + ", nodeName=" + nodeInfo.nodeName
       + ", nodeDom=" + nodeInfo.nodeDom + ", nodeImg=" + nodeInfo.nodeImg
@@ -783,7 +827,10 @@ function finalizeFunction(key, reduceOutput) {
     this.xmlQueryCandidatesList.forEach(function (xmlQueryCandidate, index) {
       var indexToMatch = xmlQueryCandidate.length;
       if (xmlQueryObject.eventList[indexToMatch].nameList.indexOf(currentEvent.event) > -1
-        && matchContextInfo(currentEvent.event, xmlQueryObject.eventList[indexToMatch].context)) {
+        && matchContextInfo(currentEvent, xmlQueryObject.eventList[indexToMatch].context)) {
+        currentEvent.contextInfo = {};
+        currentEvent.contextInfo.currentEvent = currentEvent[xmlQueryObject.eventList[indexToMatch].context.typeList[0]];
+        currentEvent.contextInfo.contextToMatch = xmlQueryObject.eventList[indexToMatch].context.valueList[0];
 
         //the event matches, add it to the list, and test temporal constraints.
         xmlQueryCandidate.push(currentEvent);
@@ -819,7 +866,8 @@ function finalizeFunction(key, reduceOutput) {
     }
 
     //Compare current event to the first event in the matching list
-    if (xmlQueryObject.eventList[0].nameList.indexOf(currentEvent.event) > -1) {
+    if (xmlQueryObject.eventList[0].nameList.indexOf(currentEvent.event) > -1
+      && matchContextInfo(currentEvent, xmlQueryObject.eventList[0].context)) {
       //initialise a new candidate
       var candidateObject = [];
       candidateObject.push(currentEvent);
@@ -833,9 +881,9 @@ function finalizeFunction(key, reduceOutput) {
     }
   }
 
-	/**
-	 * Last event for this object. It takes any unfinished candidate and determines if it should be included or not
-	 */
+  /**
+   * Last event for this object. It takes any unfinished candidate and determines if it should be included or not
+   */
   XmlQuery.prototype.endBehaviour = function (currentEvent) {
 
   }
@@ -890,6 +938,30 @@ function finalizeFunction(key, reduceOutput) {
     return (1);
   }
 
+  function matchContextInfoComplex(currentEvent, contextInfo) {
+    var fieldName;
+    for (i = 0; i < contextInfo.typeList.length; i++) {
+      fieldName = contextInfo.typeList[i];
+      //The nested fields need to be tackled in a different way
+      if (fieldName.indexOf(".") > -1) {
+        var mainField = fieldName.split(".")[0];
+        var nestedField = fieldName.split(".")[1];
+        var contentToCompare = currentEvent[mainField][nestedField];
+
+        //Does the nested field contain additional nest levels? If so, go down another level
+        while (nestedField.indexOf(".") > - 1) {
+          nestedField = nestedField.split(".")[1];
+          contentToCompare = contentToCompare[nestedField];
+        }
+        if (contentToCompare != contextInfo.valueList[i])
+          return false;
+      }
+      else if (currentEvent[fieldName] != contextInfo.valueList[i])
+        return false;
+    }
+    return true;
+  }
+
   function matchContextInfo(currentEvent, contextInfo) {
     for (i = 0; i < contextInfo.typeList.length; i++) {
       if (currentEvent[contextInfo.typeList[i]] != contextInfo.valueList[i])
@@ -897,6 +969,7 @@ function finalizeFunction(key, reduceOutput) {
     }
     return true;
   }
+
   ///////////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////END OF XML query/////////////////////////////
 
@@ -940,10 +1013,10 @@ function finalizeFunction(key, reduceOutput) {
  * data from the database
  * @param {string} queryTitle with the name of the query results to feed back
  */
-function feedQueryResultsByTitle(queryTitle,callback) {
+function feedQueryResultsByTitle(queryTitle, callback) {
   var startTimems = new Date();
   var queryCollName = queryCollectionPrefix + queryTitle;
-  feedQueryInformationByCollection(queryCollName,callback);
+  feedQueryInformationByCollection(queryCollName, callback);
 }
 
 /**
@@ -951,7 +1024,7 @@ function feedQueryResultsByTitle(queryTitle,callback) {
  * data from the database
  * @param {string} queryTitle with the name of the query results to feed back
  */
-function feedQueryInformationByCollection(queryCollName,callback) {
+function feedQueryInformationByCollection(queryCollName, callback) {
   console.log("Starting the feed of the information");
   var startTimems = new Date();
 
@@ -974,10 +1047,10 @@ function feedQueryInformationByCollection(queryCollName,callback) {
                 constants.websiteId, "feedQueryResultsInformation() failed", startTimems, new Date());
               callback(err);
             }
-            else{
+            else {
               mongoLog.logMessage("optime", "feedQueryResultsInformation",
                 constants.websiteId, "feedQueryResultsInformation finished successfully " + queryTitle, startTimems, new Date());
-              
+
               //Update count, and call parent callback when count reaches end
               resultCount++;
               if (resultCount >= documents.length);
