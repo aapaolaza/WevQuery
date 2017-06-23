@@ -1,12 +1,10 @@
-var emailConfig = {};
-
-emailConfig.email = {};
-emailConfig.email.service="gmail"
-emailConfig.email.user= "user"
-emailConfig.email.password="password"
+var email = {};
+email.service="gmail"
+email.user= "user"
+email.password="password"
 
 var userList = {};
 userList["user"] = "password"
 
-module.exports = emailConfig;
-module.exports = userList;
+module.exports.email = email;
+module.exports.userList = userList;

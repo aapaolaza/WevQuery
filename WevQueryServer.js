@@ -29,6 +29,10 @@ var socketDataInfo = require("./socketHandlers/socketDataInfo.js");
 //Start Express server
 var app = express();
 
+console.log(userCredentials.userList);
+console.log(userCredentials.email);
+console.log(userCredentials);
+
 //Only add authentication if there are users in the list (apart from default, if still there)
 if (Object.keys(userCredentials.userList).length > 1
   || (Object.keys(userCredentials.userList).length == 1 && userCredentials.userList["user"] != "password")) {

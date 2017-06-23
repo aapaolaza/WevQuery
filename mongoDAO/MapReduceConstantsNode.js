@@ -106,7 +106,7 @@ function createNewConnection(callback) {
   };
 
   // Open the connection to the server
-  mongoClient.connect("mongodb://" + mongoPath, options, function (err, dbConnection) {
+  mongoClient.connect("mongodb://" + mongoConnectionPath, options, function (err, dbConnection) {
     if (err) { callback(err, null); }
     globalDbConnection = dbConnection;
     callback(err, dbConnection);

@@ -108,12 +108,12 @@ function startXmlQuery(xmlData) {
   queryOptions.isQueryStrict = xmlData.isStrictMode;
 
   mongoDAO.runXmlQuery(xmlData.xmlTitle, xmlData.xmlData, queryOptions,
-    function (err, queryTitle, processTime) {
+    function (err, queryTitle, querydbTitle, processTime) {
       if (err) return console.error("startXmlQuery() ERROR in endCallback " + err);
 
       xmlQueryFinished(queryTitle, processTime);
     },
-    function (err, queryTitle, queryData) {
+    function (err, queryTitle, querydbTitle, queryData) {
       if (err) return console.error("startXmlQuery() ERROR in launchedCallback " + err);
 
       mongoDAO.addNewQueryDocument(queryTitle, queryData);
