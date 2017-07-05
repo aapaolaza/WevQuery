@@ -11,9 +11,6 @@
  * 3. node WevQueryServer.js
  */
 
-const port = 2929;
-var logFile = "./wevQuery.log";
-
 //Load libraries
 var express = require("express");
 var serveStatic = require('serve-static');
@@ -28,6 +25,14 @@ var socketDataInfo = require("./socketHandlers/socketDataInfo.js");
 
 //Start Express server
 var app = express();
+var router = express.Router();
+
+const port = 2929;
+var logFile = "./wevQuery.log";
+
+//Start router
+var wevqueryRouter = require("./rest/wevqueryRouter.js");
+app.use('/wevqueryrest', wevqueryRouter);
 
 console.log(userCredentials.userList);
 console.log(userCredentials.email);
@@ -39,7 +44,7 @@ if (Object.keys(userCredentials.userList).length > 1
   app.use(authFunction);
 }
 else
-console.log("AUTHENTICATION DISABLED");
+  console.log("AUTHENTICATION DISABLED");
 
 var httpServer = app.use(serveStatic(__dirname)).listen(port, function () {
   console.log('WevQuery Server running on ' + port + '...');

@@ -1,4 +1,4 @@
-<xs:schema  version="1.1" attributeFormDefault='unqualified' elementFormDefault='qualified' 
+<xs:schema  version="1.0.0" attributeFormDefault='unqualified' elementFormDefault='qualified' 
   xmlns:xs='http://www.w3.org/2001/XMLSchema'>
   <xs:element name='eql'>
     <xs:complexType>
@@ -91,6 +91,7 @@
       <xs:enumeration value='select'/>
       <xs:enumeration value='change'/>
       <xs:enumeration value='keypress'/>
+      <xs:enumeration value='submit'/>
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name='contextType'>
