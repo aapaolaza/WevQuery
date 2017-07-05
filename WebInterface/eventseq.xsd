@@ -91,6 +91,7 @@
       <xs:enumeration value='select'/>
       <xs:enumeration value='change'/>
       <xs:enumeration value='keypress'/>
+      <xs:enumeration value='submit'/>
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name='contextType'>

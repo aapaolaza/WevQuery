@@ -2,9 +2,24 @@
 
 Testing Hypotheses about  Web Interaction Patterns.
 
+## Database configuration
+
+WevQuery uses MongoDB to access the interaction data.
+1. Install MongoDB
+1. In the folder mongoDAO, there is a file called `dbAccessDataTemplate.js`. Copy or rename that file to `dbAccessData.js`, and, if necessary, modify it with the credentials to your MongoDB installation. If no authentication is required, there is no need to modify this file.
+1. In the root folder, copy or rename the file `userCredentialsTemplate.js` to `userCredentials.js`. This file enables basic HTTP authentication. You just need to add another line to the userList with the desired user and password. By default the HTTP authentication is off.
+
+## Data sample
+An anonymised dataset is available so the tool can be tested right away. However, the download and restoration of this sample dataset needs plenty of space (at least around 20 GB) and time (the restoration of the database takes some time, up to 30 minutes depending on the machine).
+<http://www.cs.man.ac.uk/~apaolaza/wevquery/ucivitdb.zip>
+This data has been captured using <https://github.com/aapaolaza/UCIVIT-WebIntCap>.
+1. Download the data from <http://www.cs.man.ac.uk/~apaolaza/wevquery/ucivitdb.zip>
+1. Unzip the downloaded file.
+1. Open a command line where the uncompressed folder is located, and execute the following command: `mongorestore ucivitdb/`. If credentials are needed to access your database, you will have to run the command in this manner: `mongorestore -u USER -p "PASSWORD" --authenticationDatabase admin ucivitdb/`. More information about restoring a database in mongoDB can be found here <https://docs.mongodb.com/manual/reference/program/mongorestore/>.
+
 ## Deployment
 
-1. Install npm and nodejs
+1. Install npm and nodejs. If you are using linux, please avoid using the standard repositories, as they commonly host old versions of nodejs. Refer to <https://nodejs.org/en/download/package-manager/> to install updated versions.
 1. Run `npm install`
 1. Run `npm start`
 1. To test if it's running, access <http://localhost:2929>, a message should appear.

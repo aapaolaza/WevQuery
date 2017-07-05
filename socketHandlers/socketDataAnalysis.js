@@ -3,14 +3,18 @@ var mongoDAO;
 var socketConnection;
 var socketGeneric;
 var socketInstance;
+var resultsFolder;
+var fs = require('fs');
+
 
 function initialiseSockets(generalMongoDAO, generalSocketGeneric,
-  generalSocketConnection, generalSocketInstance) {
+  generalSocketConnection, generalSocketInstance,resultsFolderName) {
 
   mongoDAO = generalMongoDAO;
   socketConnection = generalSocketConnection;
   socketGeneric = generalSocketGeneric;
   socketInstance = generalSocketInstance;
+  resultsFolder = resultsFolderName;
 
   socketInstance.on('serverAnalyseGeneralOverview', function (data) {
     console.log("serverAnalyseGeneralOverview, requesting general information of all results");
@@ -39,7 +43,7 @@ function initialiseSockets(generalMongoDAO, generalSocketGeneric,
  * TODO: uses the data from the results folder to run analysis
  */
 function storeQueryJson(queryTitle, callback) {
-  var filename = resultsFolder + queryTitle + ".json";
+  var filename = resultsFolder + queryTitle + "_" + new Date().getTime() + ".json";
   console.log("printing to: " + filename);
   fs.stat(filename, function (err, stat) {
     if (err == null) {

@@ -188,6 +188,12 @@ function positionOptions(parentElement, optionsMenuID) {
   $("#" + optionsMenuID).css({ "position": "absolute" });
 }
 
+/**
+ * Download the full content of the selected query from the results
+ */
+function downloadQueryResults(queryTitle) {
+  requestQueryData(queryTitle);
+}
 
 /**
  * Deletes the selected query from the results

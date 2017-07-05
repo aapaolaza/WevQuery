@@ -43,13 +43,13 @@ function initialiseSockets(generalMongoDAO, generalSocketGeneric,
               startXmlQuery(data);
             else {
               console.log("Title is not valid, notify user that an error happened.");
-              socketGeneric.sendMessageToUser(socket.id, "The given title is not correct, provide a different one", true, socketConnection);
+              socketGeneric.sendMessageToUser(socketInstance.id, "The given title is not correct, provide a different one", true, socketConnection);
               console.log("xml title is not valid");
             }
           });
         } else {
           console.log("xml was invalid, notify user that an error happened.");
-          socketGeneric.sendMessageToUser(socket.id, "XML was not well formed", true, socketConnection);
+          socketGeneric.sendMessageToUser(socketInstance.id, "XML was not well formed", true, socketConnection);
           console.log("xml query failed");
         }
       }
@@ -103,16 +103,17 @@ function startXmlQuery(xmlData) {
   console.log("isStrictMode:" + xmlData.isStrictMode);
   console.log("xmlTitle:" + xmlData.xmlTitle);
   console.log("xmlData:" + xmlData.xmlData);
+  
   var queryOptions = {};
   queryOptions.isQueryStrict = xmlData.isStrictMode;
 
   mongoDAO.runXmlQuery(xmlData.xmlTitle, xmlData.xmlData, queryOptions,
-    function (err, queryTitle, processTime) {
+    function (err, queryTitle, querydbTitle, processTime) {
       if (err) return console.error("startXmlQuery() ERROR in endCallback " + err);
 
       xmlQueryFinished(queryTitle, processTime);
     },
-    function (err, queryTitle, queryData) {
+    function (err, queryTitle, querydbTitle, queryData) {
       if (err) return console.error("startXmlQuery() ERROR in launchedCallback " + err);
 
       mongoDAO.addNewQueryDocument(queryTitle, queryData);
@@ -184,7 +185,7 @@ function validateXMLagainstXSD(xmlData, callback) {
   return null;
 
   var validator = require('xsd-schema-validator');
-  var schemaPath = './WebInterface/eventseq.xsd'
+  var schemaPath = './eventsequencegrammar/eventseq_1.1.xsd'
 
   fs = require('fs')
   fs.readFile(schemaPath, 'utf8', function (err, xmlSchema) {

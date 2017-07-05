@@ -1,3 +1,5 @@
+var xmlSchemaPath = './eventsequencegrammar/eventseq_1.1.xsd'
+
 /**
  * Called when the page is loaded. Runs all the initialisation functions
  * 
@@ -28,7 +30,7 @@ function initialiseInterface() {
  */
 function loadEventNames(multiOptionTarget) {
   console.log("loading event names");
-  $.get('eventseq.xsd', function (eventSeqTemplate) {
+  $.get(xmlSchemaPath, function (eventSeqTemplate) {
     console.log("xml schema loaded" + eventSeqTemplate);
     /*The usual jquery selectors work for xml, but I was having problems with xml schema.
     Instead, I will use Xpath: http://api.jquery.com/category/selectors/#XPath_Selectors*/
@@ -50,7 +52,7 @@ function loadEventNames(multiOptionTarget) {
  */
 function loadContextTypes(selectElement) {
   console.log("loading event names");
-  $.get('eventseq.xsd', function (eventSeqTemplate) {
+  $.get(xmlSchemaPath, function (eventSeqTemplate) {
     console.log("xml schema loaded");
     result = eventSeqTemplate.evaluate("/*[local-name()='schema']/*[@name='contextType']/*[local-name()='restriction']/*[local-name()='enumeration']/@value",
       eventSeqTemplate, null, 0, null);
@@ -71,7 +73,7 @@ function loadContextTypes(selectElement) {
  */
 function loadContextValues(selectElement) {
   console.log("loading event names");
-  $.get('eventseq.xsd', function (eventSeqTemplate) {
+  $.get(xmlSchemaPath, function (eventSeqTemplate) {
     console.log("xml schema loaded");
     result = eventSeqTemplate.evaluate("/*[local-name()='schema']/*[@name='contextType']/*[local-name()='restriction']/*[local-name()='enumeration']/@value",
       eventSeqTemplate, null, 0, null);
@@ -439,11 +441,11 @@ function importXML(xmlString) {
 
     var contextList = [];
 
-    xmlEventObject.find("context").each(function () {
-      var contextObject = {};
-      contextObject.type = xmlEventObject.attr("type");
-      contextObject.value = xmlEventObject.attr("value");
-      contextList.push(contextObject);
+    xmlEventObject.find("context").each(function (index, obj) {
+      var tempContextObject = {};
+      tempContextObject.type = $(this).attr("type");
+      tempContextObject.value = $(this).attr("value");
+      contextList.push(tempContextObject);
     });
     if (contextList.length > 0) {
       $(".contextHeader", newEventObject).text("Context");
@@ -461,6 +463,7 @@ function importXML(xmlString) {
     //At this point some modifications need to be done, to make the event fit the ordered area
     var newOrderedEventObject = newEventObject.clone();
     newOrderedEventObject.attr("id", xmlEventObject.attr("id"));
+    $(".eventTitle", newOrderedEventObject).text(xmlEventObject.attr("id"));
     newOrderedEventObject.removeClass("eventTemplatePalette");
     $("#eventOrderArea").append(newOrderedEventObject);
     newOrderedEventObject.show();

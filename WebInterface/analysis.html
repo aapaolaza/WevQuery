@@ -38,7 +38,7 @@
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
   <!-- The event creation and interaction logic is stored in a different file -->
-  
+
   <script src="./analysis.js"></script>
   <script src="./stackedChart/stackedChart.js"></script>
   <link rel="stylesheet" href="./stackedChart/stackedChart.css">
@@ -154,6 +154,12 @@
         // Add code to load the results to the analysis panel
       });
 
+      $("#downloadResults", "#queryResultsOptions").click(function () {
+        // Add code to load the results to the analysis panel
+        downloadQueryResults(
+          $("tr.active", "#queryResultsList").attr("queryTitle"));
+      });
+
       $("#deleteResults", "#queryResultsOptions").click(function () {
         // Add code to delete the query from the DB
         deleteQueryResults(
@@ -193,7 +199,7 @@
       });
 
       //Analysis panel listeners
-       $("#updateTabGeneral").click(function () {
+      $("#updateTabGeneral").click(function () {
         refreshGeneralOverview();
       });
       $("#updateTabTransitions").click(function () {
@@ -202,11 +208,11 @@
       $("#updateSunburst").click(function () {
         refreshSunburst();
       });
-  
+
 
       updateLeftMenu();
       initialiseInterface();
-      
+
     });
   </script>
 </head>
@@ -284,6 +290,9 @@
         <span id="loadResults" class="glyphicon glyphicon-folder-open" aria-hidden="true"></span> Load Results
       </div>
       <div class="queryOptionItem">
+        <span id="downloadResults" class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Download Results
+      </div>
+      <div class="queryOptionItem">
         <span id="deleteResults" class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete Results
       </div>
     </div>
@@ -338,9 +347,9 @@
           <p class="spinnerMessage">Loading general graph</p>
         </div>
         <svg id="generalGraph" width="960" height="500"></svg>
-        
+
       </div>
-      
+
       <div id="tabTransitions" class="tab-pane fade">
         <h3> Sankey diagram detailing the transitions between events for all sequences</h3>
         <div id="sankeyGraphLoadingSpin">
@@ -358,8 +367,7 @@
           <div id="sunburstSequence"></div>
           <div id="sunburstChart">
             <div id="sunburstExplanation" style="visibility: hidden;">
-              <span id="sunburstPercentage"></span><br/>
-              of sequences begin with this subsequence
+              <span id="sunburstPercentage"></span><br/> of sequences begin with this subsequence
             </div>
           </div>
         </div>
@@ -368,7 +376,7 @@
           <div id="sunburstLegend" style="visibility: hidden;"></div>
         </div>
       </div>
-      
+
       <div id="tabDescrStat" class="tab-pane fade">
         <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
       </div>

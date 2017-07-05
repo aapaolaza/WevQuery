@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Language" content="en">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+  <title>Hypothesis Driven Interaction Behaviour Analysis</title>
+  <link rel="icon" type="image/png" href="./res/WevQueryLogo2.png" />
+  <!-- Bootstrap -->
+  <link href="bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="analysis.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="./jquery-ui-1.12.1/jquery-ui.css">
+  <script src="./jquery-ui-1.12.1/external/jquery/jquery.js"></script>
+  <!-- WARNING!!! The order of the following two JavaScripts will affect the icons used in the interface (the last one will have priority)-->
+  <script src="./jquery-ui-1.12.1/jquery-ui.min.js"></script>
+  <script src="./bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+
+  <!--<script src="/socket.io/socket.io.js"></script>-->
+  <script src="../socket.io/socket.io.js"></script>
+  <script src="./connection.js"></script>
+  <script src="./datainfoConnection.js"></script>
+  <!-- server.js code script end-->
+
+  <script src="./datainfo.js"></script>
+
+  <script>
+    $(function () {
+      initialiseValues();
+    });
+  </script>
+</head>
+
+<body>
+  <h1>Database information for <span id="databaseName" /></h1>
+  <h2>List of collections</h2>
+  <div id="databaseCollectionList"></div>
+  <h2>List of indexes</h2>
+  <div id="databaseIndexList"></div>
+  <h2>List of events</h2>
+  <div id="databaseEventList"></div>
+  <h2>List of users</h2>
+  <div id="databaseUserList">
+    <details>
+      <summary>User example</summary>
+      <p>Event 1 40 occurrences</p>
+      <p>Event 2 80 occurrences</p>
+    </details>
+  </div>
+  <div id="toastbar">Toast to show to the user</div>
+</body>
+
+</html>
