@@ -646,14 +646,25 @@ function mapFunction() {
     if (requiredField.indexOf(".") > -1) {
       var mainField = requiredField.split(".")[0];
       var nestedField = requiredField.split(".")[1];
-      var contentToEmit = eventToEmit[mainField][nestedField];
 
-      //Does the nested field contain additional nest levels? If so, go down another level
-      while (nestedField.indexOf(".") > -1) {
-        nestedField = nestedField.split(".")[1];
-        contentToEmit = contentToEmit[nestedField];
+      //Only emit this field if the event contains it
+      if (eventToEmit[mainField]) {
+        var contentToEmit = eventToEmit[mainField][nestedField];
+        
+        //check again if the nested field exists
+        if (contentToEmit) {
+          //Does the nested field contain additional nest levels AND the field still exists?
+          //If so, go down another level
+          while (contentToEmit && nestedField.indexOf(".") > -1) {
+            nestedField = nestedField.split(".")[1];
+            contentToEmit = contentToEmit[nestedField];
+          }
+          //final check, only emit if field exists
+          if (contentToEmit) {
+            emitData[requiredField] = contentToEmit;
+          }
+        }
       }
-      emitData[requiredField] = contentToEmit;
     }
     else
       emitData[requiredField] = eventToEmit[requiredField];
