@@ -46,9 +46,24 @@ if (Object.keys(userCredentials.userList).length > 1
 else
   console.log("AUTHENTICATION DISABLED");
 
+//Restrict access to specific files and folders
+app.all('/mongoDAO/*', function (req,res, next) {
+   res.status(403).send({
+      message: 'Access Forbidden'
+   });
+});
+
+app.all('/userCredentials.js', function (req,res, next) {
+   res.status(403).send({
+      message: 'Access Forbidden'
+   });
+});
+
 var httpServer = app.use(serveStatic(__dirname)).listen(port, function () {
   console.log('WevQuery Server running on ' + port + '...');
 });
+
+
 
 var io = require('socket.io')(httpServer);
 

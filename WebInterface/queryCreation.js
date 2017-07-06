@@ -1,4 +1,4 @@
-var xmlSchemaPath = './eventsequencegrammar/eventseq_1.1.xsd'
+var xmlSchemaPath = '../eventsequencegrammar/eventseq_1.1.xsd'
 
 /**
  * Called when the page is loaded. Runs all the initialisation functions
