@@ -160,12 +160,13 @@ function isQueryTitleInCatalog(queryTitle, callback) {
 /**
  * Saves the given query title and data to the catalog
  */
-function saveQuery(queryTitle, queryData) {
+function saveQuery(queryTitle, queryDescription, queryData) {
 
   constants.connectAndValidateNodeJs(function (err, db) {
     if (err) return console.error("saveQuery() ERROR connecting to DB" + err);
     document = {
       title: queryTitle,
+      description: queryDescription,
       queryXML: queryData,
       operationID: "",
       processtimems: -1,

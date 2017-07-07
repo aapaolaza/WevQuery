@@ -14,12 +14,13 @@ function initialiseSockets(generalMongoDAO, generalSocketGeneric,
 
   socketInstance.on('saveXMLQuery', function (data) {
     console.log("saveXMLQuery, saving the following XML query: " + data.title);
+    console.log("saveXMLQuery, description: " + data.description);
     console.log(data.xmlData)
 
     mongoDAO.isQueryTitleInCatalog(data.title, function (err, isTitleCorrect) {
-      if (isTitleCorrect) {
+      if (data.title && isTitleCorrect) {
         console.log(isTitleCorrect);
-        mongoDAO.saveQuery(data.title, data.xmlData);
+        mongoDAO.saveQuery(data.title, data.description, data.xmlData);
         socketConnection.emit('clientXmlQuerySaved', {});
       }
       else {

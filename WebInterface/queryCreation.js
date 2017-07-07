@@ -174,15 +174,15 @@ function addEventTemplate() {
   var newEventObject = $("#newEventTemplate").clone();
   newEventObject.removeAttr("id");
   $(".eventList", newEventObject).text(eventList.toString().replace(/,/g, ', '));
-  
+
   //Is the event matching or avoiding?
   if ($("#eventMatchToggle", "#eventTemplateForm").prop('checked')) {
     $(".eventMatchIndicator", newEventObject).removeClass("glyphicon glyphicon-remove").addClass("glyphicon glyphicon-ok")
-    $(".eventMatchIndicator", newEventObject).attr("matchCriteria",true);
+    $(".eventMatchIndicator", newEventObject).attr("matchCriteria", true);
   }
   else {
     $(".eventMatchIndicator", newEventObject).removeClass("glyphicon glyphicon-ok").addClass("glyphicon glyphicon-remove")
-    $(".eventMatchIndicator", newEventObject).attr("matchCriteria",false);
+    $(".eventMatchIndicator", newEventObject).attr("matchCriteria", false);
   }
 
   $(".occurrenceValue", newEventObject).text(occurrenceValue);
@@ -503,6 +503,7 @@ function importXML(xmlString) {
  */
 function saveQuery() {
   requestSaveXmlQuery($("#queryTitle", "#saveQueryDialog").val(),
+    $("#queryDescription", "#saveQueryDialog").val(),
     exportXML());
 }
 

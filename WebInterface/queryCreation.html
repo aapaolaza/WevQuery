@@ -1,564 +1,565 @@
-
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Language" content="en">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Hypothesis Driven Interaction Behaviour Analysis</title>
-    <link rel="icon" type="image/png" href="./res/WevQueryLogo2.png" />
-    <!-- Bootstrap -->
-    <link href="bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="./jquery-ui-1.12.1/jquery-ui.css">
-    <script src="./jquery-ui-1.12.1/external/jquery/jquery.js"></script>
-    <!-- WARNING!!! The order of the following two JavaScripts will affect the icons used in the interface (the last one will have priority)-->
-    <script src="./jquery-ui-1.12.1/jquery-ui.min.js"></script>
-    <script src="./bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
-    <!-- tag selection script-->
-    <script src="./chosen_v1.6.2/chosen.jquery.js"></script>
-    <link rel="stylesheet" href="./chosen_v1.6.2/chosen.css">
-    
-    <link href="./bootstrap-toggle/bootstrap-toggle.css" rel="stylesheet">
-    <script src="./bootstrap-toggle/bootstrap-toggle.js"></script>
 
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Language" content="en">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+  <title>Hypothesis Driven Interaction Behaviour Analysis</title>
+  <link rel="icon" type="image/png" href="./res/WevQueryLogo2.png" />
+  <!-- Bootstrap -->
+  <link href="bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="./jquery-ui-1.12.1/jquery-ui.css">
+  <script src="./jquery-ui-1.12.1/external/jquery/jquery.js"></script>
+  <!-- WARNING!!! The order of the following two JavaScripts will affect the icons used in the interface (the last one will have priority)-->
+  <script src="./jquery-ui-1.12.1/jquery-ui.min.js"></script>
+  <script src="./bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+  <!-- tag selection script-->
+  <script src="./chosen_v1.6.2/chosen.jquery.js"></script>
+  <link rel="stylesheet" href="./chosen_v1.6.2/chosen.css">
+
+  <link href="./bootstrap-toggle/bootstrap-toggle.css" rel="stylesheet">
+  <script src="./bootstrap-toggle/bootstrap-toggle.js"></script>
+
+  <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
     <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
-    <!-- The event creation and interaction logic is stored in a different file -->
-    <script src="./queryCreation.js"></script>
+  <!-- The event creation and interaction logic is stored in a different file -->
+  <script src="./queryCreation.js"></script>
 
-    <!-- server.js code script start-->
-    <!--socket.io import changed so it works in MOVING server, the following file was copied from  
+  <!-- server.js code script start-->
+  <!--socket.io import changed so it works in MOVING server, the following file was copied from  
     "node_modules/socket.io/node_modules/socket.io-client/dist"    -->
-    <!--<script src="/socket.io/socket.io.js"></script>-->
-    <script src="../socket.io/socket.io.js"></script>
-    <script src="./connection.js"></script>
-    <script src="./queryCreationConnection.js"></script>
-    <!-- server.js code script end-->
+  <!--<script src="/socket.io/socket.io.js"></script>-->
+  <script src="../socket.io/socket.io.js"></script>
+  <script src="./connection.js"></script>
+  <script src="./queryCreationConnection.js"></script>
+  <!-- server.js code script end-->
 
-    <script>
-      //We keep the configuration for the temporal constraints in a global variable, so we can refer to it later on
-      var resizableTemplate = {
-        //resize is triggered when interaction with handles occurs
-        handles: "w,e",
-        //The height won't change
-        maxHeight: 25,
-        minHeight: 25,
-        //the element should not get too small,
-        minWidth: 400,
-        //When it stops, it will check the element on top of it, and change the reference events accordingly. 
-        stop: function (event, ui) {
-          var tempConstraint = $(this);
-          var startConstraint = $(tempConstraint).position().left;// + $("#eventOrderArea").scrollLeft();
-          var endConstraint = startConstraint + $(tempConstraint).width();
-      
-          //We will loop through all events in ordered area to find the new start and end of the constraints 
-          var startConstraintFound = false;
-          var endConstraintFound = false;
-      
-          //Loop through all events in the ordered area to find the one this temporal constraint refers to now.
-          //There are other options (such as find element in coordinate X Y) but this approach makes changing selection criteria easy
-          //We may want to allow the user to select the event the constraint coveres completely, or rather the one the constraint touches.
-          $("#eventOrderArea .eventTemplate").each(function (index, value) {
-            //get the left and right coordinates of the temp constraint
-            var eventLeft = $(this).position().left + $("#eventOrderArea").scrollLeft();
-            var eventRight = eventLeft + $(this).width();
-      
-            //Check if the start of the constraint falls within the dimensions of this event.If so, update the start reference 
-            if (!startConstraintFound && eventLeft <= startConstraint && startConstraint <= eventRight) {
-              $(tempConstraint).attr("start", $(this).attr("id"));
-              startConstraintFound = true;
-              //console.log("Found left constraint event: " + index);
-            }
-      
-            //Check if the end of the constraint falls within the dimensions of this event. If so, update the start reference 
-            if (!endConstraintFound && eventLeft <= endConstraint && endConstraint <= eventRight) {
-              $(tempConstraint).attr("end", $(this).attr("id"));
-              endConstraintFound = true;
-              //console.log("Found right constraint event: " + index);
-            }
-          });
-          updateOrderedArea();
-        }
-      };
-      
-      $(function () {
-        var $eventPaletteArea = $("#eventPaletteArea"),
-          $eventOrderArea = $("#eventOrderArea");
-      
-        //To improve usability, the upper palette can be toggled
-        $("#eventPaletteTitle").click(function () {
-          $("#eventPaletteRow").toggle("slow");
-          $("#eventPaletteTitle").toggleClass("up");
-          $("#eventPaletteTitle span").toggleClass("glyphicon-option-vertical");
-        });
-      
-        $eventPaletteArea.sortable({
-          scroll: true,
-          // revert: true,//when cancelled, element returns to origin with animation
-          handle: ".draggableHandler",//elements can only be dragged using the handle
-          cancel: "#eventPaletteArea li p",//the rest of the text can be selected
-          connectWith: $eventOrderArea,//both areas are conected, so elements can be dragged around,
-          helper: "clone",
-          revert: "invalid",
-          forcePlaceholderSize: false,
-          start: function (event, ui) {
-            if ($(ui.item).hasClass("eventOrdered")) {
-              throw "cancel";
-            }
-          },
-          stop: function (event, ui) {
-            //If the drag ends in the ordered area
-            if ($(ui.item).parents('#eventOrderArea').length > 0) {
-              //Code to keep a copy of the event in the palette, if it has been dragged to the event order.
-              //select the element before the one we are ending the drag on
-              var idx = $("#eventOrderArea").children().index($(ui.item[0])) - 1;
-              var elm = $(ui.item[0]).clone(true);
-              //This function handles the transition, adding an ID to the event
-              addEventToOrderedList(elm);
-      
-              //if index is greater or equal to 0 then we can put it after that index
-              //otherwise, append it to the list as first element 
-              if (idx > -1)
-                $("#eventOrderArea").children(':eq(' + idx + ')').after(elm);
-              else
-                $("#eventOrderArea").prepend(elm);
-      
-              $(this).sortable('cancel');
-      
-              updateOrderedArea();
-            }
+  <script>
+    //We keep the configuration for the temporal constraints in a global variable, so we can refer to it later on
+    var resizableTemplate = {
+      //resize is triggered when interaction with handles occurs
+      handles: "w,e",
+      //The height won't change
+      maxHeight: 25,
+      minHeight: 25,
+      //the element should not get too small,
+      minWidth: 400,
+      //When it stops, it will check the element on top of it, and change the reference events accordingly. 
+      stop: function (event, ui) {
+        var tempConstraint = $(this);
+        var startConstraint = $(tempConstraint).position().left;// + $("#eventOrderArea").scrollLeft();
+        var endConstraint = startConstraint + $(tempConstraint).width();
+
+        //We will loop through all events in ordered area to find the new start and end of the constraints 
+        var startConstraintFound = false;
+        var endConstraintFound = false;
+
+        //Loop through all events in the ordered area to find the one this temporal constraint refers to now.
+        //There are other options (such as find element in coordinate X Y) but this approach makes changing selection criteria easy
+        //We may want to allow the user to select the event the constraint coveres completely, or rather the one the constraint touches.
+        $("#eventOrderArea .eventTemplate").each(function (index, value) {
+          //get the left and right coordinates of the temp constraint
+          var eventLeft = $(this).position().left + $("#eventOrderArea").scrollLeft();
+          var eventRight = eventLeft + $(this).width();
+
+          //Check if the start of the constraint falls within the dimensions of this event.If so, update the start reference 
+          if (!startConstraintFound && eventLeft <= startConstraint && startConstraint <= eventRight) {
+            $(tempConstraint).attr("start", $(this).attr("id"));
+            startConstraintFound = true;
+            //console.log("Found left constraint event: " + index);
+          }
+
+          //Check if the end of the constraint falls within the dimensions of this event. If so, update the start reference 
+          if (!endConstraintFound && eventLeft <= endConstraint && endConstraint <= eventRight) {
+            $(tempConstraint).attr("end", $(this).attr("id"));
+            endConstraintFound = true;
+            //console.log("Found right constraint event: " + index);
           }
         });
-      
-        $eventOrderArea.sortable({
-          scroll: true,
-          revert: true,
-          handle: ".draggableHandler",
-          cancel: "#eventOrderArea li p",
-          //connectWith: $eventPaletteArea,//Removed the connection, so the elements can be dragged to this area, but not back
-          //containment: "#eventOrderArea",//The containment caused problems with big elements
-      
-          stop: function (event, ui) {
+        updateOrderedArea();
+      }
+    };
+
+    $(function () {
+      var $eventPaletteArea = $("#eventPaletteArea"),
+        $eventOrderArea = $("#eventOrderArea");
+
+      //To improve usability, the upper palette can be toggled
+      $("#eventPaletteTitle").click(function () {
+        $("#eventPaletteRow").toggle("slow");
+        $("#eventPaletteTitle").toggleClass("up");
+        $("#eventPaletteTitle span").toggleClass("glyphicon-option-vertical");
+      });
+
+      $eventPaletteArea.sortable({
+        scroll: true,
+        // revert: true,//when cancelled, element returns to origin with animation
+        handle: ".draggableHandler",//elements can only be dragged using the handle
+        cancel: "#eventPaletteArea li p",//the rest of the text can be selected
+        connectWith: $eventOrderArea,//both areas are conected, so elements can be dragged around,
+        helper: "clone",
+        revert: "invalid",
+        forcePlaceholderSize: false,
+        start: function (event, ui) {
+          if ($(ui.item).hasClass("eventOrdered")) {
+            throw "cancel";
+          }
+        },
+        stop: function (event, ui) {
+          //If the drag ends in the ordered area
+          if ($(ui.item).parents('#eventOrderArea').length > 0) {
+            //Code to keep a copy of the event in the palette, if it has been dragged to the event order.
+            //select the element before the one we are ending the drag on
+            var idx = $("#eventOrderArea").children().index($(ui.item[0])) - 1;
+            var elm = $(ui.item[0]).clone(true);
+            //This function handles the transition, adding an ID to the event
+            addEventToOrderedList(elm);
+
+            //if index is greater or equal to 0 then we can put it after that index
+            //otherwise, append it to the list as first element 
+            if (idx > -1)
+              $("#eventOrderArea").children(':eq(' + idx + ')').after(elm);
+            else
+              $("#eventOrderArea").prepend(elm);
+
+            $(this).sortable('cancel');
+
             updateOrderedArea();
           }
-        });
-      
-        //temporal constraints are resizable
-      
-        $('.tempConstraintObject').resizable(resizableTemplate);
-      
-        ///////////Event creation dialog
-        var eventDialog = $("#eventTemplateDialog").dialog({
-          autoOpen: false,//it should not open unless called
-          minWHeight: 600,
-          minWidth: 500,
-          modal: true,//disables all other items in the page
-          //Adds two buttons, to either add an Event Template or cancel
-          buttons: {
-            "Create an Event template": addEventTemplate,
-            Cancel: function () {
-              eventDialog.dialog("close");
-            }
-          },
-          //The only purpose of the following code is to find the newly generated "close window" element, and fix the icon
-          //Clashes between bootstrap and jquery-ui break it by default
-          open: function () {
-            $(this).closest(".ui-dialog")
-              .find(".ui-dialog-titlebar-close")
-              .removeClass("ui-dialog-titlebar-close")
-              .html("<span class='glyphicon glyphicon-remove' onclick='eventDialog.dialog( 'close');'></span>");
-      
-          },
-      
-          //What to do when the dialog closes. 
-          close: function () {
-            //reset form elements
-            eventForm[0].reset();
-            //reset the contexts table. Delete all rows except from first and last
-            //Some browsers add a body inside the table, so that possibility needs to be checked
-            if ($('#eventTemplateDialog #eventContextTable > tbody').size() > 0) {
-              $('#eventTemplateDialog #eventContextTable > tbody > tr').not(':first').not(':last').remove();
-            } else {
-              $('#eventTemplateDialog #eventContextTable > tr').not(':first').not(':last').remove();
-            }
-          }
-        });
-      
-        //Enables the "submit" function that can be triggered via keyboard
-        var eventForm = eventDialog.find("form").on("submit", function (event) {
-          event.preventDefault();
-          addEventTemplate();
-        });
-      
-        //Links the "plus" sign in the example event to the creation of the dialog.
-        $("#newEventButton").button().on("click", function () {
-          eventDialog.dialog("open");
-          //Loads the multiselector
-          loadEventNames($("#eventMultiSelector"));
-      
-          $("#eventMultiSelector").chosen({
-            disable_search_threshold: 10,
-            placeholder_text_multiple: "select the events to be considered",
-            no_results_text: "Oops, nothing found!",
-            width: "95%"
-          });
-          loadContextTypes($("#eventTemplateContextType"));
-      
-          $("#eventDialogAddContext").click(function () {
-            addContext($("#eventTemplateDialog #eventContextTable"))
-          });
         }
-        );
-      
-      
-        ///////////temporal constraint creation dialog
-        var tempConstraintDialog = $("#temporalCostraintDialog").dialog({
-          autoOpen: false,//it should not open unless called
-          minWHeight: 600,
-          minWidth: 500,
-          modal: true,//disables all other items in the page
-          //Adds two buttons, to either add an Event Template or cancel
-          buttons: {
-            "Create an temporal constraint": addTemporalConstraint,
-            Cancel: function () {
-              tempConstraintDialog.dialog("close");
-              tempConstraintForm[0].reset();
-            }
-          },
-          //The only purpose of the following code is to find the newly generated "close window" element, and fix the icon
-          //Clashes between bootstrap and jquery-ui break it by default
-          open: function () {
-            $(this).closest(".ui-dialog")
-              .find(".ui-dialog-titlebar-close")
-              .removeClass("ui-dialog-titlebar-close")
-              .html("<span class='glyphicon glyphicon-remove' onclick='tempConstraintDialog.dialog( 'close');'></span>");
-      
-            //Program the event selection buttons
-            //When one of the event template selection buttons are pressed
-            $(".eventSelectionButton").click(function () {
-              //close the tempConstraintDialog, and highlight clickable events
-              $("#temporalCostraintDialog").dialog("close");
-              $("#eventOrderArea .eventTemplate").addClass("selectableEventTemplate");
-              //register the html for the next click, and wait till an event inside the eventOrderArea is clicked
-              var clickedButton = this;
-              showToast("Please select the event you want to use");
-              //"one()" is the same as "on()" but only works once, removing the need to unbind the listener
-              $(document).one("click", function (e) {
-                waitForTempConstraintEventSelection(e, clickedButton);
-              });
-            });
-          },
-          //Pressing the "close" icon topright 
-          close: function () {
-            //reset form elements
-            //tempConstraintForm[0].reset();
-          }
-        });
-        //Enables the "submit" function that can be triggered via keyboard
-        var tempConstraintForm = tempConstraintDialog.find("form").on("submit", function (event) {
-          event.preventDefault();
-          addTemporalConstraint();
-        });
-        //Links the "plus" sign next to the hourglass to the creation of the dialog
-        $("#newTemporalConstraintButton").button().on("click", function () {
-          tempConstraintDialog.dialog("open");
-        }
-        );
-      
-        $("#downloadXML").click(function () {
-          this.href = 'data:text/plain;charset=utf-8,'
-            + exportXML();
-        });
-      
-        ///////////saveQueryDialog creation dialog
-        var saveQueryDialog = $("#saveQueryDialog").dialog({
-          autoOpen: false,//it should not open unless called
-          minWHeight: 600,
-          minWidth: 500,
-          modal: true,//disables all other items in the page
-          //Adds two buttons, to either add an Event Template or cancel
-          buttons: {
-            "Save Query": saveQuery,
-            Cancel: function () {
-              saveQueryDialog.dialog("close");
-            }
-          },
-          //The only purpose of the following code is to find the newly generated "close window" element, and fix the icon
-          //Clashes between bootstrap and jquery-ui break it by default
-          open: function () {
-            $(this).closest(".ui-dialog")
-              .find(".ui-dialog-titlebar-close")
-              .removeClass("ui-dialog-titlebar-close")
-              .html("<span class='glyphicon glyphicon-remove' onclick='saveQueryDialog.dialog( 'close');'></span>");
-          },
-          //Pressing the "close" icon topright 
-          close: function () {
-            //reset form elements
-            //tempConstraintForm[0].reset();
-          }
-        });
-        $("#saveQueryButton").click(function () {
-          saveQueryDialog.dialog("open");
-        });
-        
-        initialiseInterface();
-        updateOrderedArea();
       });
-      
-      /**
-       * To be called every time there is a change in the ordered area
-       */
-      function updateOrderedArea() {
-        updateTemporalConstraints();
-        updateOrderedEventIndexes();
-      }
-      
-      /**TODO: I need to call this function when the elements get dragged*/
-      function updateTemporalConstraints() {
-        //Update Existing temporal restriction
-      
-        $("#tempConstraintsArea .tempConstraintObject").each(function (index) {
-          //console.log( "tempConstraintObject number" + index);
-      
-          var tempConstraintTopPadding = 35 * (index);
-      
-          var $startEvent = $("#" + $(this).attr("start"), "#eventOrderArea");
-          var $endEvent = $("#" + $(this).attr("end"), "#eventOrderArea");
-      
-          var constraintBottomCoord = tempConstraintTopPadding;
-      
-          //We need to add the scroll position to the coordinates
-          var constraintLeftCoord = $startEvent.position().left + $("#eventOrderDiv").scrollLeft();
-      
-          //outerWidth(true) returns the width including the outer margin, which makes the constraints slightly surround the events. 
-          var constraintWidth = (($endEvent.position().left + $endEvent.outerWidth(true)) - $startEvent.position().left) + "px";
-      
-          //console.log( "Drawing from " + constraintLeftCoord + " with size "+ constraintWidth);
-      
-          $(this).css({ top: constraintBottomCoord, left: constraintLeftCoord, width: constraintWidth, position: 'absolute' });
-      
-          //copy the trash element to add it after the inner HTML has been modified
-          var $trashElement = $(".tempConstraintMessage", this).find('span.glyphicon-trash');
-          var unit = "";
-          switch ($(this).attr("unit")) {
-            case "sec":
-              unit = "Seconds";
-              break;
-      
-            case "min":
-              unit = "Minutes";
-              break;
-      
-            default:
-              unit = "NA";
-              showToast("WARNING: the unit for a temporal constraint is unknown. 'unit' must be 'sec' or 'min'")
-              break;
-          }
-      
-          var type = "";
-          switch ($(this).attr("type")) {
-            case "within":
-              type = "Within";
-              break;
-            case "between":
-              type = "Separated by";
-              break;
-            default:
-              type = "NA";
-              showToast("WARNING: the type for a temporal constraint is unknown. 'type' must be 'within' or 'between'")
-              break;
-          }
-      
-          $(".tempConstraintMessage", this).text(type + " " + $(this).attr("value") + " " + unit);
-          $(".tempConstraintMessage", this).append($trashElement);
-      
-      
-          //The padding on the bottom will increase depending on the number of constraints. 30px per constraint
-          $("#eventOrderDiv").css({
-            paddingBottom: (index + 1) * 40 + "px",
-          })
-        });
-      }
-      
-      /**
-       * To be called by the button from the temporal constraint creator dialog
-       * The parameters are the element clicked by the user, and the button the text of which will change
-       */
-      function waitForTempConstraintEventSelection(e, button) {
-        console.log("click received for button " + $(button).attr("id"));
-        //Check if the closest clicked <li> item is a child of eventorderarea.
-        //This checks both that the user clicked on a <li> and that it is confined to the correspoding area
-        if ($(e.target).closest("li").parents('#eventOrderArea').length > 0) {
-          //if so, get the ID of that li
-          $(button).text($(e.target).closest('[id]').attr("id"));
-      
-          //remove the highlight to the selectable events, and show the dialog back
-          $("#temporalCostraintDialog").dialog("open");
-          $("#eventOrderArea .eventTemplate").removeClass("selectableEventTemplate");
-      
-        }
-        else {
-          showToast("Please press on an event from the Event Sequence Pattern Design Area");
-          console.log($(e.target));
-          $(document).one("click", function (e) {
-            waitForTempConstraintEventSelection(e, button);
-          });
-        }
-      }
-      
-      function updateOrderedEventIndexes() {
-        $("#eventOrderArea li").each(function (index) {
-          var index = $("#eventOrderArea").children().index($(this));
-          //$("span",this).text(index+1);
-          $("span.draggableHandler", this).find("i").remove();
-          $("span.draggableHandler", this).append("<i>" + (index + 1) + "</i>");
-        });
-      }
-      
-      function deleteEvent(el) {
-        $(el).closest("li").remove();
-      }
-      
-      function deleteTempConstraint(el) {
-        $(el).closest("div.tempConstraintObject").remove();
-      }
-      
 
-    </script>
-  </head>
-  <body>
-    <div id="leftMenu">
-      <div>
-        <img src="./res/WevQueryLogo.png" alt="WevQuery tool logo">
-      </div>
-      <div>
-        <input id="pageToggle" type="checkbox" data-toggle="toggle" data-on="Query Creation" data-off="Analysis" data-onstyle="primary" data-offstyle="info">
-      </div>
-      <div class="btn-group">
-        <button type="button" class="btn  btn-lg btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      $eventOrderArea.sortable({
+        scroll: true,
+        revert: true,
+        handle: ".draggableHandler",
+        cancel: "#eventOrderArea li p",
+        //connectWith: $eventPaletteArea,//Removed the connection, so the elements can be dragged to this area, but not back
+        //containment: "#eventOrderArea",//The containment caused problems with big elements
+
+        stop: function (event, ui) {
+          updateOrderedArea();
+        }
+      });
+
+      //temporal constraints are resizable
+
+      $('.tempConstraintObject').resizable(resizableTemplate);
+
+      ///////////Event creation dialog
+      var eventDialog = $("#eventTemplateDialog").dialog({
+        autoOpen: false,//it should not open unless called
+        minWHeight: 600,
+        minWidth: 500,
+        modal: true,//disables all other items in the page
+        //Adds two buttons, to either add an Event Template or cancel
+        buttons: {
+          "Create an Event template": addEventTemplate,
+          Cancel: function () {
+            eventDialog.dialog("close");
+          }
+        },
+        //The only purpose of the following code is to find the newly generated "close window" element, and fix the icon
+        //Clashes between bootstrap and jquery-ui break it by default
+        open: function () {
+          $(this).closest(".ui-dialog")
+            .find(".ui-dialog-titlebar-close")
+            .removeClass("ui-dialog-titlebar-close")
+            .html("<span class='glyphicon glyphicon-remove' onclick='eventDialog.dialog( 'close');'></span>");
+
+        },
+
+        //What to do when the dialog closes. 
+        close: function () {
+          //reset form elements
+          eventForm[0].reset();
+          //reset the contexts table. Delete all rows except from first and last
+          //Some browsers add a body inside the table, so that possibility needs to be checked
+          if ($('#eventTemplateDialog #eventContextTable > tbody').size() > 0) {
+            $('#eventTemplateDialog #eventContextTable > tbody > tr').not(':first').not(':last').remove();
+          } else {
+            $('#eventTemplateDialog #eventContextTable > tr').not(':first').not(':last').remove();
+          }
+        }
+      });
+
+      //Enables the "submit" function that can be triggered via keyboard
+      var eventForm = eventDialog.find("form").on("submit", function (event) {
+        event.preventDefault();
+        addEventTemplate();
+      });
+
+      //Links the "plus" sign in the example event to the creation of the dialog.
+      $("#newEventButton").button().on("click", function () {
+        eventDialog.dialog("open");
+        //Loads the multiselector
+        loadEventNames($("#eventMultiSelector"));
+
+        $("#eventMultiSelector").chosen({
+          disable_search_threshold: 10,
+          placeholder_text_multiple: "select the events to be considered",
+          no_results_text: "Oops, nothing found!",
+          width: "95%"
+        });
+        loadContextTypes($("#eventTemplateContextType"));
+
+        $("#eventDialogAddContext").click(function () {
+          addContext($("#eventTemplateDialog #eventContextTable"))
+        });
+      }
+      );
+
+
+      ///////////temporal constraint creation dialog
+      var tempConstraintDialog = $("#temporalCostraintDialog").dialog({
+        autoOpen: false,//it should not open unless called
+        minWHeight: 600,
+        minWidth: 500,
+        modal: true,//disables all other items in the page
+        //Adds two buttons, to either add an Event Template or cancel
+        buttons: {
+          "Create an temporal constraint": addTemporalConstraint,
+          Cancel: function () {
+            tempConstraintDialog.dialog("close");
+            tempConstraintForm[0].reset();
+          }
+        },
+        //The only purpose of the following code is to find the newly generated "close window" element, and fix the icon
+        //Clashes between bootstrap and jquery-ui break it by default
+        open: function () {
+          $(this).closest(".ui-dialog")
+            .find(".ui-dialog-titlebar-close")
+            .removeClass("ui-dialog-titlebar-close")
+            .html("<span class='glyphicon glyphicon-remove' onclick='tempConstraintDialog.dialog( 'close');'></span>");
+
+          //Program the event selection buttons
+          //When one of the event template selection buttons are pressed
+          $(".eventSelectionButton").click(function () {
+            //close the tempConstraintDialog, and highlight clickable events
+            $("#temporalCostraintDialog").dialog("close");
+            $("#eventOrderArea .eventTemplate").addClass("selectableEventTemplate");
+            //register the html for the next click, and wait till an event inside the eventOrderArea is clicked
+            var clickedButton = this;
+            showToast("Please select the event you want to use");
+            //"one()" is the same as "on()" but only works once, removing the need to unbind the listener
+            $(document).one("click", function (e) {
+              waitForTempConstraintEventSelection(e, clickedButton);
+            });
+          });
+        },
+        //Pressing the "close" icon topright 
+        close: function () {
+          //reset form elements
+          //tempConstraintForm[0].reset();
+        }
+      });
+      //Enables the "submit" function that can be triggered via keyboard
+      var tempConstraintForm = tempConstraintDialog.find("form").on("submit", function (event) {
+        event.preventDefault();
+        addTemporalConstraint();
+      });
+      //Links the "plus" sign next to the hourglass to the creation of the dialog
+      $("#newTemporalConstraintButton").button().on("click", function () {
+        tempConstraintDialog.dialog("open");
+      }
+      );
+
+      $("#downloadXML").click(function () {
+        this.href = 'data:text/plain;charset=utf-8,'
+          + exportXML();
+      });
+
+      ///////////saveQueryDialog creation dialog
+      var saveQueryDialog = $("#saveQueryDialog").dialog({
+        autoOpen: false,//it should not open unless called
+        minWHeight: 600,
+        minWidth: 500,
+        modal: true,//disables all other items in the page
+        //Adds two buttons, to either add an Event Template or cancel
+        buttons: {
+          "Save Query": saveQuery,
+          Cancel: function () {
+            saveQueryDialog.dialog("close");
+          }
+        },
+        //The only purpose of the following code is to find the newly generated "close window" element, and fix the icon
+        //Clashes between bootstrap and jquery-ui break it by default
+        open: function () {
+          $(this).closest(".ui-dialog")
+            .find(".ui-dialog-titlebar-close")
+            .removeClass("ui-dialog-titlebar-close")
+            .html("<span class='glyphicon glyphicon-remove' onclick='saveQueryDialog.dialog( 'close');'></span>");
+        },
+        //Pressing the "close" icon topright 
+        close: function () {
+          //reset form elements
+          //tempConstraintForm[0].reset();
+        }
+      });
+      $("#saveQueryButton").click(function () {
+        saveQueryDialog.dialog("open");
+      });
+
+      initialiseInterface();
+      updateOrderedArea();
+    });
+
+    /**
+     * To be called every time there is a change in the ordered area
+     */
+    function updateOrderedArea() {
+      updateTemporalConstraints();
+      updateOrderedEventIndexes();
+    }
+
+    /**TODO: I need to call this function when the elements get dragged*/
+    function updateTemporalConstraints() {
+      //Update Existing temporal restriction
+
+      $("#tempConstraintsArea .tempConstraintObject").each(function (index) {
+        //console.log( "tempConstraintObject number" + index);
+
+        var tempConstraintTopPadding = 35 * (index);
+
+        var $startEvent = $("#" + $(this).attr("start"), "#eventOrderArea");
+        var $endEvent = $("#" + $(this).attr("end"), "#eventOrderArea");
+
+        var constraintBottomCoord = tempConstraintTopPadding;
+
+        //We need to add the scroll position to the coordinates
+        var constraintLeftCoord = $startEvent.position().left + $("#eventOrderDiv").scrollLeft();
+
+        //outerWidth(true) returns the width including the outer margin, which makes the constraints slightly surround the events. 
+        var constraintWidth = (($endEvent.position().left + $endEvent.outerWidth(true)) - $startEvent.position().left) + "px";
+
+        //console.log( "Drawing from " + constraintLeftCoord + " with size "+ constraintWidth);
+
+        $(this).css({ top: constraintBottomCoord, left: constraintLeftCoord, width: constraintWidth, position: 'absolute' });
+
+        //copy the trash element to add it after the inner HTML has been modified
+        var $trashElement = $(".tempConstraintMessage", this).find('span.glyphicon-trash');
+        var unit = "";
+        switch ($(this).attr("unit")) {
+          case "sec":
+            unit = "Seconds";
+            break;
+
+          case "min":
+            unit = "Minutes";
+            break;
+
+          default:
+            unit = "NA";
+            showToast("WARNING: the unit for a temporal constraint is unknown. 'unit' must be 'sec' or 'min'")
+            break;
+        }
+
+        var type = "";
+        switch ($(this).attr("type")) {
+          case "within":
+            type = "Within";
+            break;
+          case "between":
+            type = "Separated by";
+            break;
+          default:
+            type = "NA";
+            showToast("WARNING: the type for a temporal constraint is unknown. 'type' must be 'within' or 'between'")
+            break;
+        }
+
+        $(".tempConstraintMessage", this).text(type + " " + $(this).attr("value") + " " + unit);
+        $(".tempConstraintMessage", this).append($trashElement);
+
+
+        //The padding on the bottom will increase depending on the number of constraints. 30px per constraint
+        $("#eventOrderDiv").css({
+          paddingBottom: (index + 1) * 40 + "px",
+        })
+      });
+    }
+
+    /**
+     * To be called by the button from the temporal constraint creator dialog
+     * The parameters are the element clicked by the user, and the button the text of which will change
+     */
+    function waitForTempConstraintEventSelection(e, button) {
+      console.log("click received for button " + $(button).attr("id"));
+      //Check if the closest clicked <li> item is a child of eventorderarea.
+      //This checks both that the user clicked on a <li> and that it is confined to the correspoding area
+      if ($(e.target).closest("li").parents('#eventOrderArea').length > 0) {
+        //if so, get the ID of that li
+        $(button).text($(e.target).closest('[id]').attr("id"));
+
+        //remove the highlight to the selectable events, and show the dialog back
+        $("#temporalCostraintDialog").dialog("open");
+        $("#eventOrderArea .eventTemplate").removeClass("selectableEventTemplate");
+
+      }
+      else {
+        showToast("Please press on an event from the Event Sequence Pattern Design Area");
+        console.log($(e.target));
+        $(document).one("click", function (e) {
+          waitForTempConstraintEventSelection(e, button);
+        });
+      }
+    }
+
+    function updateOrderedEventIndexes() {
+      $("#eventOrderArea li").each(function (index) {
+        var index = $("#eventOrderArea").children().index($(this));
+        //$("span",this).text(index+1);
+        $("span.draggableHandler", this).find("i").remove();
+        $("span.draggableHandler", this).append("<i>" + (index + 1) + "</i>");
+      });
+    }
+
+    function deleteEvent(el) {
+      $(el).closest("li").remove();
+    }
+
+    function deleteTempConstraint(el) {
+      $(el).closest("div.tempConstraintObject").remove();
+    }
+  </script>
+</head>
+
+<body>
+  <div id="leftMenu">
+    <div>
+      <img src="./res/WevQueryLogo.png" alt="WevQuery tool logo">
+    </div>
+    <div>
+      <input id="pageToggle" type="checkbox" data-toggle="toggle" data-on="Query Creation" data-off="Analysis" data-onstyle="primary"
+        data-offstyle="info">
+    </div>
+    <div class="btn-group">
+      <button type="button" class="btn  btn-lg btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         Menu <span class="caret"></span>
         </button>
-        <ul class="dropdown-menu col-xs-12">
-          <li><a href="#">Load XML</a></li>
-          <li><a href="" id="downloadXML" download="eql.xml">Download XML</a></li>
-          <li role="separator" class="divider"></li>
-          <li><a href="#" id="saveQueryButton">Save Query</a></li>
-        </ul>
-      </div>
+      <ul class="dropdown-menu col-xs-12">
+        <li><a href="#">Load XML</a></li>
+        <li><a href="" id="downloadXML" download="eql.xml">Download XML</a></li>
+        <li role="separator" class="divider"></li>
+        <li><a href="#" id="saveQueryButton">Save Query</a></li>
+      </ul>
     </div>
-    <div id="topAreaContainer" class="container-fluid">
-      <div id="eventPaletteDiv" class="container">
-        <h2 id="eventPaletteTitle"> Event Palette <span class="glyphicon glyphicon-option-horizontal glyphicon-option-vertical" aria-hidden="true"></span></h2>
-        <div id="eventPaletteRow" class="row">
-          <li class="eventTemplate eventTemplateExample">
-            <span id="newEventButton" class="glyphicon glyphicon-plus" aria-hidden="true" aria-label="Add Event"></span>
-            <p class="eventTitle"> Event Example</p>
+  </div>
+  <div id="topAreaContainer" class="container-fluid">
+    <div id="eventPaletteDiv" class="container">
+      <h2 id="eventPaletteTitle"> Event Palette <span class="glyphicon glyphicon-option-horizontal glyphicon-option-vertical" aria-hidden="true"></span></h2>
+      <div id="eventPaletteRow" class="row">
+        <li class="eventTemplate eventTemplateExample">
+          <span id="newEventButton" class="glyphicon glyphicon-plus" aria-hidden="true" aria-label="Add Event"></span>
+          <p class="eventTitle"> Event Example</p>
+          <div class="row">
+            <p class="eventTemplateLabel col-sm-3"> Events:</p>
+            <p class="eventList col-sm-6 hint">Events to match</p>
+          </div>
+          <div class="row">
+            <p class="eventTemplateLabel col-sm-5"> Occurrence:</p>
+            <p class="occurrenceValue col-sm-7 hint">Number of times listed events need to appear</p>
+          </div>
+          <p class="eventTemplateLabel contextHeader">Context</p>
+          <p class="hint"> Additional context options for the event to be matched
+            </table>
+        </li>
+        <ul id="eventPaletteArea" class="greyBox">
+          <li class="eventTemplate eventTemplateDraggable" style="display: inline-block;">
+            <span class="glyphicon glyphicon-move draggableHandler" aria-hidden="true" aria-label="Move Event"></span>
+            <p class="eventTitle"></p>
             <div class="row">
               <p class="eventTemplateLabel col-sm-3"> Events:</p>
-              <p class="eventList col-sm-6 hint">Events to match</p>
+              <p class="eventList col-sm-6">mousedown, mouseup</p>
             </div>
             <div class="row">
-              <p class="eventTemplateLabel col-sm-5"> Occurrence:</p>
-              <p class="occurrenceValue col-sm-7 hint">Number of times listed events need to appear</p>
+              <p class="eventTemplateLabel col-sm-6"> Occurrence:</p>
+              <p class="occurrenceValue col-sm-2">1</p>
             </div>
             <p class="eventTemplateLabel contextHeader">Context</p>
-            <p class="hint"> Additional context options for the event to be matched 
+            <table class="contextTable">
+              <tbody>
+                <tr>
+                  <th>Name</th>
+                  <th>Value</th>
+                </tr>
+                <tr>
+                  <td class="contextType">NodeID</td>
+                  <td class="contextValue">Submit</td>
+                </tr>
+              </tbody>
             </table>
+            <span class="glyphicon glyphicon-trash ui-sortable-handle" aria-hidden="true" aria-label="Delete Event" onclick="deleteEvent(this);"></span>
           </li>
-          <ul id="eventPaletteArea" class="greyBox">
-            <li class="eventTemplate eventTemplateDraggable" style="display: inline-block;">
-              <span class="glyphicon glyphicon-move draggableHandler" aria-hidden="true" aria-label="Move Event"></span>
-              <p class="eventTitle"></p>
-              <div class="row">
-                <p class="eventTemplateLabel col-sm-3"> Events:</p>
-                <p class="eventList col-sm-6">mousedown, mouseup</p>
-              </div>
-              <div class="row">
-                <p class="eventTemplateLabel col-sm-6"> Occurrence:</p>
-                <p class="occurrenceValue col-sm-2">1</p>
-              </div>
-              <p class="eventTemplateLabel contextHeader">Context</p>
-              <table class="contextTable">
-                <tbody>
-                  <tr>
-                    <th>Name</th>
-                    <th>Value</th>
-                  </tr>
-                  <tr>
-                    <td class="contextType">NodeID</td>
-                    <td class="contextValue">Submit</td>
-                  </tr>
-                </tbody>
-              </table>
-              <span class="glyphicon glyphicon-trash ui-sortable-handle" aria-hidden="true" aria-label="Delete Event" onclick="deleteEvent(this);"></span>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <div id="bottomAreaContainer" class="container-fluid">
-      <div id="newTemporalConstraintButton" class="newTempConstraint">
-        <div class="row">
-          <span class="glyphicon glyphicon-hourglass" aria-hidden="true"></span>
-          <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-        </div>
-        <p> Add a new Temporal Constraint </p>
-      </div>
-          <h2 id="eventOrderTitle"> Event Sequence Pattern Design </h2>
-
-      <div id="eventOrderDiv" class="container greyBox">
-        <ul id="eventOrderArea">
         </ul>
-        <div id="tempConstraintsArea">
-        </div>
       </div>
     </div>
-    <!-- Dialog to be shown when creating a new Event template-->
-    <div id="eventTemplateDialog" title="Create new Event Template">
-      <p class="validateTips">All form fields are required.</p>
-      <form id="eventTemplateForm" class="form-horizontal container">
-        <fieldset>
-          <div class="form-group">
-            <label class="col-lg-3 control-label">Events</label>
-            <div class="col-lg-9">
-              <select name="eventList" id="eventMultiSelector" multiple="multiple">
+  </div>
+  <div id="bottomAreaContainer" class="container-fluid">
+    <div id="newTemporalConstraintButton" class="newTempConstraint">
+      <div class="row">
+        <span class="glyphicon glyphicon-hourglass" aria-hidden="true"></span>
+        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+      </div>
+      <p> Add a new Temporal Constraint </p>
+    </div>
+    <h2 id="eventOrderTitle"> Event Sequence Pattern Design </h2>
+
+    <div id="eventOrderDiv" class="container greyBox">
+      <ul id="eventOrderArea">
+      </ul>
+      <div id="tempConstraintsArea">
+      </div>
+    </div>
+  </div>
+  <!-- Dialog to be shown when creating a new Event template-->
+  <div id="eventTemplateDialog" title="Create new Event Template">
+    <p class="validateTips">All form fields are required.</p>
+    <form id="eventTemplateForm" class="form-horizontal container">
+      <fieldset>
+        <div class="form-group">
+          <label class="col-lg-3 control-label">Events</label>
+          <div class="col-lg-9">
+            <select name="eventList" id="eventMultiSelector" multiple="multiple">
               </select>
-            </div>
           </div>
-          <div class="form-group">
-            <label class="col-lg-3 control-label">Match or avoid?</label>
-            <div class="col-lg-9">
-              <input id="eventMatchToggle" class="col-sm-6" type="checkbox" checked data-width="80" data-toggle="toggle" data-on="Match" data-off="Avoid" data-onstyle="success" data-offstyle="danger">
-            </div>
-            <p class="hint">Should the event be matched or avoided?</p>
+        </div>
+        <div class="form-group">
+          <label class="col-lg-3 control-label">Match or avoid?</label>
+          <div class="col-lg-9">
+            <input id="eventMatchToggle" class="col-sm-6" type="checkbox" checked data-width="80" data-toggle="toggle" data-on="Match"
+              data-off="Avoid" data-onstyle="success" data-offstyle="danger">
           </div>
-          <div class="form-group">
-            <label for=Occurrence class="col-sm-3 control-label">Occurrence:</label>
-            <div class="col-sm-9">
-              <input name="occurrenceValue" type="text" maxlength="3" class="col-sm-4 occurrenceInput" placeholder="" aria-describedby="input to define occurrence">
-            </div>
-            <p class="hint">Number of occurrences, as a number</p>
+          <p class="hint">Should the event be matched or avoided?</p>
+        </div>
+        <div class="form-group">
+          <label for=Occurrence class="col-sm-3 control-label">Occurrence:</label>
+          <div class="col-sm-9">
+            <input name="occurrenceValue" type="text" maxlength="3" class="col-sm-4 occurrenceInput" placeholder="" aria-describedby="input to define occurrence">
           </div>
-          <div class="form-group">
-            <label class="col-sm-3 control-label">Context:</label>
-          </div>
-          <div class="form-group">
-            <table border="1" id="eventContextTable">
-              <tr>
-                <th>Name</th>
-                <th>Value</th>
-                <td></td>
-              </tr>
-              <tr>
-                <td>
-                  <select id="eventTemplateContextType">
+          <p class="hint">Number of occurrences, as a number</p>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-3 control-label">Context:</label>
+        </div>
+        <div class="form-group">
+          <table border="1" id="eventContextTable">
+            <tr>
+              <th>Name</th>
+              <th>Value</th>
+              <td></td>
+            </tr>
+            <tr>
+              <td>
+                <select id="eventTemplateContextType">
                     <option value="" selected disabled>Please select</option>
                     <optgroup label="Swedish Cars">
                     <option value="volvo">Volvo</option>
@@ -567,106 +568,111 @@
                     <option value="fiat">Fiat</option>
                     <option value="audi">Audi</option>
                   </select>
-                </td>
-                <td>
-                  <input id="eventTemplateContextValue" type="text" placeholder="Introduce value" aria-describedby="Introduce value">
-                </td>
-                <td><span id="eventDialogAddContext" class="glyphicon glyphicon-plus" aria-hidden="true"></span></td>
-              </tr>
-            </table>
-          </div>
-          <!-- Allow form submission with keyboard without duplicating the dialog button -->
-          <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
-        </fieldset>
-      </form>
+              </td>
+              <td>
+                <input id="eventTemplateContextValue" type="text" placeholder="Introduce value" aria-describedby="Introduce value">
+              </td>
+              <td><span id="eventDialogAddContext" class="glyphicon glyphicon-plus" aria-hidden="true"></span></td>
+            </tr>
+          </table>
+        </div>
+        <!-- Allow form submission with keyboard without duplicating the dialog button -->
+        <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+      </fieldset>
+    </form>
+  </div>
+  <!-- template for creating new events-->
+  <li class="eventTemplate eventTemplateDraggable" id='newEventTemplate' style='display:none'>
+    <span class="glyphicon glyphicon-move draggableHandler" aria-hidden="true" aria-label="Move Event"></span>
+    <span class="eventMatchIndicator glyphicon glyphicon-ok" aria-hidden="true" aria-label="The event will be matched"></span>
+    <p class="eventTitle"></p>
+    <div class="row">
+      <p class="eventTemplateLabel col-sm-3"> Events:</p>
+      <p class="eventList col-sm-6"></p>
     </div>
-    <!-- template for creating new events-->
-    <li class="eventTemplate eventTemplateDraggable" id='newEventTemplate' style='display:none'>
-      <span class="glyphicon glyphicon-move draggableHandler" aria-hidden="true" aria-label="Move Event"></span>
-      <span class="eventMatchIndicator glyphicon glyphicon-ok" aria-hidden="true" aria-label="The event will be matched"></span>
-      <p class="eventTitle"></p>
-      <div class="row">
-        <p class="eventTemplateLabel col-sm-3"> Events:</p>
-        <p class="eventList col-sm-6"></p>
-      </div>
-      <div class="row">
-        <p class="eventTemplateLabel col-sm-6"> Occurrence:</p>
-        <p class="occurrenceValue col-sm-2"></p>
-      </div>
-      <p class="eventTemplateLabel contextHeader"></p>
-      <table class="contextTable"> </table>
-      <span class="glyphicon glyphicon-trash ui-sortable-handle" aria-hidden="true" aria-label="Delete Event" onclick="deleteEvent(this);"></span>
-    </li>
+    <div class="row">
+      <p class="eventTemplateLabel col-sm-6"> Occurrence:</p>
+      <p class="occurrenceValue col-sm-2"></p>
+    </div>
+    <p class="eventTemplateLabel contextHeader"></p>
+    <table class="contextTable"> </table>
+    <span class="glyphicon glyphicon-trash ui-sortable-handle" aria-hidden="true" aria-label="Delete Event" onclick="deleteEvent(this);"></span>
+  </li>
 
-    <!-- Dialog to be shown when creating a new Temporal Contraint-->
-    <div id="temporalCostraintDialog" title="Create new Temporal Contraint" style='display:none'>
-      <p class="validateTips">All form fields are required.</p>
-      <form class="form-horizontal container">
-        <fieldset>
-          <div class="form-group">
-            <label for="Relation" class="col-sm-3 control-label">Relation:</label>
-            <div class="col-sm-6">
-              <div class="radio">
-                <label><input type="radio" name="relationRadio" value="within">Within</label>
-              </div>
-              <div class="radio">
-                <label><input type="radio" name="relationRadio" value="between">Separated by</label>
-              </div>
+  <!-- Dialog to be shown when creating a new Temporal Contraint-->
+  <div id="temporalCostraintDialog" title="Create new Temporal Contraint" style='display:none'>
+    <p class="validateTips">All form fields are required.</p>
+    <form class="form-horizontal container">
+      <fieldset>
+        <div class="form-group">
+          <label for="Relation" class="col-sm-3 control-label">Relation:</label>
+          <div class="col-sm-6">
+            <div class="radio">
+              <label><input type="radio" name="relationRadio" value="within">Within</label>
+            </div>
+            <div class="radio">
+              <label><input type="radio" name="relationRadio" value="between">Separated by</label>
             </div>
           </div>
-          <div class="form-group">
-            <label for="Events" class="col-sm-3 control-label">Events:</label>
-            <div class="col-sm-9">
-              <button id="tempConstraintSelectEv1" class="eventSelectionButton btn btn-default" type="button">Event1</button>
-              <button id="tempConstraintSelectEv2" class="eventSelectionButton btn btn-default" type="button">Event2</button>
-              <p class="hint">Click on an event to change the selection</p>
+        </div>
+        <div class="form-group">
+          <label for="Events" class="col-sm-3 control-label">Events:</label>
+          <div class="col-sm-9">
+            <button id="tempConstraintSelectEv1" class="eventSelectionButton btn btn-default" type="button">Event1</button>
+            <button id="tempConstraintSelectEv2" class="eventSelectionButton btn btn-default" type="button">Event2</button>
+            <p class="hint">Click on an event to change the selection</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="Duration" class="col-sm-3 control-label">Duration:</label>
+          <input id="tempConstraintDuration" type="text" class="col-sm-6" placeholder="insert duration" aria-describedby="Text input for duration">
+        </div>
+        <div class="form-group">
+          <label for="Unit" class="col-sm-3 control-label">Unit:</label>
+          <div class="col-sm-6">
+            <div class="radio">
+              <label><input type="radio" name="unitRadio" value="sec">Seconds</label>
+            </div>
+            <div class="radio">
+              <label><input type="radio" name="unitRadio" value="min">Minutes</label>
             </div>
           </div>
-          <div class="form-group">
-            <label for="Duration" class="col-sm-3 control-label">Duration:</label>
-            <input id="tempConstraintDuration" type="text" class="col-sm-6" placeholder="insert duration" aria-describedby="Text input for duration">
-          </div>
-          <div class="form-group">
-            <label for="Unit" class="col-sm-3 control-label">Unit:</label>
-            <div class="col-sm-6">
-              <div class="radio">
-                <label><input type="radio" name="unitRadio" value="sec">Seconds</label>
-              </div>
-              <div class="radio">
-                <label><input type="radio" name="unitRadio" value="min">Minutes</label>
-              </div>
-            </div>
-          </div>
-          <!-- Allow form submission with keyboard without duplicating the dialog button -->
-          <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
-        </fieldset>
-      </form>
-    </div>
+        </div>
+        <!-- Allow form submission with keyboard without duplicating the dialog button -->
+        <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+      </fieldset>
+    </form>
+  </div>
 
-    <!-- template to create new temporal constraints -->
-    <div id="newTempConstTemplate" class="tempConstraintObject" start="" end="" type="" value="" unit="" style='display:none'>
-      <p class="tempConstraintMessage">
-        <span class="glyphicon glyphicon-trash ui-sortable-handle" aria-hidden="true" aria-label="Delete Temporal Constraint" onclick="deleteTempConstraint(this);"></span>
-      </p>
-      <span class="glyphicon glyphicon-resize-horizontal ui-resizable-handle ui-resizable-w" aria-hidden="true" aria-label="Resize temporal constraint"></span>
-      <span class="glyphicon glyphicon-resize-horizontal ui-resizable-handle ui-resizable-e" aria-hidden="true" aria-label="Resize temporal constraint"></span>
-    </div>
-    <!-- Dialog to execute a query -->
-    <div id="saveQueryDialog" title="Save query" style='display:none'>
-      <p class="validateTips">A title is required.</p>
-       <form class="form-horizontal container">
-        <label for="queryTitle" class="col-sm-5 control-label">Query title:</label>
-        <input id="queryTitle" type="text" class="col-sm-7" placeholder="insert query title" aria-describedby="Text input for query title">
-      </form>
-      <!-- Allow form submission with keyboard without duplicating the dialog button -->
-      <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
-    </div>
+  <!-- template to create new temporal constraints -->
+  <div id="newTempConstTemplate" class="tempConstraintObject" start="" end="" type="" value="" unit="" style='display:none'>
+    <p class="tempConstraintMessage">
+      <span class="glyphicon glyphicon-trash ui-sortable-handle" aria-hidden="true" aria-label="Delete Temporal Constraint" onclick="deleteTempConstraint(this);"></span>
+    </p>
+    <span class="glyphicon glyphicon-resize-horizontal ui-resizable-handle ui-resizable-w" aria-hidden="true" aria-label="Resize temporal constraint"></span>
+    <span class="glyphicon glyphicon-resize-horizontal ui-resizable-handle ui-resizable-e" aria-hidden="true" aria-label="Resize temporal constraint"></span>
+  </div>
+  <!-- Dialog to execute a query -->
+  <div id="saveQueryDialog" title="Save query" style='display:none'>
+    <p class="validateTips">A title is required.</p>
+    <form class="form-horizontal container">
+      <label for="queryTitle" class="col-sm-5 control-label">Query title:</label>
+      <input id="queryTitle" type="textarea" class="col-sm-7" rows="2" placeholder="insert query title" aria-describedby="Text input for query title">
+    </form>
+    <form class="form-horizontal container">
+      <label for="queryDescription" class="col-sm-5 control-label">Query description:</label>
+      <textarea id="queryDescription"  rows="2" style="resize: none;" class="col-sm-7" placeholder="insert query description" aria-describedby="Text input for query title"></textarea>
+    </form>
+    <!-- Allow form submission with keyboard without duplicating the dialog button -->
+    <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+  </div>
 
-    <div id="dialog-confirm" title="Empty the recycle bin?" style='display:none'>
-      <p><span class="glyphicon glyphicon-alert" style="float:left; margin:12px 12px 20px 0;"></span>These items will be permanently
+  <div id="dialog-confirm" title="Empty the recycle bin?" style='display:none'>
+    <p><span class="glyphicon glyphicon-alert" style="float:left; margin:12px 12px 20px 0;"></span>These items will be permanently
       deleted and cannot be recovered. Are you sure?</p>
-    </div>
-    
-    <div id="toastbar">Toast to show to the user</div>
-  </body>
+  </div>
+
+  <div id="toastbar">Toast to show to the user</div>
+</body>
+
 </html>

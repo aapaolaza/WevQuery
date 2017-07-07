@@ -5,9 +5,10 @@
  * 
  */
 
-function requestSaveXmlQuery(title,xmlData){
+function requestSaveXmlQuery(title, description, xmlData){
  socket.emit('saveXMLQuery', {
                 "title": title,
+                "description": description,
                 "xmlData": xmlData
               });
 }

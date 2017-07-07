@@ -35,6 +35,13 @@ function updateCompletedQueries(queryList) {
   queryList.forEach(function (queryObject, index) {
     var newFinishedQueryObject = $("#queryResultItemTemplate").clone();
     newFinishedQueryObject.removeAttr("id");
+
+    //Add hovering action
+    var description = queryObject.title;
+    if (queryObject.description)
+      description += " " + queryObject.description
+    newFinishedQueryObject.attr("title", description);
+
     newFinishedQueryObject.attr("queryTitle", queryObject.title);
     $(".title", newFinishedQueryObject).text(queryObject.title);
     $(".date", newFinishedQueryObject).text(queryObject.readableDate.split("T")[0]);
@@ -59,7 +66,13 @@ function updateCatalogQueries(queryList) {
 
     var newCatalogQueryObject = $("#queryCatalogItemTemplate").clone();
     newCatalogQueryObject.removeAttr("id");
-    console.log("filling title:" + queryObject.title);
+    
+    //Add hovering action
+    var description = queryObject.title;
+    if (queryObject.description)
+      description += " " + queryObject.description
+    newCatalogQueryObject.attr("title", description);
+
     newCatalogQueryObject.attr("queryTitle", queryObject.title);
     newCatalogQueryObject.attr("queryData", queryObject.queryXML);
     $(".title", newCatalogQueryObject).text(queryObject.title);
@@ -330,7 +343,7 @@ function generalOverviewDataReceived(stackedChartData) {
   sessionStorage.setItem(generalOverviewDataKey, JSON.stringify(stackedChartData));
 
   nvdStackedChart(stackedChartData);
-  
+
   //For some reason the chart takes more space than it should
   //any interaction triggering an update fixes it.
   setTimeout(function () {
