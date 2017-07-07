@@ -50,7 +50,7 @@ function initialiseSockets(generalMongoDAO, generalSocketGeneric,
                     data.xmlTitle + " doesn't exist in the catalog", true, socketConnection);
                 } else {
                   //if it exist, run the query 
-                  startXmlQuery(catalogObject);
+                  startXmlQuery(catalogObject,data.isStrictMode);
 
                 }
 
@@ -112,14 +112,14 @@ function initialiseSockets(generalMongoDAO, generalSocketGeneric,
 /**
  * Provided a query document, runs the provided query and stores a results document when finished
  */
-function startXmlQuery(queryDocument) {
+function startXmlQuery(queryDocument,isQueryStrict) {
   console.log("XML should be run at this point with the following information:");
-  console.log("isStrictMode:" + queryDocument.isStrictMode);
   console.log("xmlTitle:" + queryDocument.title);
   console.log("xmlData:" + queryDocument.queryXML);
 
   var queryOptions = {};
-  queryOptions.isQueryStrict = queryDocument.isStrictMode;
+  queryOptions.isQueryStrict = isQueryStrict;
+  console.log("isQueryStrict:" + isQueryStrict);
 
   mongoDAO.runXmlQuery(queryDocument.title, queryDocument.queryXML, queryOptions,
     function (err, queryTitle, querydbTitle, processTime, isQueryStrict) {

@@ -357,7 +357,7 @@ function getCatalogQueries(callback) {
  * Given a query title, gets the information for that query
  * 
  */
-function getCatalogQueryInfo(queryName, callback) {
+function getCatalogQueryInfo(queryTitle, callback) {
   constants.connectAndValidateNodeJs(function (err, db) {
     if (err) return console.error("getCatalogQueryInfo() ERROR connecting to DB" + err);
     console.log("getCatalogQueryInfo() Successfully connected to DB");
@@ -366,7 +366,7 @@ function getCatalogQueryInfo(queryName, callback) {
       if (queryCatalogInfo.length > 0)
         callback(null, queryCatalogInfo[0]);
       else
-        callback("getCatalogQueryInfo(): requested query doesn't exist in catalog:" + queryName, null);
+        callback("getCatalogQueryInfo(): requested query doesn't exist in catalog:" + queryTitle, null);
     });
   });
 }

@@ -82,10 +82,10 @@ socket.on('deleteCatalogFinished', function (data) {
  * @param [string] queryTitle for the query to be run.
  * @param [string] queryData is the XML string of the query to run.
  */
-function requestExecuteQuery(email, isQueryStrict, queryTitle, queryData) {
+function requestExecuteQuery(email, isStrictMode, queryTitle, queryData) {
   socket.emit('serverRunXMLQuery', {
     "email": email,
-    "isStrictMode": isQueryStrict,
+    "isStrictMode": isStrictMode,
     "xmlTitle": queryTitle,
     "xmlData": queryData,
     "timestamp": new Date().getTime()

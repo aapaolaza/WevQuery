@@ -40,6 +40,7 @@ module.exports.updateQueryStatus = queryDocument.updateQueryStatus;
 module.exports.setQueryFinished = queryDocument.setQueryFinished;
 module.exports.getCompletedQueries = queryDocument.getCompletedQueries;
 module.exports.getCatalogQueries = queryDocument.getCatalogQueries;
+module.exports.getCatalogQueryInfo = queryDocument.getCatalogQueryInfo;
 module.exports.getRunningQueries = queryDocument.getRunningQueries;
 module.exports.deleteCompletedQuery = queryDocument.deleteCompletedQuery;
 module.exports.deleteCatalogQuery = queryDocument.deleteCatalogQuery;

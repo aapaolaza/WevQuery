@@ -5,12 +5,12 @@
  * 
  */
 
-function requestSaveXmlQuery(title, description, xmlData){
- socket.emit('saveXMLQuery', {
-                "title": title,
-                "description": description,
-                "xmlData": xmlData
-              });
+function requestSaveXmlQuery(title, description, xmlData) {
+  socket.emit('saveXMLQuery', {
+    "title": title,
+    "description": description,
+    "xmlData": xmlData
+  });
 }
 
 socket.on('clientXmlQuerySaved', function (data) {
@@ -25,14 +25,14 @@ socket.on('clientXmlQuerySaved', function (data) {
  * @param {xmlTitle} title for the query
  * @param {xmlData} query to run, in xml format
  */
-function requestExecuteQuery(email,isStrictMode,xmlTitle,xmlData){
+function requestExecuteQuery(email, isStrictMode, xmlTitle, xmlData) {
   socket.emit('serverRunXMLQuery', {
-                "email":email,
-                "isStrictMode":isStrictMode,
-                "xmlTitle":xmlTitle,
-                "xmlData":xmlData,
-                "timestamp": new Date().getTime()
-            });
+    "email": email,
+    "isStrictMode": isStrictMode,
+    "xmlTitle": xmlTitle,
+    "xmlData": xmlData,
+    "timestamp": new Date().getTime()
+  });
 }
 
 /**

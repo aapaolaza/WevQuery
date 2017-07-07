@@ -841,8 +841,8 @@ function finalizeFunction(key, reduceOutput) {
      */
     var xmlQuery = this;
 
-    for (var xmlQueryCandidateIndex = 0; xmlQueryCandidateIndex < xmlQueryCandidatesList.length; xmlQueryCandidateIndex++) {
-      var xmlQueryCandidate = xmlQueryCandidatesList[xmlQueryCandidateIndex];
+    for (var xmlQueryCandidateIndex = 0; xmlQueryCandidateIndex < xmlQuery.xmlQueryCandidatesList.length; xmlQueryCandidateIndex++) {
+      var xmlQueryCandidate = xmlQuery.xmlQueryCandidatesList[xmlQueryCandidateIndex];
 
       var indexToMatch = xmlQueryCandidate.length;
 
