@@ -429,7 +429,7 @@ function executeXmlMapReduce(xmlQuery, xmlDoc, mapReduceVars, endCallback, launc
       console.log(results);
       console.log(stats);
       console.log("Query finished in " + stats.processtime + " ms");
-      endCallback(null, mapReduceVars.title, mapReduceVars.dbTitle, stats.processtime);
+      endCallback(null, mapReduceVars.title, mapReduceVars.dbTitle, stats.processtime, mapReduceVars.isQueryStrict);
     }
   );
 
@@ -439,7 +439,7 @@ function executeXmlMapReduce(xmlQuery, xmlDoc, mapReduceVars, endCallback, launc
       console.log("calling launchedCallback");
       console.log(mapReduceVars.title);
       console.log(xmlQuery);
-      launchedCallback(null, mapReduceVars.title, mapReduceVars.dbTitle, xmlQuery)
+      launchedCallback(null, mapReduceVars.title, mapReduceVars.dbTitle, xmlQuery, mapReduceVars.isQueryStrict);
     }, 500);
   }
 }

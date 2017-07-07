@@ -39,9 +39,23 @@ function initialiseSockets(generalMongoDAO, generalSocketGeneric,
       else {
         if (isXmlValid) {
           // XML validation was correct, run query
-          mongoDAO.isQueryTitleUnique(data.xmlTitle, function (err, isTitleCorrect) {
-            if (isTitleCorrect)
-              startXmlQuery(data);
+          mongoDAO.isQueryTitleInResults(data.xmlTitle, function (err, isTitleCorrect) {
+            if (isTitleCorrect) {
+              //try to retrieve the information from the catalog
+              mongoDAO.getCatalogQueryInfo(data.xmlTitle, function (err, catalogObject) {
+                if (err) {
+                  console.log(err);
+                  //for some reason the query doesn't exist in catalog
+                  socketGeneric.sendMessageToUser(socketInstance.id, "The provided query name " +
+                    data.xmlTitle + " doesn't exist in the catalog", true, socketConnection);
+                } else {
+                  //if it exist, run the query 
+                  startXmlQuery(catalogObject);
+
+                }
+
+              });
+            }
             else {
               console.log("Title is not valid, notify user that an error happened.");
               socketGeneric.sendMessageToUser(socketInstance.id, "The given title is not correct, provide a different one", true, socketConnection);
@@ -96,28 +110,27 @@ function initialiseSockets(generalMongoDAO, generalSocketGeneric,
 
 
 /**
- * Runs the provided xmlQuery
+ * Provided a query document, runs the provided query and stores a results document when finished
  */
-function startXmlQuery(xmlData) {
+function startXmlQuery(queryDocument) {
   console.log("XML should be run at this point with the following information:");
-  console.log("email:" + xmlData.email);
-  console.log("isStrictMode:" + xmlData.isStrictMode);
-  console.log("xmlTitle:" + xmlData.xmlTitle);
-  console.log("xmlData:" + xmlData.xmlData);
-  
-  var queryOptions = {};
-  queryOptions.isQueryStrict = xmlData.isStrictMode;
+  console.log("isStrictMode:" + queryDocument.isStrictMode);
+  console.log("xmlTitle:" + queryDocument.title);
+  console.log("xmlData:" + queryDocument.queryXML);
 
-  mongoDAO.runXmlQuery(xmlData.xmlTitle, xmlData.xmlData, queryOptions,
-    function (err, queryTitle, querydbTitle, processTime) {
+  var queryOptions = {};
+  queryOptions.isQueryStrict = queryDocument.isStrictMode;
+
+  mongoDAO.runXmlQuery(queryDocument.title, queryDocument.queryXML, queryOptions,
+    function (err, queryTitle, querydbTitle, processTime, isQueryStrict) {
       if (err) return console.error("startXmlQuery() ERROR in endCallback " + err);
 
       xmlQueryFinished(queryTitle, processTime);
     },
-    function (err, queryTitle, querydbTitle, queryData) {
+    function (err, queryTitle, querydbTitle, xmlQuery, isQueryStrict) {
       if (err) return console.error("startXmlQuery() ERROR in launchedCallback " + err);
 
-      mongoDAO.addNewQueryDocument(queryTitle, queryData);
+      mongoDAO.addNewQueryDocument(queryTitle, isQueryStrict, xmlQuery);
     });
 
 }

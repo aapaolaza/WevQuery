@@ -44,6 +44,16 @@ function updateCompletedQueries(queryList) {
 
     newFinishedQueryObject.attr("queryTitle", queryObject.title);
     $(".title", newFinishedQueryObject).text(queryObject.title);
+
+    //Add icon indicating strictMode
+    var $strictModeSpan = $("<span>", {"aria-hidden": "true", "class":"glyphicon"});
+    if (queryObject.isStrictMode){
+      $strictModeSpan.addClass("glyphicon glyphicon-step-forward");
+    }else{
+      $strictModeSpan.addClass("glyphicon glyphicon-play");
+    }
+     $(".title", newFinishedQueryObject).prepend($strictModeSpan);
+    
     $(".date", newFinishedQueryObject).text(queryObject.readableDate.split("T")[0]);
     $(".numberOfObjects", newFinishedQueryObject).text(queryObject.count);
     $("#queryResultsList").append(newFinishedQueryObject);

@@ -21,7 +21,7 @@
 var constants;
 var mongoLog;
 
-function setConstants(mapReduceConstants,mongoLogConstants){
+function setConstants(mapReduceConstants, mongoLogConstants) {
   constants = mapReduceConstants;
   mongoLog = mongoLogConstants;
   initialiseDB();
@@ -42,11 +42,11 @@ function initialiseDB() {
  * Initialise new query document
  * It adds a new document with the current date, the name of the query, and its possible opid
  */
-function addNewQueryDocument(queryTitle, queryData) {
+function addNewQueryDocument(queryTitle, isStrictMode, xmlQuery) {
 
   console.log("addNewQueryDocument(): Adding the following document to the db");
   console.log(queryTitle);
-  console.log(queryData);
+  console.log(xmlQuery);
 
   var opid = "";
   var timerunning = -1;
@@ -82,7 +82,8 @@ function addNewQueryDocument(queryTitle, queryData) {
 
         var document = {
           title: queryTitle,
-          queryXML: queryData,
+          queryXML: xmlQuery,
+          isStrictMode: isStrictMode,
           operationID: opid,
           microsecs_running: timerunning,
           datems: new Date().getTime(),
@@ -97,7 +98,7 @@ function addNewQueryDocument(queryTitle, queryData) {
 
         document = {
           title: queryTitle,
-          queryXML: queryData,
+          queryXML: xmlQuery,
           operationID: opid,
           processtimems: -1,
           datems: new Date().getTime(),
@@ -115,15 +116,16 @@ function addNewQueryDocument(queryTitle, queryData) {
 }
 
 /**
- * Given a query title, it checks if this title is usable, i.e. doesn't exist in the results db yet
+ * Given a query title, it checks if the title exists in results already
+ * i.e. doesn't exist in the results db yet
  */
-function isQueryTitleUnique(queryTitle, callback) {
+function isQueryTitleInResults(queryTitle, callback) {
 
   constants.connectAndValidateNodeJs(function (err, db) {
-    if (err) return console.error("isQueryTitleUnique() ERROR connecting to DB" + err);
-    console.log("isQueryTitleUnique() Successfully connected to DB");
+    if (err) return console.error("isQueryTitleInResults() ERROR connecting to DB" + err);
+    console.log("isQueryTitleInResults() Successfully connected to DB");
     db.collection(constants.xmlQueryResults).distinct("title", function (err, items) {
-      if (err) return console.error("isQueryTitleUnique() ERROR REQUESTING DISTINCT TITLES from " + constants.xmlQueryResults + err);
+      if (err) return console.error("isQueryTitleInResults() ERROR REQUESTING DISTINCT TITLES from " + constants.xmlQueryResults + err);
       if (items.indexOf(queryTitle) > -1) {
         //Query title is in use
         callback(null, false);
@@ -359,12 +361,12 @@ function getCatalogQueryInfo(queryName, callback) {
   constants.connectAndValidateNodeJs(function (err, db) {
     if (err) return console.error("getCatalogQueryInfo() ERROR connecting to DB" + err);
     console.log("getCatalogQueryInfo() Successfully connected to DB");
-    
-    db.collection(constants.xmlQueryCatalog).find({"title": queryTitle}).toArray(function (err, queryCatalogInfo) {
-      if (queryCatalogInfo.length>0)
+
+    db.collection(constants.xmlQueryCatalog).find({ "title": queryTitle }).toArray(function (err, queryCatalogInfo) {
+      if (queryCatalogInfo.length > 0)
         callback(null, queryCatalogInfo[0]);
       else
-        callback(null, null);
+        callback("getCatalogQueryInfo(): requested query doesn't exist in catalog:" + queryName, null);
     });
   });
 }
@@ -422,7 +424,7 @@ function deleteCatalogQuery(queryTitle, callback) {
 
 module.exports.setConstants = setConstants;
 module.exports.addNewQueryDocument = addNewQueryDocument;
-module.exports.isQueryTitleUnique = isQueryTitleUnique;
+module.exports.isQueryTitleInResults = isQueryTitleInResults;
 module.exports.isQueryTitleInCatalog = isQueryTitleInCatalog;
 module.exports.saveQuery = saveQuery;
 module.exports.updateQueryStatus = updateQueryStatus;
