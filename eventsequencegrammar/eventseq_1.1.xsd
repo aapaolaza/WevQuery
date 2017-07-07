@@ -18,7 +18,7 @@
                 </xs:complexType>
               </xs:element>
             </xs:sequence>
-            <xs:attribute name="matchCriteria" type="xs:boolean"/>
+            <xs:attribute name="matchCriteria" type="xs:string"  use='optional'/>
             <xs:attribute name='id' type='xs:string' use='required'/>
             <xs:attribute name='pre' type='xs:string' use='required'/>
             <xs:attribute name='occurrences' type='xs:string' default='1'/>
@@ -93,6 +93,12 @@
       <xs:enumeration value='change'/>
       <xs:enumeration value='keypress'/>
       <xs:enumeration value='submit'/>
+    </xs:restriction>
+  </xs:simpleType>
+    <xs:simpleType name='matchCriteriaType'>
+    <xs:restriction base='xs:string'>
+      <xs:enumeration value='true'/>
+      <xs:enumeration value='false'/>
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name='contextType'>

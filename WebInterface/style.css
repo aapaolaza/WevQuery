@@ -91,6 +91,10 @@ li.eventTemplate .glyphicon-move{
 li.eventTemplate .glyphicon-plus{
   cursor: pointer;
 }
+/* Added so the match/avoid criteria is shown to the left*/
+li.eventTemplate .eventMatchIndicator{
+  float:none;
+}
 
 span.glyphicon-trash{
   cursor: pointer;

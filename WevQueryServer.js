@@ -59,6 +59,11 @@ app.all('/userCredentials.js', function (req,res, next) {
    });
 });
 
+//Reroute the request for the schema so we can return the last version of the schema
+app.get('/schema.xsd', function(req, res){
+  res.sendFile(__dirname + '/eventsequencegrammar/eventseq_1.1.xsd');
+});
+
 var httpServer = app.use(serveStatic(__dirname)).listen(port, function () {
   console.log('WevQuery Server running on ' + port + '...');
 });

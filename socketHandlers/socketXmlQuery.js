@@ -185,7 +185,7 @@ function validateXMLagainstXSD(xmlData, callback) {
   return null;
 
   var validator = require('xsd-schema-validator');
-  var schemaPath = '../eventsequencegrammar/eventseq_1.1.xsd'
+  var schemaPath = '../schema.xsd'
 
   fs = require('fs')
   fs.readFile(schemaPath, 'utf8', function (err, xmlSchema) {

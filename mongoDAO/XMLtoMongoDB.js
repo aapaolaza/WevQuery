@@ -476,7 +476,12 @@ function parseXMLToMapReduceObject(xmlDoc) {
     if (xpath.select("boolean(//event[@pre='" + currentID + "'])", xmlDoc)) {
       var eventQueryObject = new Object();
       eventQueryObject.nameList = xpath.select("//event[@pre='" + currentID + "']/eventList/text()", xmlDoc).toString().split(",");
-      eventQueryObject.occurrences = xpath.select("string(//event[@pre='null']/@occurrences)", xmlDoc);
+      eventQueryObject.occurrences = xpath.select("string(//event[@pre='" + currentID + "']/@occurrences)", xmlDoc);
+
+      eventQueryObject.matchCriteria = xpath.select("string(//event[@pre='" + currentID + "']/@matchCriteria)", xmlDoc);
+      //retrocompatibility, if the attribute doesn't exist set to true.
+      if (eventQueryObject.matchCriteria === '')
+        eventQueryObject.matchCriteria = 'true';
 
       //Get the context for that event
       eventQueryObject.context = new Object();
@@ -650,7 +655,7 @@ function mapFunction() {
       //Only emit this field if the event contains it
       if (eventToEmit[mainField]) {
         var contentToEmit = eventToEmit[mainField][nestedField];
-        
+
         //check again if the nested field exists
         if (contentToEmit) {
           //Does the nested field contain additional nest levels AND the field still exists?
@@ -829,61 +834,133 @@ function finalizeFunction(key, reduceOutput) {
   XmlQuery.prototype.processEvent = function (currentEvent) {
 
     var candidatesToRemove = [];
+    //copy "this" so it's visible within the next loop
+    /*2017-07-07 12:28:04 This is not a problem any more with the change to
+     * a for loop (to enable stepping back negative match), but I will keep it as it is
+     * to prevent problems if at any point the loop style is reverted
+     */
     var xmlQuery = this;
-    this.xmlQueryCandidatesList.forEach(function (xmlQueryCandidate, index) {
+
+    for (var xmlQueryCandidateIndex = 0; xmlQueryCandidateIndex < xmlQueryCandidatesList.length; xmlQueryCandidateIndex++) {
+      var xmlQueryCandidate = xmlQueryCandidatesList[xmlQueryCandidateIndex];
+
       var indexToMatch = xmlQueryCandidate.length;
-      if (xmlQueryObject.eventList[indexToMatch].nameList.indexOf(currentEvent.event) > -1
-        && matchContextInfo(currentEvent, xmlQueryObject.eventList[indexToMatch].context)) {
-        currentEvent.contextInfo = {};
-        currentEvent.contextInfo.currentEvent = currentEvent[xmlQueryObject.eventList[indexToMatch].context.typeList[0]];
-        currentEvent.contextInfo.contextToMatch = xmlQueryObject.eventList[indexToMatch].context.valueList[0];
 
-        //the event matches, add it to the list, and test temporal constraints.
-        xmlQueryCandidate.push(currentEvent);
+      //Depending on the matchCriteria, we follow a different approach
+      if (xmlQueryObject.eventList[indexToMatch].matchCriteria == "true") {
 
-        if (matchTemporalConstraintList(xmlQueryCandidate, xmlQueryObject.tempConstrList)) {
-          //Is a match, check if the full query has been matched
-          if (xmlQueryObject.eventList.length == xmlQueryCandidate.length) {
-            //If it's fully finished, add it to the results list and mark it to be removed.
-            xmlQuery.xmlQueryList.push(xmlQueryCandidate);
-            candidatesToRemove.push(index);
+        if (xmlQueryObject.eventList[indexToMatch].nameList.indexOf(currentEvent.event) > -1
+          && matchContextInfo(currentEvent, xmlQueryObject.eventList[indexToMatch].context)) {
+
+          //This code is never used START
+          currentEvent.contextInfo = {};
+          currentEvent.contextInfo.currentEvent = currentEvent[xmlQueryObject.eventList[indexToMatch].context.typeList[0]];
+          currentEvent.contextInfo.contextToMatch = xmlQueryObject.eventList[indexToMatch].context.valueList[0];
+          //this code is never used END
+
+          //the event matches, add it to the list, and test temporal constraints.
+          xmlQueryCandidate.push(currentEvent);
+
+          if (matchTemporalConstraintList(xmlQueryCandidate, xmlQueryObject.tempConstrList)) {
+            //Is a match, check if the full query has been matched
+            if (xmlQueryObject.eventList.length == xmlQueryCandidate.length) {
+              //If it's fully finished, add it to the results list and mark it to be removed.
+              xmlQuery.xmlQueryList.push(xmlQueryCandidate);
+              candidatesToRemove.push(xmlQueryCandidateIndex);
+            }
           }
+          else {
+            //It's not a match, mark it to be removed
+            candidatesToRemove.push(xmlQueryCandidateIndex);
+          }
+        } else if (isQueryStrict) {
+          //The event didn't match!
+          //I we need to be strict, this candidate is not valid any longer
+          candidatesToRemove.push(xmlQueryCandidateIndex);
         }
-        else {
-          //It's not a match, mark it to be removed
-          candidatesToRemove.push(index);
-        }
-
-        //Old code, not sure of its use
-        //xmlQueryObject.eventList;
-        //xmlQueryObject.tempConstrList;
-
-      } else if (isQueryStrict) {
-        //The event didn't match!
-        //I we need to be strict, this candidate is not valid any longer
-        candidatesToRemove.push(index);
-
       }
-    });
+
+      //matchingCriteria is false, made it else if instead of else for readability
+      else if (xmlQueryObject.eventList[indexToMatch].matchCriteria == "false") {
+        //IF current event is different (correct negative match)
+        //OR current event is same, but the context is different
+        if (xmlQueryObject.eventList[indexToMatch].nameList.indexOf(currentEvent.event) == -1
+          || matchContextInfo(currentEvent, xmlQueryObject.eventList[indexToMatch].context)) {
+
+          var xmlQueryCandidateTemp = xmlQueryCandidate
+          xmlQueryCandidateTemp.push(currentEvent);
+
+          //IF there is not any temporal constraint affecting the index that we are currently matching
+          //OR the temporal constraints are violated, then the current event can be matched
+          if (testTemporalConstraintAffectsIndex(indexToMatch, xmlQueryObject.tempConstrList)
+            || !matchTemporalConstraintList(xmlQueryCandidateTemp, xmlQueryObject.tempConstrList)) {
+            //Store current event as the placeholder so later events can check it
+            xmlQueryCandidate.push(currentEvent);
+            //Is a match, check if the full query has been matched
+            if (xmlQueryObject.eventList.length == xmlQueryCandidate.length) {
+              //If it's fully finished, add it to the results list and mark it to be removed.
+              xmlQuery.xmlQueryList.push(xmlQueryCandidate);
+              candidatesToRemove.push(xmlQueryCandidateIndex);
+            }
+
+            //Once a negative match has been processed, we step forwards in the same candidate with the same event
+            //we might have negatively matched an event that will now be positively matched
+            //e.g. a single mouseout will match the following pattern: !mouseover followed by mouseout
+            //Decreasing the index will make the loop go through this same candidate again
+            xmlQueryCandidateIndex--;
+          }
+
+        }
+        //Current event matches the event we are NOT looking for--> remove candidate
+        //no strict mode is being considered here, as we are purposedly avoiding it
+        else {
+          candidatesToRemove.push(xmlQueryCandidateIndex);
+        }
+      }
+    }
 
     //Remove all non-valid candidates
     while (candidatesToRemove.length) {
       this.xmlQueryCandidatesList.splice(candidatesToRemove.pop(), 1);
     }
 
-    //Compare current event to the first event in the matching list
-    if (xmlQueryObject.eventList[0].nameList.indexOf(currentEvent.event) > -1
-      && matchContextInfo(currentEvent, xmlQueryObject.eventList[0].context)) {
-      //initialise a new candidate
-      var candidateObject = [];
-      candidateObject.push(currentEvent);
+    //FIRST EVENT SITUATION
+    //Every event is capable of starting its own candidate if they match the first event
+    if (xmlQueryObject.eventList[0].matchCriteria == "true") {
+      //Compare current event to the first event in the matching list
+      if (xmlQueryObject.eventList[0].nameList.indexOf(currentEvent.event) > -1
+        && matchContextInfo(currentEvent, xmlQueryObject.eventList[0].context)) {
+        //initialise a new candidate
+        var candidateObject = [];
+        candidateObject.push(currentEvent);
 
-      //is the query looking for sequences formed of a single event?
-      //If so, just store it as a match, if not, add it to the candidate list to match further events
-      if (xmlQueryObject.eventList.length == 1)
-        xmlQuery.xmlQueryList.push(candidateObject);
-      else
-        this.xmlQueryCandidatesList.push(candidateObject);
+        //is the query looking for sequences formed of a single event?
+        //If so, just store it as a match, if not, add it to the candidate list to match further events
+        if (xmlQueryObject.eventList.length == 1)
+          xmlQuery.xmlQueryList.push(candidateObject);
+        else
+          this.xmlQueryCandidatesList.push(candidateObject);
+      }
+    }
+    else if (xmlQueryObject.eventList[0].matchCriteria == "false") {
+      //Compare current event to the first event in the matching list
+      if (xmlQueryObject.eventList[0].nameList.indexOf(currentEvent.event) == -1
+        || matchContextInfo(currentEvent, xmlQueryObject.eventList[0].context)) {
+        //initialise a new candidate
+        var candidateObject = [];
+        candidateObject.push(currentEvent);
+
+        //is the query looking for sequences formed of a single event?
+        //If so, just store it as a match, if not, add it to the candidate list to match further events
+        if (xmlQueryObject.eventList.length == 1)
+          xmlQuery.xmlQueryList.push(candidateObject);
+        else {
+          this.xmlQueryCandidatesList.push(candidateObject);
+          //Same as when a new negative matched is added to the candidate
+          //Once a negative match has been processed, we step forwards in the same candidate with the same event
+          xmlQueryCandidateIndex--;
+        }
+      }
     }
   }
 
@@ -891,7 +968,7 @@ function finalizeFunction(key, reduceOutput) {
    * Last event for this object. It takes any unfinished candidate and determines if it should be included or not
    */
   XmlQuery.prototype.endBehaviour = function (currentEvent) {
-
+    //TODO: If the last remaining item to match is a negative match, then we can finish the sequence
   }
 
   /**
@@ -943,6 +1020,24 @@ function finalizeFunction(key, reduceOutput) {
     //at this point, all temporal constraints checked out
     return (1);
   }
+
+  /**
+   * Given an event matching index, and a list of temporal constraints,
+   * tests if there are any temporal constraints affecting that index
+   * @param {int} index 
+   * @param {*} tempConstraintList 
+   */
+  function testTemporalConstraintAffectsIndex(eventIndex, tempConstraintList) {
+
+    for (var index = 0; index < tempConstraintList.length; index++) {
+      var tempConstraint = tempConstraintList[index];
+      if (tempConstraint.eventRef1 == eventIndex || tempConstraint.eventRef2 == eventIndex)
+        return true;
+    }
+    //no temporal constraint affect the given index
+    return false;
+  }
+
 
   function matchContextInfoComplex(currentEvent, contextInfo) {
     var fieldName;

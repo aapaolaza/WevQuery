@@ -102,7 +102,7 @@
         $eventPaletteArea.sortable({
           scroll: true,
           // revert: true,//when cancelled, element returns to origin with animation
-          handle: "span",//elements can only be dragged using the handle
+          handle: ".draggableHandler",//elements can only be dragged using the handle
           cancel: "#eventPaletteArea li p",//the rest of the text can be selected
           connectWith: $eventOrderArea,//both areas are conected, so elements can be dragged around,
           helper: "clone",
@@ -140,7 +140,7 @@
         $eventOrderArea.sortable({
           scroll: true,
           revert: true,
-          handle: "span",
+          handle: ".draggableHandler",
           cancel: "#eventOrderArea li p",
           //connectWith: $eventPaletteArea,//Removed the connection, so the elements can be dragged to this area, but not back
           //containment: "#eventOrderArea",//The containment caused problems with big elements
@@ -417,8 +417,8 @@
         $("#eventOrderArea li").each(function (index) {
           var index = $("#eventOrderArea").children().index($(this));
           //$("span",this).text(index+1);
-          $("span.glyphicon-move", this).find("i").remove();
-          $("span.glyphicon-move", this).append("<i>" + (index + 1) + "</i>");
+          $("span.draggableHandler", this).find("i").remove();
+          $("span.draggableHandler", this).append("<i>" + (index + 1) + "</i>");
         });
       }
       
@@ -474,7 +474,7 @@
           </li>
           <ul id="eventPaletteArea" class="greyBox">
             <li class="eventTemplate eventTemplateDraggable" style="display: inline-block;">
-              <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span>
+              <span class="glyphicon glyphicon-move draggableHandler" aria-hidden="true" aria-label="Move Event"></span>
               <p class="eventTitle"></p>
               <div class="row">
                 <p class="eventTemplateLabel col-sm-3"> Events:</p>
@@ -535,7 +535,7 @@
           <div class="form-group">
             <label class="col-lg-3 control-label">Match or avoid?</label>
             <div class="col-lg-9">
-              <input id="eventMatchToggle" class="col-sm-6" type="checkbox" data-width="80" data-toggle="toggle" data-on="Match" data-off="Avoid" data-onstyle="success" data-offstyle="danger">
+              <input id="eventMatchToggle" class="col-sm-6" type="checkbox" checked data-width="80" data-toggle="toggle" data-on="Match" data-off="Avoid" data-onstyle="success" data-offstyle="danger">
             </div>
             <p class="hint">Should the event be matched or avoided?</p>
           </div>
@@ -582,7 +582,7 @@
     </div>
     <!-- template for creating new events-->
     <li class="eventTemplate eventTemplateDraggable" id='newEventTemplate' style='display:none'>
-      <span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="Move Event"></span>
+      <span class="glyphicon glyphicon-move draggableHandler" aria-hidden="true" aria-label="Move Event"></span>
       <span class="eventMatchIndicator glyphicon glyphicon-ok" aria-hidden="true" aria-label="The event will be matched"></span>
       <p class="eventTitle"></p>
       <div class="row">
