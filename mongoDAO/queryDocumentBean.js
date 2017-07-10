@@ -77,40 +77,39 @@ function addNewQueryDocument(queryTitle, isStrictMode, xmlQuery) {
           }
         }
       });
-      if (timerunning != -1) {
+      if (timerunning != -1)
         console.log("The last query to be executed was: " + opid + ", storing it to the database");
-
-        var document = {
-          title: queryTitle,
-          queryXML: xmlQuery,
-          isStrictMode: isStrictMode,
-          operationID: opid,
-          microsecs_running: timerunning,
-          datems: new Date().getTime(),
-          readableDate: new Date().toISOString(),
-          progress: traduceProgress(queryMessage),
-          finished: false
-        };
-        db.collection(constants.xmlQueryResults).insert(document, function (err, records) {
-          if (err) return console.error("insertNewDocument() ERROR INSERTING QUERY DOCUMENT " + err);
-          else console.log("new query document stored correctly");
-        });
-
-        document = {
-          title: queryTitle,
-          queryXML: xmlQuery,
-          operationID: opid,
-          processtimems: -1,
-          datems: new Date().getTime(),
-          readableDate: new Date().toISOString()
-        };
-        db.collection(constants.xmlQueryCatalog).insert(document, function (err, records) {
-          if (err) return console.error("insertNewDocument() ERROR INSERTING QUERY Catalog DOCUMENT " + err);
-          else console.log("new Catalog document stored correctly");
-        });
-      }
       else
-        console.log("No query was found");
+        console.log("Could not find the last query to be executed, has it finished already?");
+
+      var document = {
+        title: queryTitle,
+        queryXML: xmlQuery,
+        isStrictMode: isStrictMode,
+        operationID: opid,
+        microsecs_running: timerunning,
+        datems: new Date().getTime(),
+        readableDate: new Date().toISOString(),
+        progress: traduceProgress(queryMessage),
+        finished: false
+      };
+      db.collection(constants.xmlQueryResults).insert(document, function (err, records) {
+        if (err) return console.error("addNewQueryDocument() ERROR INSERTING QUERY DOCUMENT " + err);
+        else console.log("addNewQueryDocument(): new result document stored correctly");
+      });
+
+      document = {
+        title: queryTitle,
+        queryXML: xmlQuery,
+        operationID: opid,
+        processtimems: -1,
+        datems: new Date().getTime(),
+        readableDate: new Date().toISOString()
+      };
+      db.collection(constants.xmlQueryCatalog).insert(document, function (err, records) {
+        if (err) return console.error("insertNewDocument() ERROR INSERTING QUERY Catalog DOCUMENT " + err);
+        else console.log("new Catalog document stored correctly");
+      });
     });
   });
 }
@@ -247,8 +246,9 @@ function updateQueryStatus(callback) {
  * Step 3: a progress is given and I can report it.
  */
 function traduceProgress(progressString) {
-  //Extraction is hardcoded to this particular kind of report.
-
+  //Extraction is hardcoded to this particular kind of report. Return empty if no message is provided
+  if (progressString=="")
+    return progressString;
   //retrieve step number
   var step = progressString.split("(")[1][0];
   if (step != 1) {

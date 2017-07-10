@@ -440,7 +440,7 @@ function executeXmlMapReduce(xmlQuery, xmlDoc, mapReduceVars, endCallback, launc
       console.log(mapReduceVars.title);
       console.log(xmlQuery);
       launchedCallback(null, mapReduceVars.title, mapReduceVars.dbTitle, xmlQuery, mapReduceVars.isQueryStrict);
-    }, 500);
+    }, 100);
   }
 }
 
@@ -738,7 +738,7 @@ function skinnyReduceFunction(key, values) {
  * This is the function that has access to ALL data, and this is the step in which events can be ordered and processed
  */
 function finalizeFunction(key, reduceOutput) {
-  print("STARTING FINALIZE");
+  //print("STARTING FINALIZE");
 
   //////////////////////////START OF Auxiliary Functions/////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////
@@ -846,9 +846,23 @@ function finalizeFunction(key, reduceOutput) {
 
       var indexToMatch = xmlQueryCandidate.length;
 
+      //print("####################################");
+      //print("event index to match");
+      //print(indexToMatch);
+      //print("event list length")
+      //print(xmlQueryObject.eventList.length);
+      //print("matching event:");
+      //print(xmlQueryObject.eventList[indexToMatch].nameList);
+      //print(xmlQueryObject.eventList[indexToMatch].matchCriteria);
+
+      //print("####################################");
+
       //Depending on the matchCriteria, we follow a different approach
       if (xmlQueryObject.eventList[indexToMatch].matchCriteria == "true") {
 
+        //print("####################################");
+        //print("matching criteria was true");
+        //print("####################################");
         if (xmlQueryObject.eventList[indexToMatch].nameList.indexOf(currentEvent.event) > -1
           && matchContextInfo(currentEvent, xmlQueryObject.eventList[indexToMatch].context)) {
 
@@ -882,32 +896,47 @@ function finalizeFunction(key, reduceOutput) {
 
       //matchingCriteria is false, made it else if instead of else for readability
       else if (xmlQueryObject.eventList[indexToMatch].matchCriteria == "false") {
+        //print("####################################");
+        //print("matching criteria was false");
+        //print("####################################");
         //IF current event is different (correct negative match)
         //OR current event is same, but the context is different
         if (xmlQueryObject.eventList[indexToMatch].nameList.indexOf(currentEvent.event) == -1
           || matchContextInfo(currentEvent, xmlQueryObject.eventList[indexToMatch].context)) {
 
-          var xmlQueryCandidateTemp = xmlQueryCandidate
-          xmlQueryCandidateTemp.push(currentEvent);
+          // add the event for the check, if it's not suitable, I will remove it.
+          xmlQueryCandidate.push(currentEvent);
 
           //IF there is not any temporal constraint affecting the index that we are currently matching
           //OR the temporal constraints are violated, then the current event can be matched
           if (testTemporalConstraintAffectsIndex(indexToMatch, xmlQueryObject.tempConstrList)
-            || !matchTemporalConstraintList(xmlQueryCandidateTemp, xmlQueryObject.tempConstrList)) {
-            //Store current event as the placeholder so later events can check it
-            xmlQueryCandidate.push(currentEvent);
+            || !matchTemporalConstraintList(xmlQueryCandidate, xmlQueryObject.tempConstrList)) {
+            //Leave current event in the candidate list as the placeholder so later events can check it
+            //xmlQueryCandidate.push(currentEvent); //No need to add it, we will just not remove it
+
+            //print("####################################");
+            //print("negative match was found and added");
+            //print("the candidate list is now this long");
+            //print(xmlQueryCandidate.length);
+            //print("####################################");
+
             //Is a match, check if the full query has been matched
             if (xmlQueryObject.eventList.length == xmlQueryCandidate.length) {
               //If it's fully finished, add it to the results list and mark it to be removed.
               xmlQuery.xmlQueryList.push(xmlQueryCandidate);
               candidatesToRemove.push(xmlQueryCandidateIndex);
             }
-
-            //Once a negative match has been processed, we step forwards in the same candidate with the same event
-            //we might have negatively matched an event that will now be positively matched
-            //e.g. a single mouseout will match the following pattern: !mouseover followed by mouseout
-            //Decreasing the index will make the loop go through this same candidate again
-            xmlQueryCandidateIndex--;
+            else {
+              //Once a negative match has been processed, we step forwards in the same candidate with the same event
+              //we might have negatively matched an event that will now be positively matched
+              //e.g. a single mouseout will match the following pattern: !mouseover followed by mouseout
+              //Decreasing the index will make the loop go through this same candidate again
+              xmlQueryCandidateIndex--;
+            }
+          }
+          else {
+            //current event was not a match, remove it from candidate
+            xmlQueryCandidate.pop();
           }
 
         }

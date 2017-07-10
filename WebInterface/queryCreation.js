@@ -433,11 +433,15 @@ function importXML(xmlString) {
 
 
     //Is the event matching or avoiding? We also check the "not exist" situation to comply with old XMLs
-    if (xmlEventObject.attr("matchCriteria") || (xmlEventObject.attr("matchCriteria") == undefined))
+    if (xmlEventObject.attr("matchCriteria") == "true"
+      || (xmlEventObject.attr("matchCriteria") == undefined)) {
       $(".eventMatchIndicator", newEventObject).removeClass("glyphicon glyphicon-remove").addClass("glyphicon glyphicon-ok")
-    else
+      $(".eventMatchIndicator", newEventObject)[0].setAttribute("matchCriteria",true);
+    }
+    else {
       $(".eventMatchIndicator", newEventObject).removeClass("glyphicon glyphicon-ok").addClass("glyphicon glyphicon-remove")
-
+      $(".eventMatchIndicator", newEventObject)[0].setAttribute("matchCriteria",false);
+    }
 
     $(".occurrenceValue", newEventObject).text(xmlEventObject.attr("occurrences"));
 
