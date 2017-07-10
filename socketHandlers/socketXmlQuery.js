@@ -50,7 +50,7 @@ function initialiseSockets(generalMongoDAO, generalSocketGeneric,
                     data.xmlTitle + " doesn't exist in the catalog", true, socketConnection);
                 } else {
                   //if it exist, run the query 
-                  startXmlQuery(catalogObject,data.isStrictMode);
+                  startXmlQuery(catalogObject, data.isStrictMode);
 
                 }
 
@@ -75,6 +75,19 @@ function initialiseSockets(generalMongoDAO, generalSocketGeneric,
     console.log("serverRequestCompletedQueries, requesting available queries");
     mongoDAO.getCompletedQueries(completedQueriesFinished);
   });
+
+  socketInstance.on('serverRequestCompletedQueryTitles', function (data) {
+    console.log("serverRequestCompletedQueryTitles, requesting available query titles");
+    mongoDAO.getCompletedQueries(function (err, resultList) {
+      if (err) return console.error("serverRequestCompletedQueryTitles() ERROR retrieving available query titles " + err);
+      var titleList = [];
+      resultList.forEach(function (queryObject, index) {
+        titleList.push(queryObject.title);
+      });
+      completedQueryTitlesFinished(null, titleList);
+    });
+  });
+
 
   socketInstance.on('serverRequestCatalogQueries', function (data) {
     console.log("serverRequestCatalogQueries, requesting Catalog queries");
@@ -112,7 +125,7 @@ function initialiseSockets(generalMongoDAO, generalSocketGeneric,
 /**
  * Provided a query document, runs the provided query and stores a results document when finished
  */
-function startXmlQuery(queryDocument,isQueryStrict) {
+function startXmlQuery(queryDocument, isQueryStrict) {
   console.log("XML should be run at this point with the following information:");
   console.log("xmlTitle:" + queryDocument.title);
   console.log("xmlData:" + queryDocument.queryXML);
@@ -145,6 +158,12 @@ function completedQueriesFinished(err, queryList) {
   console.log("Available queries retrieved: " + queryList.length);
   socketConnection.emit('clientCompletedQueriesFinished', { 'queryList': queryList });
 }
+
+function completedQueryTitlesFinished(err, titleList) {
+  if (err) return console.error("completedQueryTitlesFinished() ERROR retrieving available query titles " + err);
+  socketConnection.emit('clientCompletedQueryTitlesFinished', { 'titleList': titleList });
+}
+
 
 /**
  * When the database retrieves all Catalog queries it returns an array of query documents

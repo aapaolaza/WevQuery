@@ -138,9 +138,8 @@
         $("#queryRunningTitle span").toggleClass("glyphicon-option-vertical");
       });
 
-      /**
- * queryResultsOptions functionality
- */
+      //queryResultsOptions functionality
+
       $("#closeResultsOptions", "#queryResultsOptions").click(function () {
         $("tr.active", "#queryResultsList").removeClass("active");
         $("#queryResultsOptions").hide();
@@ -198,6 +197,14 @@
           $("tr.active", "#queryCatalogList").attr("queryTitle"));
       });
 
+      //Left menu tab listeners
+      //Simple function to add reaction to the selection of a tab in the left menu
+      $('a[data-toggle="tab"]', '.leftMenuTabs').on('shown.bs.tab', function (e) {
+        //Updates the size of the left menu
+        updateLeftMenu();
+      });
+
+
       //Analysis panel listeners
       $("#updateTabGeneral").click(function () {
         refreshGeneralOverview();
@@ -238,45 +245,91 @@
       </ul>
     </div>
 
-    <h2 id="queryResultsTitle">Results
-      <span id="toggleQueryResults" class="glyphicon glyphicon-option-horizontal glyphicon-option-vertical" aria-hidden="true"></span>
-      <i id="updateQueryResults" class="glyphicon glyphicon-refresh"></i></h2>
-    <table id="queryResultsTable" class="table greyBox tablesorter">
-      <thead>
-        <tr>
-          <th>Title</th>
-          <th>Date</th>
-          <th class="{sorter: 'digit'}"># Objects</th>
-        </tr>
-      </thead>
-      <tbody id="queryResultsList">
-      </tbody>
-    </table>
+
+    <ul class="nav nav-tabs leftMenuTabs">
+      <li class="active">
+        <a data-toggle="tab" href="#tabQueryManagement">Query management
+          <i id="queryManagement"></i>
+        </a>
+      </li>
+      <li>
+        <a data-toggle="tab" href="#tabPatternAnalysis">Pattern Analysis
+          <i id="patternAnalysis"></i>
+        </a>
+      </li>
+    </ul>
 
 
-    <h2 id="queryCatalogTitle">Query Catalog
-      <span id="toggleQueryCatalog" class="glyphicon glyphicon-option-horizontal glyphicon-option-vertical" aria-hidden="true"></span>
-      <i id="updateQueryCatalog" class="glyphicon glyphicon-refresh"></i></h2>
-    <table id="queryCatalogTable" class="table greyBox tablesorter">
-      <thead>
-        <tr>
-          <th>Title</th>
-          <th>Date</th>
-          <th class="{sorter: 'digit'}">Time</th>
-          <th class="{sorter: 'digit'}"># Objects</th>
-        </tr>
-      </thead>
-      <tbody id="queryCatalogList">
-      </tbody>
-    </table>
+    <div class="tab-content">
 
+      <div id="tabQueryManagement" class="tab-pane fade in active">
 
-    <h2 id="queryRunningTitle">Query progress
-      <span id="toggleQueryRunning" class="glyphicon glyphicon-option-horizontal glyphicon-option-vertical" aria-hidden="true"></span>
-      <i id="updateQueryRunning" class="glyphicon glyphicon-refresh"></i></h2>
-    <div id="queryRunningList" class="greyBox">
+        <h2 id="queryResultsTitle">Results
+          <span id="toggleQueryResults" class="glyphicon glyphicon-option-horizontal glyphicon-option-vertical" aria-hidden="true"></span>
+          <i id="updateQueryResults" class="glyphicon glyphicon-refresh"></i></h2>
+        <table id="queryResultsTable" class="table greyBox tablesorter">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Date</th>
+              <th class="{sorter: 'digit'}"># Objects</th>
+            </tr>
+          </thead>
+          <tbody id="queryResultsList">
+          </tbody>
+        </table>
 
+        <h2 id="queryCatalogTitle">Query Catalog
+          <span id="toggleQueryCatalog" class="glyphicon glyphicon-option-horizontal glyphicon-option-vertical" aria-hidden="true"></span>
+          <i id="updateQueryCatalog" class="glyphicon glyphicon-refresh"></i></h2>
+        <table id="queryCatalogTable" class="table greyBox tablesorter">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Date</th>
+              <th class="{sorter: 'digit'}">Time</th>
+              <th class="{sorter: 'digit'}"># Objects</th>
+            </tr>
+          </thead>
+          <tbody id="queryCatalogList">
+          </tbody>
+        </table>
+
+        <h2 id="queryRunningTitle">Query progress
+          <span id="toggleQueryRunning" class="glyphicon glyphicon-option-horizontal glyphicon-option-vertical" aria-hidden="true"></span>
+          <i id="updateQueryRunning" class="glyphicon glyphicon-refresh"></i></h2>
+        <div id="queryRunningList" class="greyBox"></div>
+
+      </div>
+
+      <div id="tabPatternAnalysis" class="tab-pane fade">
+        <h2 id="Pattern Matching">Pattern Matching</h2>
+        <p> Select the results to be included in the pattern matching and the algorithm you want to use </p>
+        <fieldset>
+          <div class="form-group">
+            <label class="col-lg-3 control-label">Results</label>
+            <div class="col-lg-9">
+              <select name="resultList" id="resultMultiSelector" multiple="multiple">
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-lg-3 control-label">Algorithm</label>
+            <div class="col-lg-9">
+              <select class="form-control">
+              <option value="one">Sequence mining</option>
+              <option value="two">Patterns</option>
+              <option value="three">Three</option>
+              <option value="four">Four</option>
+              <option value="five">Five</option>
+            </select>
+            </div>
+          </div>
+          
+        </fieldset>
+      </div>
     </div>
+
 
     <!-- IMPORTANT: These options need to be inside "leftMenu" so the overflow don't affect them.-->
     <div id="queryResultsOptions" class="queryOptionsMenu" style='display:none'>
@@ -314,8 +367,9 @@
         <span id="deleteCatalogQuery" class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete Query from Catalog
       </div>
     </div>
-
   </div>
+  <!--End of leftMenu container-->
+
   <div id="analysisPanel" class="container-fluid">
     <h2>Analysis panel</h2>
     <ul class="nav nav-tabs">

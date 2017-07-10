@@ -7,6 +7,7 @@ function initialiseInterface() {
   requestCompletedQueries();
   requestCatalogQueries();
   requestRunningQueries();
+  initPatternTab();
 
   //Redirect the user when the toggle is pressed
   $('#pageToggle').bootstrapToggle('off');//analysis.html is off
@@ -19,6 +20,7 @@ function initialiseInterface() {
 
     }
   });
+
 
   updateGeneralOverview();
   updateSunburst();
@@ -46,14 +48,14 @@ function updateCompletedQueries(queryList) {
     $(".title", newFinishedQueryObject).text(queryObject.title);
 
     //Add icon indicating strictMode
-    var $strictModeSpan = $("<span>", {"aria-hidden": "true", "class":"glyphicon"});
-    if (queryObject.isStrictMode){
+    var $strictModeSpan = $("<span>", { "aria-hidden": "true", "class": "glyphicon" });
+    if (queryObject.isStrictMode) {
       $strictModeSpan.addClass("glyphicon glyphicon-step-forward");
-    }else{
+    } else {
       $strictModeSpan.addClass("glyphicon glyphicon-play");
     }
-     $(".title", newFinishedQueryObject).prepend($strictModeSpan);
-    
+    $(".title", newFinishedQueryObject).prepend($strictModeSpan);
+
     $(".date", newFinishedQueryObject).text(queryObject.readableDate.split("T")[0]);
     $(".numberOfObjects", newFinishedQueryObject).text(queryObject.count);
     $("#queryResultsList").append(newFinishedQueryObject);
@@ -72,11 +74,10 @@ function updateCatalogQueries(queryList) {
   $(".queryCatalogItem", "#queryCatalogList").remove();
   //Fill the list with the received items
   queryList.forEach(function (queryObject, index) {
-    console.log("Filling newCatalogQueryObject");
 
     var newCatalogQueryObject = $("#queryCatalogItemTemplate").clone();
     newCatalogQueryObject.removeAttr("id");
-    
+
     //Add hovering action
     var description = queryObject.title;
     if (queryObject.description)
@@ -305,6 +306,33 @@ function editQueryCatalog(queryData) {
   window.location.replace("./queryCreation.html");
 }
 
+/**
+ * Initialises the patern Analysis tab in the left column.
+ * Takes the list of existing result titles from the database,
+ * and add them as options.
+ */
+function initPatternTab() {
+
+  requestCompletedQueriesTitles();
+  $("#resultMultiSelector").chosen({
+    disable_search_threshold: 10,
+    placeholder_text_multiple: "select the results to be considered",
+    no_results_text: "Oops, nothing found!",
+    width: "95%"
+  });
+}
+
+/**
+ * This function takes a multioption object as a parameter
+ * and loads a a series of query result titles.
+ */
+function updateResultMultiChoice(titlesList) {
+  console.log("loadResultNames() loading"+ titlesList.length +" result title options");
+  titlesList.forEach(function (titleItem) {
+    $("#resultMultiSelector").append('<option>' + titleItem + '</option>');
+  });
+  $("#resultMultiSelector").trigger('chosen:updated');
+}
 /**
  * Shows a general overview of the results, with the provided data
  */

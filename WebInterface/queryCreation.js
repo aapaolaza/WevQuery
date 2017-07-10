@@ -26,7 +26,6 @@ function initialiseInterface() {
 /**
  * This function takes a multioption object as a parameter
  * and loads a series of event values.
- * TODO: rather than static, the values should be retrieved from the xsd 
  */
 function loadEventNames(multiOptionTarget) {
   console.log("loading event names");

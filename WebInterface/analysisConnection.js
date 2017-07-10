@@ -15,6 +15,19 @@ socket.on('clientCompletedQueriesFinished', function (data) {
   updateCompletedQueries(data.queryList);
 });
 
+/**
+ * Requests the list of the titles of all available collections
+ */
+
+function requestCompletedQueriesTitles() {
+  socket.emit('serverRequestCompletedQueryTitles');
+}
+
+socket.on('clientCompletedQueryTitlesFinished', function (data) {
+  notifyUser(data.titleList.length + " titles of finished queries have been retrieved", data.isError);
+  updateResultMultiChoice(data.titleList);
+});
+
 
 /**
  * Requests the list of all queries in Catalog
@@ -26,7 +39,6 @@ function requestCatalogQueries() {
 
 socket.on('serverRequestCatalogQueriesFinished', function (data) {
   updateCatalogQueries(data.queryList);
-  console.log(data.queryList);
   notifyUser(data.queryList.length + " Catalog queries have been retrieved");
 });
 
