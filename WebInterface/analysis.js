@@ -314,12 +314,16 @@ function editQueryCatalog(queryData) {
 function initPatternTab() {
 
   requestCompletedQueriesTitles();
+
   $("#resultMultiSelector").chosen({
     disable_search_threshold: 10,
-    placeholder_text_multiple: "select the results to be considered",
+    placeholder_text_multiple: "select inputs",
     no_results_text: "Oops, nothing found!",
-    width: "95%"
+    width: "100%"
+  }).change(function () {
+    updateLeftMenu();
   });
+
 }
 
 /**
@@ -327,7 +331,7 @@ function initPatternTab() {
  * and loads a a series of query result titles.
  */
 function updateResultMultiChoice(titlesList) {
-  console.log("loadResultNames() loading"+ titlesList.length +" result title options");
+  console.log("loadResultNames() loading" + titlesList.length + " result title options");
   titlesList.forEach(function (titleItem) {
     $("#resultMultiSelector").append('<option>' + titleItem + '</option>');
   });

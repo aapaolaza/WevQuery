@@ -1,4 +1,4 @@
-<xs:schema  version="1.0.0" attributeFormDefault='unqualified' elementFormDefault='qualified' 
+<xs:schema  version="1.1.0" attributeFormDefault='unqualified' elementFormDefault='qualified' 
   xmlns:xs='http://www.w3.org/2001/XMLSchema'>
   <xs:element name='eql'>
     <xs:complexType>

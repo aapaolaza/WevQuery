@@ -106,6 +106,13 @@ table.tablesorter thead tr .headerSortDown:after{
   border-color: transparent transparent #aaaaaa transparent;
 }
 
+/*Pattern tab in left column*/
+#tabPatternAnalysis{
+  max-width:500px;
+}
+
+/**Analysis right panel **/
+
 /*Only show a refresh button if the tab is active*/
 .nav.nav-tabs li:not(.active) i {
   display:none;
