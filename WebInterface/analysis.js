@@ -4,23 +4,15 @@
  * 
  */
 function initialiseInterface() {
+
+  $.getScript("./navigationTabs.js", function () {
+    addTabHeader();
+  });
+
   requestCompletedQueries();
   requestCatalogQueries();
   requestRunningQueries();
   initPatternTab();
-
-  //Redirect the user when the toggle is pressed
-  $('#pageToggle').bootstrapToggle('off');//analysis.html is off
-  $("#pageToggle").change(function () {
-    if ($(this).prop('checked'))
-      window.location.replace("./queryCreation.html")
-    else {
-      window.location.replace("./analysis.html")
-      //Before moving away, store the state of the query into the cookie
-
-    }
-  });
-
 
   updateGeneralOverview();
   updateSunburst();
@@ -138,9 +130,10 @@ function updateRunningQueries(queryList) {
 function updateLeftMenu() {
   //$("#analysisPanel").css("margin-left", $("#leftMenu").width() + 15);
   $("#analysisPanel").animate({
-    marginLeft: $("#leftMenu").width() + 15,
+    marginLeft: $("#leftMenu").width() + 30,
     opacity: 1
   }, 200);
+  
   $("#queryResultsTable").trigger("update");
   $("#queryCatalogTable").trigger("update");
 

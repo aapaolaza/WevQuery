@@ -5,20 +5,18 @@ var xmlSchemaPath = '../schema.xsd'
  * 
  */
 function initialiseInterface() {
+
+  $.getScript("./navigationTabs.js", function () {
+    addTabHeader();
+  });
+
   if (getCookie("queryXMLData") !== "")
     importXML(getCookie("queryXMLData"));
 
-  //Redirect the user when the toggle is pressed
-  //queryCreation.html is on, but we show an animation
-  $('#pageToggle').bootstrapToggle('on');
-  $("#pageToggle").change(function () {
-    if ($(this).prop('checked'))
-      window.location.replace("./queryCreation.html")
-    else {
-      //Before moving away, store the state of the query into the cookie
-      setCookie("queryXMLData", exportXML(), 1);
-      window.location.replace("./analysis.html");
-    }
+  $(window).unload(function () {
+    //Before moving away, store the state of the query into the cookie
+    setCookie("queryXMLData", exportXML(), 1);
+    window.location.replace("./analysis.html");
   });
 }
 
@@ -435,11 +433,11 @@ function importXML(xmlString) {
     if (xmlEventObject.attr("matchCriteria") == "true"
       || (xmlEventObject.attr("matchCriteria") == undefined)) {
       $(".eventMatchIndicator", newEventObject).removeClass("glyphicon glyphicon-remove").addClass("glyphicon glyphicon-ok")
-      $(".eventMatchIndicator", newEventObject)[0].setAttribute("matchCriteria",true);
+      $(".eventMatchIndicator", newEventObject)[0].setAttribute("matchCriteria", true);
     }
     else {
       $(".eventMatchIndicator", newEventObject).removeClass("glyphicon glyphicon-ok").addClass("glyphicon glyphicon-remove")
-      $(".eventMatchIndicator", newEventObject)[0].setAttribute("matchCriteria",false);
+      $(".eventMatchIndicator", newEventObject)[0].setAttribute("matchCriteria", false);
     }
 
     $(".occurrenceValue", newEventObject).text(xmlEventObject.attr("occurrences"));

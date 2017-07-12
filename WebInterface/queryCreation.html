@@ -8,10 +8,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
   <title>Hypothesis Driven Interaction Behaviour Analysis</title>
-  <link rel="icon" type="image/png" href="./res/WevQueryLogo2.png" />
+  <link rel="icon" type="image/png" href="./res/WevQueryLogo.png" />
   <!-- Bootstrap -->
-  <link href="bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link href="./bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="./queryCreation.css">
+  <link rel="stylesheet" href="./style.css">
   <link rel="stylesheet" href="./jquery-ui-1.12.1/jquery-ui.css">
   <script src="./jquery-ui-1.12.1/external/jquery/jquery.js"></script>
   <!-- WARNING!!! The order of the following two JavaScripts will affect the icons used in the interface (the last one will have priority)-->
@@ -209,7 +210,7 @@
           no_results_text: "Oops, nothing found!",
           width: "95%"
         });
-        
+
         loadContextTypes($("#eventTemplateContextType"));
 
         $("#eventDialogAddContext").click(function () {
@@ -434,26 +435,26 @@
 </head>
 
 <body>
-  <div id="leftMenu">
-    <div>
-      <img src="./res/WevQueryLogo.png" alt="WevQuery tool logo">
-    </div>
-    <div>
-      <input id="pageToggle" type="checkbox" data-toggle="toggle" data-on="Query Creation" data-off="Analysis" data-onstyle="primary"
-        data-offstyle="info">
-    </div>
-    <div class="btn-group">
-      <button type="button" class="btn  btn-lg btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        Menu <span class="caret"></span>
-        </button>
-      <ul class="dropdown-menu col-xs-12">
-        <li><a href="#">Load XML</a></li>
-        <li><a href="" id="downloadXML" download="eql.xml">Download XML</a></li>
-        <li role="separator" class="divider"></li>
-        <li><a href="#" id="saveQueryButton">Save Query</a></li>
-      </ul>
-    </div>
+
+
+  <div class="btn-group xmlOptionMenu">
+    <button type="button" class="btn btn-default" aria-label="Load xml">
+      <span class="glyphicon glyphicon-cloud-upload" aria-hidden="true">
+        Load XML
+        </span>
+    </button>
+    <button type="button" class="btn btn-default" aria-label="Download XML">
+      <span class="glyphicon glyphicon-cloud-download" aria-hidden="true">
+        <a href="" id="downloadXML" download="eql.xml">Download XML</a>
+      </span>
+    </button>
+    <button type="button" id="saveQueryButton" class="btn btn-default" aria-label="Save Query">
+      <span class="glyphicon glyphicon-floppy-save" aria-hidden="true">
+        Save Query
+      </span>
+    </button>
   </div>
+
   <div id="topAreaContainer" class="container-fluid">
     <div id="eventPaletteDiv" class="container">
       <h2 id="eventPaletteTitle"> Event Palette <span class="glyphicon glyphicon-option-horizontal glyphicon-option-vertical" aria-hidden="true"></span></h2>
@@ -662,7 +663,7 @@
     </form>
     <form class="form-horizontal container">
       <label for="queryDescription" class="col-sm-5 control-label">Query description:</label>
-      <textarea id="queryDescription"  rows="2" style="resize: none;" class="col-sm-7" placeholder="insert query description" aria-describedby="Text input for query title"></textarea>
+      <textarea id="queryDescription" rows="2" style="resize: none;" class="col-sm-7" placeholder="insert query description" aria-describedby="Text input for query title"></textarea>
     </form>
     <!-- Allow form submission with keyboard without duplicating the dialog button -->
     <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
