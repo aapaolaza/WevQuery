@@ -25,19 +25,8 @@
   <link href="./bootstrap-toggle/bootstrap-toggle.css" rel="stylesheet">
   <script src="./bootstrap-toggle/bootstrap-toggle.js"></script>
 
-  <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-  <!--[if lt IE 9]>
-    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
-  <!-- The event creation and interaction logic is stored in a different file -->
+  <script src="./genericFunctions.js"></script>
   <script src="./queryCreation.js"></script>
-
-  <!-- server.js code script start-->
-  <!--socket.io import changed so it works in MOVING server, the following file was copied from  
-    "node_modules/socket.io/node_modules/socket.io-client/dist"    -->
-  <!--<script src="/socket.io/socket.io.js"></script>-->
   <script src="../socket.io/socket.io.js"></script>
   <script src="./connection.js"></script>
   <script src="./queryCreationConnection.js"></script>
@@ -250,7 +239,7 @@
             $("#eventOrderArea .eventTemplate").addClass("selectableEventTemplate");
             //register the html for the next click, and wait till an event inside the eventOrderArea is clicked
             var clickedButton = this;
-            showToast("Please select the event you want to use");
+            genericFunctions.showToast("Please select the event you want to use");
             //"one()" is the same as "on()" but only works once, removing the need to unbind the listener
             $(document).one("click", function (e) {
               waitForTempConstraintEventSelection(e, clickedButton);
@@ -360,7 +349,7 @@
 
           default:
             unit = "NA";
-            showToast("WARNING: the unit for a temporal constraint is unknown. 'unit' must be 'sec' or 'min'")
+            genericFunctions.showToast("WARNING: the unit for a temporal constraint is unknown. 'unit' must be 'sec' or 'min'")
             break;
         }
 
@@ -374,7 +363,7 @@
             break;
           default:
             type = "NA";
-            showToast("WARNING: the type for a temporal constraint is unknown. 'type' must be 'within' or 'between'")
+            genericFunctions.showToast("WARNING: the type for a temporal constraint is unknown. 'type' must be 'within' or 'between'")
             break;
         }
 
@@ -407,7 +396,7 @@
 
       }
       else {
-        showToast("Please press on an event from the Event Sequence Pattern Design Area");
+        genericFunctions.showToast("Please press on an event from the Event Sequence Pattern Design Area");
         console.log($(e.target));
         $(document).one("click", function (e) {
           waitForTempConstraintEventSelection(e, button);
@@ -437,21 +426,19 @@
 <body>
 
 
-  <div class="btn-group xmlOptionMenu">
+  <div class="btn-group-vertical xmlOptionMenu text-left">
+    <h3>Query options</h3>
     <button type="button" class="btn btn-default" aria-label="Load xml">
-      <span class="glyphicon glyphicon-cloud-upload" aria-hidden="true">
-        Load XML
-        </span>
+      <span class="glyphicon glyphicon-cloud-upload" aria-hidden="true"></span>
+      Load XML
     </button>
     <button type="button" class="btn btn-default" aria-label="Download XML">
-      <span class="glyphicon glyphicon-cloud-download" aria-hidden="true">
-        <a href="" id="downloadXML" download="eql.xml">Download XML</a>
-      </span>
+      <span class="glyphicon glyphicon-cloud-download" aria-hidden="true"></span>
+      <a href="" id="downloadXML" download="eql.xml">Download XML</a>
     </button>
     <button type="button" id="saveQueryButton" class="btn btn-default" aria-label="Save Query">
-      <span class="glyphicon glyphicon-floppy-save" aria-hidden="true">
-        Save Query
-      </span>
+      <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span>
+      Save Query
     </button>
   </div>
 
@@ -674,7 +661,6 @@
       deleted and cannot be recovered. Are you sure?</p>
   </div>
 
-  <div id="toastbar">Toast to show to the user</div>
 </body>
 
 </html>

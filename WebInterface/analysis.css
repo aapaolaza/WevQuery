@@ -1,11 +1,17 @@
 
 
-#leftMenu{
+#leftMenuContent{
   width: auto;
   overflow-y: auto;
   padding-bottom: 30px;
+  background: white;
+  min-width: 370px;/*min width so is enver too small*/
+  height: 100%;
 }
-
+#leftMenu span.hideLeftMenu{
+  float:right;
+  cursor: pointer;
+}
 
 h2 .glyphicon{
   float: right;

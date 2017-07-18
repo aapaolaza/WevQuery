@@ -6,16 +6,15 @@ var xmlSchemaPath = '../schema.xsd'
  */
 function initialiseInterface() {
 
-  $.getScript("./navigationTabs.js", function () {
-    addTabHeader();
-  });
+  genericFunctions.addTabHeader();
 
-  if (getCookie("queryXMLData") !== "")
-    importXML(getCookie("queryXMLData"));
+
+  if (genericFunctions.getCookie("queryXMLData") !== "")
+    importXML(genericFunctions.getCookie("queryXMLData"));
 
   $(window).unload(function () {
     //Before moving away, store the state of the query into the cookie
-    setCookie("queryXMLData", exportXML(), 1);
+    genericFunctions.setCookie("queryXMLData", exportXML(), 1);
     window.location.replace("./analysis.html");
   });
 }
@@ -518,75 +517,10 @@ function showSaveQueryResult(message) {
       updateTips(message, $("#saveQueryDialog"));
     }
     else
-      showErrorMessage("Save Query", message);
+      genericFunctions.showErrorMessage("Save Query", message);
   }
   else {
     $("#saveQueryDialog").dialog("close");
     notifyUser("Query has been saved", false);
   }
-}
-
-/**
- * Shows a toast to the user, temporarily showing some information
- */
-function showToast(message) {
-  var x = document.getElementById("toastbar")
-  x.className = "show";
-  x.textContent = message;
-  setTimeout(function () { x.className = x.className.replace("show", ""); }, 3000);
-}
-
-/**
- * Shows a generic error message with the given title and message, with only one button
- */
-function showErrorMessage(title, message) {
-  $("p", "#dialog-confirm").text(message);
-
-  var confirmDialog = $("#dialog-confirm").dialog({
-    title: title,
-    resizable: false,
-    height: "auto",
-    width: 400,
-    modal: true,
-    buttons: {
-      Close: function () {
-        confirmDialog.dialog("close");
-      }
-    },
-    //The only purpose of the following code is to find the newly generated "close window" element, and fix the icon
-    //Clashes between bootstrap and jquery-ui break it by default
-    open: function () {
-      $(this).closest(".ui-dialog")
-        .find(".ui-dialog-titlebar-close")
-        .removeClass("ui-dialog-titlebar-close")
-        .html("<span class='glyphicon glyphicon-remove' onclick='confirmDialog.dialog( 'close');'></span>");
-
-    },
-  });
-  confirmDialog.show();
-}
-
-
-
-function setCookie(cname, cvalue, exdays) {
-  var d = new Date();
-  d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
-  var expires = "expires=" + d.toUTCString();
-  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
-}
-
-function getCookie(cname) {
-  var name = cname + "=";
-  var decodedCookie = decodeURIComponent(document.cookie);
-  var ca = decodedCookie.split(';');
-  for (var i = 0; i < ca.length; i++) {
-    var c = ca[i];
-    while (c.charAt(0) == ' ') {
-      c = c.substring(1);
-    }
-    if (c.indexOf(name) == 0) {
-      return c.substring(name.length, c.length);
-    }
-  }
-  return "";
 }

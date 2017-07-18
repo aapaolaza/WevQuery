@@ -5,9 +5,7 @@
  */
 function initialiseInterface() {
 
-  $.getScript("./navigationTabs.js", function () {
-    addTabHeader();
-  });
+  genericFunctions.addTabHeader();
 
   requestCompletedQueries();
   requestCatalogQueries();
@@ -285,16 +283,16 @@ function deleteQueryCatalog(queryTitle) {
 function runQueryCatalog(email, isQueryStrict, queryTitle, queryData) {
   requestExecuteQuery(email, isQueryStrict, queryTitle, queryData);
   if (isQueryStrict)
-    showToast("The query " + queryTitle + " is now running in strict mode");
+    genericFunctions.showToast("The query " + queryTitle + " is now running in strict mode");
   else
-    showToast("The query " + queryTitle + " is now running in non strict mode");
+    genericFunctions.showToast("The query " + queryTitle + " is now running in non strict mode");
 }
 
 /**
  * Edit Catalog item. Stores the selected queryData in a cookie, and opens the query creation window
  */
 function editQueryCatalog(queryData) {
-  setCookie("queryXMLData", queryData, 1);
+  genericFunctions.setCookie("queryXMLData", queryData, 1);
 
   window.location.replace("./queryCreation.html");
 }
@@ -456,66 +454,4 @@ function debugMouseMove() {
     console.log("( event.clientX, event.clientY ) : " + clientCoords);
     console.log("Hovering over: " + event.target.nodeName + " " + event.target.id);
   });
-}
-
-/**
- * Shows a toast to the user, temporarily showing some information
- */
-function showToast(message) {
-  var x = document.getElementById("toastbar")
-  x.className = "show";
-  x.textContent = message;
-  setTimeout(function () { x.className = x.className.replace("show", ""); }, 3000);
-}
-
-/**
- * Shows a generic error message with the given title and message, with only one button
- */
-function showErrorMessage(title, message) {
-  $("p", "#dialog-confirm").text(message);
-
-  var confirmDialog = $("#dialog-confirm").dialog({
-    title: title,
-    resizable: false,
-    height: "auto",
-    width: 400,
-    modal: true,
-    buttons: {
-      Close: function () {
-        confirmDialog.dialog("close");
-      }
-    },
-    //The only purpose of the following code is to find the newly generated "close window" element, and fix the icon
-    //Clashes between bootstrap and jquery-ui break it by default
-    open: function () {
-      $(this).closest(".ui-dialog")
-        .find(".ui-dialog-titlebar-close")
-        .removeClass("ui-dialog-titlebar-close")
-        .html("<span class='glyphicon glyphicon-remove' onclick='confirmDialog.dialog( 'close');'></span>");
-    },
-  });
-  confirmDialog.show();
-}
-
-function setCookie(cname, cvalue, exdays) {
-  var d = new Date();
-  d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
-  var expires = "expires=" + d.toUTCString();
-  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
-}
-
-function getCookie(cname) {
-  var name = cname + "=";
-  var decodedCookie = decodeURIComponent(document.cookie);
-  var ca = decodedCookie.split(';');
-  for (var i = 0; i < ca.length; i++) {
-    var c = ca[i];
-    while (c.charAt(0) == ' ') {
-      c = c.substring(1);
-    }
-    if (c.indexOf(name) == 0) {
-      return c.substring(name.length, c.length);
-    }
-  }
-  return "";
 }

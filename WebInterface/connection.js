@@ -36,11 +36,11 @@ socket.on('messageToClient', function (data) {
 function notifyUser(message, isError) {
   if (isError){
     console.log("ERROR: notifying user:" + message)
-    showErrorMessage("ERROR",message);
+    genericFunctions.showErrorMessage("ERROR",message);
   }
   else{
     console.log("notifying user:" + message)
-    showToast(message);
+    genericFunctions.showToast(message);
   }
   logFile.push(message);
 

@@ -1,0 +1,44 @@
+/*The default colour behaviour of the buttons is set by bootstrap.
+In order to override it, the colour setting for all conditionas need to be overriden*/
+div.catalogList{
+  width:100%;
+}
+label.btn{
+  color: #ffffff;
+  /*font-size: 20px;*/
+  background: #aaaaaa;
+  border-color:white;
+}
+/*Hovering over button*/
+label.btn-primary:hover{
+  background: #aaaaaa;
+  border-color:black;
+}
+/*Button is held down*/
+label.btn-primary:active,label.btn-primary:active:hover{
+  background: #aaaaaa;
+  border-color:black;
+}
+/*button is on focus*/
+label.btn-primary.focus{
+  background: #aaaaaa;
+  border-color:black;
+}
+/*Button has been selected*/
+label.btn-primary.active, label.btn-primary.active.focus{
+  background: #666666;
+  border-color:black;
+}
+label:focus{
+  background: #aaaaaa;
+  border-color:black;
+}
+
+label.btn-primary.active:hover{
+  background-color: #666666;
+  border-color:black;
+}
+label.btn-primary.active:focus{
+  background-color: #666666;
+  border-color:black;
+}

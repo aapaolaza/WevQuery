@@ -5,13 +5,30 @@ button a, button a:hover, button a:focus{
   text-decoration: inherit; /* no underline */
 }
 .xmlOptionMenu{
-  margin-top: 55px;
+  margin-top: 70px;
+  margin-left: 1%;
+  position: absolute;/*Soit doesn't interfere with other elements*/
+  text-align: left;
 }
+
+/*so the span alligns left and have some padding*/
+.xmlOptionMenu span{
+  float: left;
+  padding-right: 5px;
+}
+
+/*to align the text within the buttons*/
+.xmlOptionMenu button{
+  text-align: left;
+}
+
 
 /*Created with http://css3buttongenerator.com */
 #eventPaletteTitle {
   cursor: pointer;
   width:275px;
+  margin-top: 55px;
+
 }
 #eventPaletteTitle:hover {
   background: #606161;

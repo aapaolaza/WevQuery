@@ -32,14 +32,10 @@
 
   <link href="./bootstrap-toggle/bootstrap-toggle.css" rel="stylesheet">
   <script src="./bootstrap-toggle/bootstrap-toggle.js"></script>
-  <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-  <!--[if lt IE 9]>
-    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
-  <!-- The event creation and interaction logic is stored in a different file -->
 
+
+  <!-- The event creation and interaction logic is stored in a different file -->
+  <script src="./genericFunctions.js"></script>
   <script src="./analysis.js"></script>
   <script src="./stackedChart/stackedChart.js"></script>
   <link rel="stylesheet" href="./stackedChart/stackedChart.css">
@@ -65,6 +61,26 @@
 
   <script>
     $(function () {
+
+      //Hide and show the left menu, to give more space
+      $("span.hideLeftMenu", "#leftMenu").click(function () {
+        //Once the animation ends, it triggers the updateLeftMenu and changes icons
+        $("#leftMenuContent", "#leftMenu").toggle(
+          {
+            duration: "400",
+            easing: "swing",
+            start: updateLeftMenu,
+            complete: function () {
+              updateLeftMenu();
+              //Update the icon to reflect its functionality
+              if ($("#leftMenuContent", "#leftMenu").is(':visible'))
+                $("span.hideLeftMenu", "#leftMenu").removeClass("glyphicon-wrench").addClass("glyphicon-menu-hamburger");
+              else
+                $("span.hideLeftMenu", "#leftMenu").removeClass("glyphicon-menu-hamburger").addClass("glyphicon-wrench");
+            }
+          });
+      });
+
 
       $("#updateQueryResults").click(function () {
         console.log("Clicked on update queries");
@@ -229,126 +245,130 @@
   <div class="container-fluid parentContainer">
     <div class="row">
       <div id="leftMenu" class="sidebar">
-        <ul class="nav nav-tabs leftMenuTabs">
-          <li class="active">
-            <a data-toggle="tab" href="#tabQueryManagement">Query management
+        <span class="hideLeftMenu glyphicon glyphicon-menu-hamburger" aria-hidden="true"></span>
+        <div id="leftMenuContent">
+          <!--This content will be minimised when clicked on hideLeftMenu-->
+          <ul class="nav nav-tabs leftMenuTabs">
+            <li class="active">
+              <a data-toggle="tab" href="#tabQueryManagement">Query management
           <i id="queryManagement"></i>
         </a>
-          </li>
-          <li>
-            <a data-toggle="tab" href="#tabPatternAnalysis">Pattern Analysis
+            </li>
+            <li>
+              <a data-toggle="tab" href="#tabPatternAnalysis">Pattern Analysis
           <i id="patternAnalysis"></i>
         </a>
-          </li>
-        </ul>
+            </li>
+          </ul>
 
 
-        <div class="tab-content">
+          <div class="tab-content">
 
-          <div id="tabQueryManagement" class="tab-pane fade in active">
+            <div id="tabQueryManagement" class="tab-pane fade in active">
 
-            <h2 id="queryResultsTitle">Results
-              <span id="toggleQueryResults" class="glyphicon glyphicon-option-horizontal glyphicon-option-vertical" aria-hidden="true"></span>
-              <i id="updateQueryResults" class="glyphicon glyphicon-refresh"></i></h2>
-            <table id="queryResultsTable" class="table greyBox tablesorter">
-              <thead>
-                <tr>
-                  <th>Title</th>
-                  <th>Date</th>
-                  <th class="{sorter: 'digit'}"># Objects</th>
-                </tr>
-              </thead>
-              <tbody id="queryResultsList">
-              </tbody>
-            </table>
+              <h2 id="queryResultsTitle">Results
+                <span id="toggleQueryResults" class="glyphicon glyphicon-option-horizontal glyphicon-option-vertical" aria-hidden="true"></span>
+                <i id="updateQueryResults" class="glyphicon glyphicon-refresh"></i></h2>
+              <table id="queryResultsTable" class="table greyBox tablesorter">
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Date</th>
+                    <th class="{sorter: 'digit'}"># Objects</th>
+                  </tr>
+                </thead>
+                <tbody id="queryResultsList">
+                </tbody>
+              </table>
 
-            <h2 id="queryCatalogTitle">Query Catalog
-              <span id="toggleQueryCatalog" class="glyphicon glyphicon-option-horizontal glyphicon-option-vertical" aria-hidden="true"></span>
-              <i id="updateQueryCatalog" class="glyphicon glyphicon-refresh"></i></h2>
-            <table id="queryCatalogTable" class="table greyBox tablesorter">
-              <thead>
-                <tr>
-                  <th>Title</th>
-                  <th>Date</th>
-                  <th class="{sorter: 'digit'}">Time</th>
-                  <th class="{sorter: 'digit'}"># Objects</th>
-                </tr>
-              </thead>
-              <tbody id="queryCatalogList">
-              </tbody>
-            </table>
+              <h2 id="queryCatalogTitle">Query Catalog
+                <span id="toggleQueryCatalog" class="glyphicon glyphicon-option-horizontal glyphicon-option-vertical" aria-hidden="true"></span>
+                <i id="updateQueryCatalog" class="glyphicon glyphicon-refresh"></i></h2>
+              <table id="queryCatalogTable" class="table greyBox tablesorter">
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Date</th>
+                    <th class="{sorter: 'digit'}">Time</th>
+                    <th class="{sorter: 'digit'}"># Objects</th>
+                  </tr>
+                </thead>
+                <tbody id="queryCatalogList">
+                </tbody>
+              </table>
 
-            <h2 id="queryRunningTitle">Query progress
-              <span id="toggleQueryRunning" class="glyphicon glyphicon-option-horizontal glyphicon-option-vertical" aria-hidden="true"></span>
-              <i id="updateQueryRunning" class="glyphicon glyphicon-refresh"></i></h2>
-            <div id="queryRunningList" class="greyBox"></div>
+              <h2 id="queryRunningTitle">Query progress
+                <span id="toggleQueryRunning" class="glyphicon glyphicon-option-horizontal glyphicon-option-vertical" aria-hidden="true"></span>
+                <i id="updateQueryRunning" class="glyphicon glyphicon-refresh"></i></h2>
+              <div id="queryRunningList" class="greyBox"></div>
 
-          </div>
+            </div>
 
-          <div id="tabPatternAnalysis" class="tab-pane fade">
-            <h2 id="Pattern Matching">Pattern Matching</h2>
-            <p> Select inputs for the pattern matching algorithm</p>
-            <fieldset>
-              <div class="form-group">
-                <label class="col-lg-3 control-label">Results</label>
-                <div class="col-lg-9">
-                  <select name="resultList" id="resultMultiSelector" multiple="multiple">
+            <div id="tabPatternAnalysis" class="tab-pane fade">
+              <h2 id="Pattern Matching">Pattern Matching</h2>
+              <p> Select inputs for the pattern matching algorithm</p>
+              <fieldset>
+                <div class="form-group">
+                  <label class="col-lg-3 control-label">Results</label>
+                  <div class="col-lg-9">
+                    <select name="resultList" id="resultMultiSelector" multiple="multiple">
               </select>
+                  </div>
                 </div>
-              </div>
-              <div class="form-group">
-                <label class="col-lg-3 control-label">Algorithm</label>
-                <div class="col-lg-9">
-                  <select class="form-control">
+                <div class="form-group">
+                  <label class="col-lg-3 control-label">Algorithm</label>
+                  <div class="col-lg-9">
+                    <select class="form-control">
               <option value="one">Sequence mining</option>
               <option value="two">Patterns</option>
               <option value="three">Three</option>
               <option value="four">Four</option>
               <option value="five">Five</option>
             </select>
+                  </div>
                 </div>
-              </div>
 
-            </fieldset>
-          </div>
-        </div>
-
-
-        <!-- IMPORTANT: These options need to be inside "leftMenu" so the overflow don't affect them.-->
-        <div id="queryResultsOptions" class="queryOptionsMenu" style='display:none'>
-          <span id="closeResultsOptions" class="glyphicon glyphicon-remove" aria-hidden="true" aria-label="close options menu"></span>
-
-          <div class="queryOptionItem">
-            <span id="highLightResults" class="glyphicon glyphicon-flag" aria-hidden="true"></span> Highlight
+              </fieldset>
+            </div>
           </div>
 
-          <div class="queryOptionItem">
-            <span id="loadResults" class="glyphicon glyphicon-folder-open" aria-hidden="true"></span> Load Results
-          </div>
-          <div class="queryOptionItem">
-            <span id="downloadResults" class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Download Results
-          </div>
-          <div class="queryOptionItem">
-            <span id="deleteResults" class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete Results
-          </div>
-        </div>
 
-        <div id="queryCatalogOptions" class="queryOptionsMenu" style='display:none'>
-          <span id="closeCatalogOptions" class="glyphicon glyphicon-remove" aria-hidden="true" aria-label="close options menu"></span>
+          <!-- IMPORTANT: These options need to be inside "leftMenu" so the overflow don't affect them.-->
+          <div id="queryResultsOptions" class="queryOptionsMenu" style='display:none'>
+            <span id="closeResultsOptions" class="glyphicon glyphicon-remove" aria-hidden="true" aria-label="close options menu"></span>
 
-          <div class="queryOptionItem">
-            <span id="runCatalogQuery" class="glyphicon glyphicon-play" aria-hidden="true"></span> Run Query
-          </div>
-          <div class="queryOptionItem">
-            <span id="runCatalogQueryStrict" class="glyphicon glyphicon-step-forward" aria-hidden="true"></span> Run <i>Strict</i>            Query
+            <div class="queryOptionItem">
+              <span id="highLightResults" class="glyphicon glyphicon-flag" aria-hidden="true"></span> Highlight
+            </div>
+
+            <div class="queryOptionItem">
+              <span id="loadResults" class="glyphicon glyphicon-folder-open" aria-hidden="true"></span> Load Results
+            </div>
+            <div class="queryOptionItem">
+              <span id="downloadResults" class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Download Results
+            </div>
+            <div class="queryOptionItem">
+              <span id="deleteResults" class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete Results
+            </div>
           </div>
 
-          <div class="queryOptionItem">
-            <span id="editCatalogQuery" class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Use Query as template
-          </div>
-          <div class="queryOptionItem">
-            <span id="deleteCatalogQuery" class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete Query from
-            Catalog
+          <div id="queryCatalogOptions" class="queryOptionsMenu" style='display:none'>
+            <span id="closeCatalogOptions" class="glyphicon glyphicon-remove" aria-hidden="true" aria-label="close options menu"></span>
+
+            <div class="queryOptionItem">
+              <span id="runCatalogQuery" class="glyphicon glyphicon-play" aria-hidden="true"></span> Run Query
+            </div>
+            <div class="queryOptionItem">
+              <span id="runCatalogQueryStrict" class="glyphicon glyphicon-step-forward" aria-hidden="true"></span> Run <i>Strict</i>              Query
+            </div>
+
+            <div class="queryOptionItem">
+              <span id="editCatalogQuery" class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Use Query as template
+            </div>
+            <div class="queryOptionItem">
+              <span id="deleteCatalogQuery" class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete Query from
+              Catalog
+            </div>
           </div>
         </div>
       </div>
@@ -428,8 +448,6 @@
         <p><span class="glyphicon glyphicon-alert" style="float:left; margin:12px 12px 20px 0;"></span>These items will be permanently
           deleted and cannot be recovered. Are you sure?</p>
       </div>
-
-      <div id="toastbar">Toast to show to the user</div>
 
       <!-- TEMPLATES FOR THE CREATION OF WEB PAGE ELEMENTS -->
       <table style='display:none'>

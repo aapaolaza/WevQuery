@@ -32,6 +32,11 @@ h2{
   margin-bottom: 0px;
 }
 
+/*When the menu has been minimised*/
+#leftMenu h2.up{
+  border-radius: 16px 16px 16px 16px;
+}
+
 .greyBox{
   border: 5px solid #aaaaaa;
   padding:10px;

@@ -353,6 +353,7 @@ function getCatalogQueries(callback) {
 }
 
 
+
 /**
  * Given a query title, gets the information for that query
  * 
@@ -371,6 +372,20 @@ function getCatalogQueryInfo(queryTitle, callback) {
   });
 }
 
+/**
+ * Given a query Title, returns all the results associated with it
+ */
+
+function getResultsForCatalogQuery(queryTitle, callback){
+   constants.connectAndValidateNodeJs(function (err, db) {
+    if (err) return console.error("getResultsForCatalogQuery() ERROR connecting to DB" + err);
+    console.log("getResultsForCatalogQuery() Successfully connected to DB");
+    
+    db.collection(constants.xmlQueryResults).find({title:queryTitle}).toArray(function (err, queryResultList) {
+      callback(null, queryTitle, queryResultList);
+    });
+  });
+}
 
 /**
  * Updates the status of the queries, and retrieves all unfinished running queries
@@ -432,6 +447,7 @@ module.exports.setQueryFinished = setQueryFinished;
 module.exports.getCompletedQueries = getCompletedQueries;
 module.exports.getCatalogQueries = getCatalogQueries;
 module.exports.getCatalogQueryInfo = getCatalogQueryInfo;
+module.exports.getResultsForCatalogQuery = getResultsForCatalogQuery;
 module.exports.getRunningQueries = getRunningQueries;
 module.exports.deleteCompletedQuery = deleteCompletedQuery;
 module.exports.deleteCatalogQuery = deleteCatalogQuery;

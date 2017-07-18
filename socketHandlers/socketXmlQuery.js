@@ -94,6 +94,12 @@ function initialiseSockets(generalMongoDAO, generalSocketGeneric,
     mongoDAO.getCatalogQueries(catalogQueriesFinished);
   });
 
+  socketInstance.on('serverRequestQueryResults', function (data) {
+    console.log("serverRequestQueryResults, requesting results for query " + data.queryTitle);
+    mongoDAO.getResultsForCatalogQuery(data.queryTitle, catalogQueryResultsFinished);
+  });
+
+
   socketInstance.on('serverRequestRunningQueries', function (data) {
     console.log("serverRequestRunningQueries, requesting running queries");
     mongoDAO.getRunningQueries(runningQueriesFinished);
@@ -171,6 +177,18 @@ function completedQueryTitlesFinished(err, titleList) {
 function catalogQueriesFinished(err, queryList) {
   if (err) return console.error("catalogQueriesFinished() ERROR retrieving Catalog queries " + err);
   socketConnection.emit('serverRequestCatalogQueriesFinished', { 'queryList': queryList });
+}
+
+/**
+ * When the database retrieves all results for a given query title
+ */
+function catalogQueryResultsFinished(err, queryTitle, resultList) {
+  if (err) return console.error("catalogQueryResultsFinished() ERROR retrieving Catalog queries " + err);
+  socketConnection.emit('serverRequestQueryResultsFinished',
+    {
+      'queryTitle': queryTitle,
+      'resultList': resultList
+    });
 }
 
 /**
