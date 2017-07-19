@@ -1,0 +1,97 @@
+/*leftMenu is the container for the hideLeftMenu icon and the leftMenuContent*/
+#leftMenu{
+ padding-top: 10px;
+}
+
+/*leftMenuContent has the "content" that will hide when hideLeftMenu  is clicked*/
+#leftMenuContent{
+  position:fixed;
+  width: auto;
+  overflow-y: auto;
+  padding-bottom: 30px;
+  background: white;
+  min-width: 370px;/*min width so is enver too small*/
+  height: 90%;
+}
+#leftMenu span.hideLeftMenu{
+  padding-top: 5px;
+  float:left;
+  cursor: pointer;
+  z-index:2;
+}
+
+#leftMenuContent .nav.nav-tabs:first-of-type{
+  padding-left: 30px;
+}
+
+h2 .glyphicon{
+  float: right;
+  margin-top: 6px;
+  cursor: pointer;
+}
+
+.resultItem{
+  padding-bottom: 10px;
+  padding-right: 10px;
+}
+.resultItem .glyphicon, .resultItem progress{
+  float: right;
+  padding: 0px;
+}
+
+
+/*Option menu to be shown when the user selects a row*/
+
+.queryOptionsMenu {
+  min-width: 170px;
+  background-color: white;
+  border:5px solid #aaaaaa;
+  border-radius: 16px;
+  padding: 7px;
+  position: absolute;
+  z-index: 101;
+}
+
+.queryOptionsMenu .glyphicon-remove {
+  float: right;
+}
+
+/*Add padding between elements, and after the glyphicon*/
+.queryOptionsMenu .queryOptionItem{
+  margin-bottom: 5px;
+}
+.queryOptionsMenu .queryOptionItem:last-child{
+  margin-bottom: 0px;
+}
+
+.queryOptionsMenu .glyphicon{
+  padding-right:4px;
+	cursor: pointer;
+
+}
+
+
+/*Arrow shape to the left, to point at the clicked row*/
+/*.queryResultOptions::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  margin-top: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent black transparent transparent;
+}
+*/
+
+/*Arrow shape to the top, to point at the clicked row*/
+.queryOptionsMenu::after {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 10px;
+  border-style: solid;
+  border-color: transparent transparent #aaaaaa transparent;
+}

@@ -1,3 +1,17 @@
+#queryResultListContainer span.closeResults{
+  cursor:pointer;
+}
+
+#queryResultListContainer .glyphicon{
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#infoMainPanel{
+  padding-left: 10px;
+}
+
+/**All this CSS is deprecated, from a version with a long list of buttons.**/
 /*The default colour behaviour of the buttons is set by bootstrap.
 In order to override it, the colour setting for all conditionas need to be overriden*/
 div.catalogList{

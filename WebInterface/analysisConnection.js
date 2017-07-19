@@ -1,6 +1,3 @@
-var testData;
-var testUrlIndexes;
-var testTransitions = {};
 
 /**
  * Requests the list of all available collections

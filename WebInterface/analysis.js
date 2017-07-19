@@ -128,7 +128,7 @@ function updateRunningQueries(queryList) {
 function updateLeftMenu() {
   //$("#analysisPanel").css("margin-left", $("#leftMenu").width() + 15);
   $("#analysisPanel").animate({
-    marginLeft: $("#leftMenu").width() + 30,
+    marginLeft: $("#leftMenuContent").width() + 30,
     opacity: 1
   }, 200);
   

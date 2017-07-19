@@ -1,6 +1,12 @@
 var queryCatalog = createqueryCatalogFunctions();
 
 /**
+ * Lists the fields from the database to be hidden from the user
+ * when listing the results
+ */
+const omitInfo = ["_id", "queryXML", "opeartionID", "datems"];
+
+/**
  * Variables to keep a copy of all retrieved queries
  */
 var globalQueryCatalogListIndex = [];
@@ -18,7 +24,12 @@ function createqueryCatalogFunctions() {
   queryCatalogObject.initialiseInterface = function () {
 
     genericFunctions.addTabHeader();
+    //  queryCatalogConnection.requestCatalogQueries();
+
+    //queryCatalogConnection.requestCompletedQueries();
     queryCatalogConnection.requestCatalogQueries();
+    queryCatalogConnection.requestRunningQueries();
+    queryCatalogLeftMenu.initPatternTab();
   }
 
 
@@ -26,7 +37,7 @@ function createqueryCatalogFunctions() {
    * Takes a list of catalog items and populates the interface with them
    * @param {Array} queryCatalogList 
    */
-  queryCatalogObject.updateCatalogQueries = function (queryCatalogList) {
+  queryCatalogObject.updateCatalogQueriesDEPRECATED = function (queryCatalogList) {
 
     queryCatalogObject.saveQueryCatalogList(queryCatalogList);
 
@@ -102,8 +113,9 @@ function createqueryCatalogFunctions() {
     $("h3.queryResultTitle", queryResultsItem)
       .text(queryTitle)
       .prepend($("<span>", { class: "glyphicon glyphicon-triangle-bottom toggleQueryResults" }))
+      .append($("<span>", { class: "glyphicon glyphicon-folder-close closeResults" }))
       .click(function () {
-        var spanObject = $("span", this);//keep the span to be modified in the toggle
+        var spanObject = $("span.toggleQueryResults", this);//keep the span to be modified in the toggle
         $(".queryInfoContainer", queryResultsItem).toggle(
           {
             duration: 0,
@@ -117,6 +129,12 @@ function createqueryCatalogFunctions() {
           });
       });
 
+    //Add closing results functionality
+    $("h3.queryResultTitle .closeResults", queryResultsItem).click(function () {
+      queryCatalog.removeCatalogQueryResults(queryTitle);
+    });
+
+
     //Fill the query catalog table from the global variables
     $(".queryCatalogTable .table", queryResultsItem).empty();
 
@@ -127,7 +145,7 @@ function createqueryCatalogFunctions() {
     var queryTableHeaderRow = $("<tr>");
     for (var property in queryCatalogInfo) {
       if (queryCatalogInfo.hasOwnProperty(property)) {
-        if (property != "_id")//exclude the db ID
+        if (omitInfo.indexOf(property) == -1)//exclude unwanted fields
           $(queryTableHeaderRow).append($("<th>", { text: property }))
       }
     }
@@ -144,7 +162,7 @@ function createqueryCatalogFunctions() {
     //Same as header, loop through object and create row content
     for (var property in queryCatalogInfo) {
       if (queryCatalogInfo.hasOwnProperty(property)) {
-        if (property != "_id")//exclude the db ID
+        if (omitInfo.indexOf(property) == -1)//exclude unwanted fields
           rowObject.append($("<th>", { text: queryCatalogInfo[property] }))
       }
     }
@@ -159,7 +177,7 @@ function createqueryCatalogFunctions() {
       //from https://stackoverflow.com/questions/8312459/iterate-through-object-properties
       for (var property in queryResultList[0]) {
         if (queryResultList[0].hasOwnProperty(property)) {
-          if (property != "_id")//exclude the db ID
+          if (omitInfo.indexOf(property) == -1)//exclude unwanted fields
             $(tableHeaderRow).append($("<th>", { text: property }))
         }
       }
@@ -180,7 +198,7 @@ function createqueryCatalogFunctions() {
         //Same as header, loop through object and create row content
         for (var property in resultObject) {
           if (resultObject.hasOwnProperty(property)) {
-            if (property != "_id")//exclude the db ID
+            if (omitInfo.indexOf(property) == -1)//exclude unwanted fields
               rowObject.append($("<th>", { text: resultObject[property] }))
           }
         }
