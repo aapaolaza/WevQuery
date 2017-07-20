@@ -21,7 +21,7 @@
 var constants;
 var mongoLog;
 
-function setConstants(mapReduceConstants,mongoLogConstants){
+function setConstants(mapReduceConstants, mongoLogConstants) {
   constants = mapReduceConstants;
   mongoLog = mongoLogConstants;
   initialiseDB();
@@ -33,7 +33,7 @@ const queryCollectionPrefix = "xmlQuery_";
 function initialiseDB() {
   constants.connectAndValidateNodeJs(function (err, db) {
     if (err) return console.error("initialiseDB() ERROR connecting to DB" + err);
-    db.collection(constants.xmlQueryResults).createIndex({ "title": 1 }, { unique: true });
+    db.collection(constants.xmlQueryResults).createIndex({ "resultTitle": 1 }, { unique: true });
     db.collection(constants.xmlQueryCatalog).createIndex({ "title": 1 }, { unique: true });
   });
 }
@@ -42,11 +42,12 @@ function initialiseDB() {
  * Initialise new query document
  * It adds a new document with the current date, the name of the query, and its possible opid
  */
-function addNewQueryDocument(queryTitle, queryData) {
+function addNewQueryDocument(queryTitle, resultTitle, isQueryStrict, xmlQuery) {
 
   console.log("addNewQueryDocument(): Adding the following document to the db");
   console.log(queryTitle);
-  console.log(queryData);
+  console.log(resultTitle);
+  console.log(xmlQuery);
 
   var opid = "";
   var timerunning = -1;
@@ -77,53 +78,55 @@ function addNewQueryDocument(queryTitle, queryData) {
           }
         }
       });
-      if (timerunning != -1) {
+      if (timerunning != -1)
         console.log("The last query to be executed was: " + opid + ", storing it to the database");
-
-        var document = {
-          title: queryTitle,
-          queryXML: queryData,
-          operationID: opid,
-          microsecs_running: timerunning,
-          datems: new Date().getTime(),
-          readableDate: new Date().toISOString(),
-          progress: traduceProgress(queryMessage),
-          finished: false
-        };
-        db.collection(constants.xmlQueryResults).insert(document, function (err, records) {
-          if (err) return console.error("insertNewDocument() ERROR INSERTING QUERY DOCUMENT " + err);
-          else console.log("new query document stored correctly");
-        });
-
-        document = {
-          title: queryTitle,
-          queryXML: queryData,
-          operationID: opid,
-          processtimems: -1,
-          datems: new Date().getTime(),
-          readableDate: new Date().toISOString()
-        };
-        db.collection(constants.xmlQueryCatalog).insert(document, function (err, records) {
-          if (err) return console.error("insertNewDocument() ERROR INSERTING QUERY Catalog DOCUMENT " + err);
-          else console.log("new Catalog document stored correctly");
-        });
-      }
       else
-        console.log("No query was found");
+        console.log("Could not find the last query to be executed, has it finished already?");
+
+      var document = {
+        title: queryTitle,
+        queryXML: xmlQuery,
+        resultTitle: resultTitle,
+        isStrictMode: isQueryStrict,
+        operationID: opid,
+        microsecs_running: timerunning,
+        datems: new Date().getTime(),
+        readableDate: new Date().toISOString(),
+        progress: traduceProgress(queryMessage),
+        finished: false
+      };
+      db.collection(constants.xmlQueryResults).insert(document, function (err, records) {
+        if (err) return console.error("addNewQueryDocument() ERROR INSERTING QUERY DOCUMENT " + err);
+        else console.log("addNewQueryDocument(): new result document stored correctly");
+      });
+
+      document = {
+        title: queryTitle,
+        queryXML: xmlQuery,
+        operationID: opid,
+        processtimems: -1,
+        datems: new Date().getTime(),
+        readableDate: new Date().toISOString()
+      };
+      db.collection(constants.xmlQueryCatalog).insert(document, function (err, records) {
+        if (err) return console.error("insertNewDocument() ERROR INSERTING QUERY Catalog DOCUMENT " + err);
+        else console.log("new Catalog document stored correctly");
+      });
     });
   });
 }
 
 /**
- * Given a query title, it checks if this title is usable, i.e. doesn't exist in the results db yet
+ * Given a query title, it checks if the title exists in results already
+ * i.e. doesn't exist in the results db yet
  */
-function isQueryTitleUnique(queryTitle, callback) {
+function isQueryTitleInResults(queryTitle, callback) {
 
   constants.connectAndValidateNodeJs(function (err, db) {
-    if (err) return console.error("isQueryTitleUnique() ERROR connecting to DB" + err);
-    console.log("isQueryTitleUnique() Successfully connected to DB");
+    if (err) return console.error("isQueryTitleInResults() ERROR connecting to DB" + err);
+    console.log("isQueryTitleInResults() Successfully connected to DB");
     db.collection(constants.xmlQueryResults).distinct("title", function (err, items) {
-      if (err) return console.error("isQueryTitleUnique() ERROR REQUESTING DISTINCT TITLES from " + constants.xmlQueryResults + err);
+      if (err) return console.error("isQueryTitleInResults() ERROR REQUESTING DISTINCT TITLES from " + constants.xmlQueryResults + err);
       if (items.indexOf(queryTitle) > -1) {
         //Query title is in use
         callback(null, false);
@@ -160,12 +163,13 @@ function isQueryTitleInCatalog(queryTitle, callback) {
 /**
  * Saves the given query title and data to the catalog
  */
-function saveQuery(queryTitle, queryData) {
+function saveQuery(queryTitle, queryDescription, queryData) {
 
   constants.connectAndValidateNodeJs(function (err, db) {
     if (err) return console.error("saveQuery() ERROR connecting to DB" + err);
     document = {
       title: queryTitle,
+      description: queryDescription,
       queryXML: queryData,
       operationID: "",
       processtimems: -1,
@@ -244,8 +248,9 @@ function updateQueryStatus(callback) {
  * Step 3: a progress is given and I can report it.
  */
 function traduceProgress(progressString) {
-  //Extraction is hardcoded to this particular kind of report.
-
+  //Extraction is hardcoded to this particular kind of report. Return empty if no message is provided
+  if (progressString=="")
+    return progressString;
   //retrieve step number
   var step = progressString.split("(")[1][0];
   if (step != 1) {
@@ -337,7 +342,6 @@ function getCompletedQueries(callback) {
 
 /**
  * Requests the list of all Catalog queries
- * callback rec
  */
 function getCatalogQueries(callback) {
   constants.connectAndValidateNodeJs(function (err, db) {
@@ -346,6 +350,41 @@ function getCatalogQueries(callback) {
 
     db.collection(constants.xmlQueryCatalog).find().toArray(function (err, queryCatalogList) {
       callback(null, queryCatalogList);
+    });
+  });
+}
+
+
+
+/**
+ * Given a query title, gets the information for that query
+ * 
+ */
+function getCatalogQueryInfo(queryTitle, callback) {
+  constants.connectAndValidateNodeJs(function (err, db) {
+    if (err) return console.error("getCatalogQueryInfo() ERROR connecting to DB" + err);
+    console.log("getCatalogQueryInfo() Successfully connected to DB");
+
+    db.collection(constants.xmlQueryCatalog).find({ "title": queryTitle }).toArray(function (err, queryCatalogInfo) {
+      if (queryCatalogInfo.length > 0)
+        callback(null, queryCatalogInfo[0]);
+      else
+        callback("getCatalogQueryInfo(): requested query doesn't exist in catalog:" + queryTitle, null);
+    });
+  });
+}
+
+/**
+ * Given a query Title, returns all the results associated with it
+ */
+
+function getResultsForCatalogQuery(queryTitle, callback){
+   constants.connectAndValidateNodeJs(function (err, db) {
+    if (err) return console.error("getResultsForCatalogQuery() ERROR connecting to DB" + err);
+    console.log("getResultsForCatalogQuery() Successfully connected to DB");
+    
+    db.collection(constants.xmlQueryResults).find({title:queryTitle}).toArray(function (err, queryResultList) {
+      callback(null, queryTitle, queryResultList);
     });
   });
 }
@@ -402,13 +441,15 @@ function deleteCatalogQuery(queryTitle, callback) {
 
 module.exports.setConstants = setConstants;
 module.exports.addNewQueryDocument = addNewQueryDocument;
-module.exports.isQueryTitleUnique = isQueryTitleUnique;
+module.exports.isQueryTitleInResults = isQueryTitleInResults;
 module.exports.isQueryTitleInCatalog = isQueryTitleInCatalog;
 module.exports.saveQuery = saveQuery;
 module.exports.updateQueryStatus = updateQueryStatus;
 module.exports.setQueryFinished = setQueryFinished;
 module.exports.getCompletedQueries = getCompletedQueries;
 module.exports.getCatalogQueries = getCatalogQueries;
+module.exports.getCatalogQueryInfo = getCatalogQueryInfo;
+module.exports.getResultsForCatalogQuery = getResultsForCatalogQuery;
 module.exports.getRunningQueries = getRunningQueries;
 module.exports.deleteCompletedQuery = deleteCompletedQuery;
 module.exports.deleteCatalogQuery = deleteCatalogQuery;

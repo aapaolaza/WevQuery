@@ -47,19 +47,21 @@ router.get('/catalog', function (req, res) {
 
 
 //For ucivitdb mock data, use the following rest query to test
-// /loadToKeydown/0aCVHH9zoBm5/?starttime=1454136343379&endtime=1456137344379&strictMode=false&fillEventInfo=false
-router.route("/:queryname/:userid/")
+// /loadToKeydown/?userid=0aCVHH9zoBm5&starttime=1454136343379&endtime=1456137344379&strictMode=false&fillEventInfo=false
+router.route("/:queryname/")
   .get(function (req, res) {
 
     var queryName = req.params.queryname;
     var userId = req.params.userid;
 
     var queryOptions = {};
-    queryOptions.userList = [userId];
 
     //Provides access to the parameters following the conventional ?name=value&name2=value2
-
     //If any of the following parameters is provided, store them as queryOptions
+
+    if (typeof req.query.userid !== 'undefined')
+      queryOptions.userList = [userId];
+
     if (typeof req.query.starttime !== 'undefined')
       queryOptions.startTimems = req.query.starttime.toString();
 
@@ -76,7 +78,7 @@ router.route("/:queryname/:userid/")
     var title = queryName + "_" + userId;
 
     //If any of the variables has not been defined, return an error
-    if (queryName && userId) {
+    if (queryName) {
       //Retrieve the information for that query
       mongoDAO.getCatalogQueryInfo(queryName, function (err, queryCatalogInfo) {
         if (queryCatalogInfo === null)
@@ -110,7 +112,7 @@ router.route("/:queryname/:userid/")
       });
     }
     else
-      res.json({ "error": true, "message": "featureRouter /rightClick/:userid/ is missing variables" });
+      res.json({ "error": true, "message": "wevqueryRouter /:queryname/ is missing variables" });
   })
 
 /**

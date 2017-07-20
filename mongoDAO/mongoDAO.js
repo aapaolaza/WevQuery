@@ -33,13 +33,15 @@ module.exports.deleteResultCollection = xmlToMongoDB.deleteResultCollection;
 module.exports.deleteTempResultCollection = xmlToMongoDB.deleteTempResultCollection;
 
 module.exports.addNewQueryDocument = queryDocument.addNewQueryDocument;
-module.exports.isQueryTitleUnique = queryDocument.isQueryTitleUnique;
+module.exports.isQueryTitleInResults = queryDocument.isQueryTitleInResults;
 module.exports.isQueryTitleInCatalog = queryDocument.isQueryTitleInCatalog;
 module.exports.saveQuery = queryDocument.saveQuery;
 module.exports.updateQueryStatus = queryDocument.updateQueryStatus;
 module.exports.setQueryFinished = queryDocument.setQueryFinished;
 module.exports.getCompletedQueries = queryDocument.getCompletedQueries;
 module.exports.getCatalogQueries = queryDocument.getCatalogQueries;
+module.exports.getCatalogQueryInfo = queryDocument.getCatalogQueryInfo;
+module.exports.getResultsForCatalogQuery = queryDocument.getResultsForCatalogQuery;
 module.exports.getRunningQueries = queryDocument.getRunningQueries;
 module.exports.deleteCompletedQuery = queryDocument.deleteCompletedQuery;
 module.exports.deleteCatalogQuery = queryDocument.deleteCatalogQuery;
