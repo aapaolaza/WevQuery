@@ -2,7 +2,13 @@
 ul.webpageTabs{
 
 }
-.pageheader img{
+
+/* Move down content because we have a fixed navbar that is 50px tall */
+body {
+  padding-top: 50px;
+}
+
+#pageheader img{
   float: left;
   height:40px;
 }

@@ -13,15 +13,22 @@
   min-width: 370px;/*min width so is enver too small*/
   height: 90%;
 }
+
 #leftMenu span.hideLeftMenu{
   padding-top: 5px;
   float:left;
   cursor: pointer;
   z-index:2;
+  padding-left:5px;
+
+  border-radius: 50%;
+  width: 30px;
+  height: 30px; 
+  background-color:#aaaaaa; 
 }
 
 #leftMenuContent .nav.nav-tabs:first-of-type{
-  padding-left: 30px;
+  padding-left: 35px;
 }
 
 h2 .glyphicon{
@@ -39,6 +46,24 @@ h2 .glyphicon{
   padding: 0px;
 }
 
+table.tablesorter thead tr .header {
+	cursor: pointer;
+}
+table.tablesorter thead tr .header:after{
+  padding-left: 2px;
+  content:"\e150";
+  font-family:"Glyphicons Halflings";
+}
+table.tablesorter thead tr .headerSortUp:after{
+  padding-left: 2px;
+  content:"\e156";
+  font-family:"Glyphicons Halflings";
+}
+table.tablesorter thead tr .headerSortDown:after{
+	padding-left: 2px;
+  content:"\e155";
+  font-family:"Glyphicons Halflings";
+}
 
 /*Option menu to be shown when the user selects a row*/
 

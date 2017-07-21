@@ -7,6 +7,11 @@
   padding-right: 5px;
 }
 
+/*Make the cell containing the query options larger, so both icons fit*/
+#queryResultListContainer th.resultOptions{
+  width:80px;
+}
+
 #infoMainPanel{
   padding-left: 10px;
 }

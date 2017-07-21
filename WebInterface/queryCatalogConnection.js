@@ -48,10 +48,10 @@ function createqueryCatalogConnectionFunctions() {
   /**
    * Requests the deletion of a results collections
    */
-  queryCatalogConnectionObject.requestQueryResultsDeletion = function (queryTitle) {
+  queryCatalogConnectionObject.requestQueryResultsDeletion = function (resultTitle) {
     console.log("Delete " + queryTitle + " results");
     socket.emit('serverDeleteResults', {
-      "queryTitle": queryTitle
+      "resultTitle": resultTitle
     });
   }
 

@@ -13,7 +13,6 @@
   <link href="./bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="./analysis.css">
   <link rel="stylesheet" href="./style.css">
-  <link rel="stylesheet" href="./dashboard.css">
   <link rel="stylesheet" href="./jquery-ui-1.12.1/jquery-ui.css">
   <script src="./jquery-ui-1.12.1/external/jquery/jquery.js"></script>
   <!-- WARNING!!! The order of the following two JavaScripts will affect the icons used in the interface (the last one will have priority)-->
@@ -62,417 +61,95 @@
   <script>
     $(function () {
 
-      //Hide and show the left menu, to give more space
-      $("span.hideLeftMenu", "#leftMenu").click(function () {
-        //Once the animation ends, it triggers the updateLeftMenu and changes icons
-        $("#leftMenuContent", "#leftMenu").toggle(
-          {
-            duration: "400",
-            easing: "swing",
-            start: updateLeftMenu,
-            complete: function () {
-              updateLeftMenu();
-              //Update the icon to reflect its functionality
-              if ($("#leftMenuContent", "#leftMenu").is(':visible'))
-                $("span.hideLeftMenu", "#leftMenu").removeClass("glyphicon-wrench").addClass("glyphicon-menu-hamburger");
-              else
-                $("span.hideLeftMenu", "#leftMenu").removeClass("glyphicon-menu-hamburger").addClass("glyphicon-wrench");
-            }
-          });
-      });
-
-
-      $("#updateQueryResults").click(function () {
-        console.log("Clicked on update queries");
-        requestCompletedQueries();
-      });
-
-      $("#updateQueryCatalog").click(function () {
-        console.log("Clicked on update Catalog");
-        requestCatalogQueries();
-      });
-
-      $("#updateQueryRunning").click(function () {
-        console.log("Clicked on update running");
-        requestRunningQueries();
-      });
-
-
-      $("#queryResultsTable").tablesorter({
-        headers: {
-          // number columns need to be declared so sorting works
-          2: { sorter: 'digit' }
-        }
-      }).bind("sortEnd", function (e, t) {
-        updateOptionsMenu();
-      });
-
-      $("#queryCatalogTable").tablesorter({
-        headers: {
-          // number columns need to be declared so sorting works (columns start at '0')
-          2: { sorter: 'digit' },
-          3: { sorter: 'digit' }
-        }
-      }).bind("sortEnd", function (e, t) {
-        updateOptionsMenu();
-      });
-
-
-      //To improve usability, left Menu options are toggabble
-      //Toggling the lists will immediately remove any highlighted rows
-      $("#toggleQueryResults").click(function () {
-        $("#queryResultsTable").fadeToggle({
-          duration: "400",
-          easing: "linear",
-          start: updateLeftMenu,
-          complete: updateLeftMenu
-        });
-        $("tr.active", "#queryResultsList").removeClass("active");
-        $("#queryResultsTitle").toggleClass("up");
-        $("#queryResultsTitle span").toggleClass("glyphicon-option-vertical");
-      });
-
-      $("#toggleQueryCatalog").click(function () {
-        $("#queryCatalogTable").fadeToggle({
-          duration: "400",
-          easing: "linear",
-          start: updateLeftMenu,
-          complete: updateLeftMenu
-        });
-        $("tr.active", "#queryCatalogList").removeClass("active");
-        $("#queryCatalogTitle").toggleClass("up");
-        $("#queryCatalogTitle span").toggleClass("glyphicon-option-vertical");
-      });
-
-      $("#toggleQueryRunning").click(function () {
-        $("#queryRunningList").fadeToggle({
-          duration: "400",
-          easing: "linear",
-          start: updateLeftMenu,
-          complete: updateLeftMenu
-        });
-        $("#queryRunningTitle").toggleClass("up");
-        $("#queryRunningTitle span").toggleClass("glyphicon-option-vertical");
-      });
-
-      //queryResultsOptions functionality
-
-      $("#closeResultsOptions", "#queryResultsOptions").click(function () {
-        $("tr.active", "#queryResultsList").removeClass("active");
-        $("#queryResultsOptions").hide();
-      });
-
-      $("#highLightResults", "#queryResultsOptions").click(function () {
-        $("tr.active", "#queryResultsList").toggleClass("alert-warning");
-      });
-
-      $("#loadResults", "#queryResultsOptions").click(function () {
-        // Add code to load the results to the analysis panel
-      });
-
-      $("#downloadResults", "#queryResultsOptions").click(function () {
-        // Add code to load the results to the analysis panel
-        downloadQueryResults(
-          $("tr.active", "#queryResultsList").attr("queryTitle"));
-      });
-
-      $("#deleteResults", "#queryResultsOptions").click(function () {
-        // Add code to delete the query from the DB
-        deleteQueryResults(
-          $("tr.active", "#queryResultsList").attr("queryTitle"));
-      });
-
-      /**
-       * queryCatalogOptions functionality
-       */
-      $("#closeCatalogOptions", "#queryCatalogOptions").click(function () {
-        $("tr.active", "#queryCatalogList").removeClass("active");
-        $("#queryCatalogOptions").hide();
-      });
-
-      $("#runCatalogQuery", "#queryCatalogOptions").click(function () {
-        runQueryCatalog("", false,
-          $("tr.active", "#queryCatalogList").attr("queryTitle"),
-          $("tr.active", "#queryCatalogList").attr("queryData"));
-      });
-      $("#runCatalogQueryStrict", "#queryCatalogOptions").click(function () {
-        // Add code to run the query
-        runQueryCatalog("", true,
-          $("tr.active", "#queryCatalogList").attr("queryTitle"),
-          $("tr.active", "#queryCatalogList").attr("queryData"));
-
-      });
-
-      $("#editCatalogQuery", "#queryCatalogOptions").click(function () {
-        // Add code to load the results to the analysis panel
-        editQueryCatalog($("tr.active", "#queryCatalogList")
-          .attr("queryData"));
-      });
-
-      $("#deleteCatalogQuery", "#queryCatalogOptions").click(function () {
-        deleteQueryCatalog(
-          $("tr.active", "#queryCatalogList").attr("queryTitle"));
-      });
-
-      //Left menu tab listeners
-      //Simple function to add reaction to the selection of a tab in the left menu
-      $('a[data-toggle="tab"]', '.leftMenuTabs').on('shown.bs.tab', function (e) {
-        //Updates the size of the left menu
-        updateLeftMenu();
-      });
-
-
       //Analysis panel listeners
       $("#updateTabGeneral").click(function () {
-        refreshGeneralOverview();
+        analysis.refreshStackedChart();
       });
       $("#updateTabTransitions").click(function () {
-        refreshSankey();
+        analysis.refreshSankey();
       });
       $("#updateSunburst").click(function () {
-        refreshSunburst();
+        analysis.refreshSunburst();
       });
 
-
-      updateLeftMenu();
-      initialiseInterface();
+      analysis.initialiseInterface();
 
     });
   </script>
 </head>
 
 <body>
-  <div class="container-fluid parentContainer">
+  <div class="container parentContainer">
     <div class="row">
-      <div id="leftMenu" class="sidebar">
-        <span class="hideLeftMenu glyphicon glyphicon-menu-hamburger" aria-hidden="true"></span>
-        <div id="leftMenuContent">
-          <!--This content will be minimised when clicked on hideLeftMenu-->
-          <ul class="nav nav-tabs leftMenuTabs">
-            <li class="active">
-              <a data-toggle="tab" href="#tabQueryManagement">Query management
-          <i id="queryManagement"></i>
-        </a>
-            </li>
-            <li>
-              <a data-toggle="tab" href="#tabPatternAnalysis">Pattern Analysis
-          <i id="patternAnalysis"></i>
-        </a>
-            </li>
-          </ul>
-
-
-          <div class="tab-content">
-
-            <div id="tabQueryManagement" class="tab-pane fade in active">
-
-              <h2 id="queryResultsTitle">Results
-                <span id="toggleQueryResults" class="glyphicon glyphicon-option-horizontal glyphicon-option-vertical" aria-hidden="true"></span>
-                <i id="updateQueryResults" class="glyphicon glyphicon-refresh"></i></h2>
-              <table id="queryResultsTable" class="table greyBox tablesorter">
-                <thead>
-                  <tr>
-                    <th>Title</th>
-                    <th>Date</th>
-                    <th class="{sorter: 'digit'}"># Objects</th>
-                  </tr>
-                </thead>
-                <tbody id="queryResultsList">
-                </tbody>
-              </table>
-
-              <h2 id="queryCatalogTitle">Query Catalog
-                <span id="toggleQueryCatalog" class="glyphicon glyphicon-option-horizontal glyphicon-option-vertical" aria-hidden="true"></span>
-                <i id="updateQueryCatalog" class="glyphicon glyphicon-refresh"></i></h2>
-              <table id="queryCatalogTable" class="table greyBox tablesorter">
-                <thead>
-                  <tr>
-                    <th>Title</th>
-                    <th>Date</th>
-                    <th class="{sorter: 'digit'}">Time</th>
-                    <th class="{sorter: 'digit'}"># Objects</th>
-                  </tr>
-                </thead>
-                <tbody id="queryCatalogList">
-                </tbody>
-              </table>
-
-              <h2 id="queryRunningTitle">Query progress
-                <span id="toggleQueryRunning" class="glyphicon glyphicon-option-horizontal glyphicon-option-vertical" aria-hidden="true"></span>
-                <i id="updateQueryRunning" class="glyphicon glyphicon-refresh"></i></h2>
-              <div id="queryRunningList" class="greyBox"></div>
-
-            </div>
-
-            <div id="tabPatternAnalysis" class="tab-pane fade">
-              <h2 id="Pattern Matching">Pattern Matching</h2>
-              <p> Select inputs for the pattern matching algorithm</p>
-              <fieldset>
-                <div class="form-group">
-                  <label class="col-lg-3 control-label">Results</label>
-                  <div class="col-lg-9">
-                    <select name="resultList" id="resultMultiSelector" multiple="multiple">
-              </select>
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label class="col-lg-3 control-label">Algorithm</label>
-                  <div class="col-lg-9">
-                    <select class="form-control">
-              <option value="one">Sequence mining</option>
-              <option value="two">Patterns</option>
-              <option value="three">Three</option>
-              <option value="four">Four</option>
-              <option value="five">Five</option>
-            </select>
-                  </div>
-                </div>
-
-              </fieldset>
-            </div>
-          </div>
-
-
-          <!-- IMPORTANT: These options need to be inside "leftMenu" so the overflow don't affect them.-->
-          <div id="queryResultsOptions" class="queryOptionsMenu" style='display:none'>
-            <span id="closeResultsOptions" class="glyphicon glyphicon-remove" aria-hidden="true" aria-label="close options menu"></span>
-
-            <div class="queryOptionItem">
-              <span id="highLightResults" class="glyphicon glyphicon-flag" aria-hidden="true"></span> Highlight
-            </div>
-
-            <div class="queryOptionItem">
-              <span id="loadResults" class="glyphicon glyphicon-folder-open" aria-hidden="true"></span> Load Results
-            </div>
-            <div class="queryOptionItem">
-              <span id="downloadResults" class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Download Results
-            </div>
-            <div class="queryOptionItem">
-              <span id="deleteResults" class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete Results
-            </div>
-          </div>
-
-          <div id="queryCatalogOptions" class="queryOptionsMenu" style='display:none'>
-            <span id="closeCatalogOptions" class="glyphicon glyphicon-remove" aria-hidden="true" aria-label="close options menu"></span>
-
-            <div class="queryOptionItem">
-              <span id="runCatalogQuery" class="glyphicon glyphicon-play" aria-hidden="true"></span> Run Query
-            </div>
-            <div class="queryOptionItem">
-              <span id="runCatalogQueryStrict" class="glyphicon glyphicon-step-forward" aria-hidden="true"></span> Run <i>Strict</i>              Query
-            </div>
-
-            <div class="queryOptionItem">
-              <span id="editCatalogQuery" class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Use Query as template
-            </div>
-            <div class="queryOptionItem">
-              <span id="deleteCatalogQuery" class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete Query from
-              Catalog
-            </div>
-          </div>
-        </div>
-      </div>
-      <!--End of leftMenu container-->
-
-      <div id="analysisPanel" class="main">
-        <h2>Analysis panel</h2>
-        <ul class="nav nav-tabs">
-          <li class="active">
-            <a data-toggle="tab" href="#tabGeneral">General View
+      <h2>Analysis panel</h2>
+      <ul class="nav nav-tabs">
+        <li class="active">
+          <a data-toggle="tab" href="#tabGeneral">General View
           <i id="updateTabGeneral" class="glyphicon glyphicon-refresh"></i>
         </a>
-          </li>
-          <li>
-            <a data-toggle="tab" href="#tabTransitions">Transition View
+        </li>
+        <li>
+          <a data-toggle="tab" href="#tabTransitions">Transition View
           <i id="updateTabTransitions" class="glyphicon glyphicon-refresh"></i>
         </a>
-          </li>
-          <li>
-            <a data-toggle="tab" href="#tabSunburst">Sunburst View
+        </li>
+        <li>
+          <a data-toggle="tab" href="#tabSunburst">Sunburst View
           <i id="updateSunburst" class="glyphicon glyphicon-refresh"></i>
         </a>
-          </li>
-          <li><a data-toggle="tab" href="#tabDescrStat">Descriptive statistics</a></li>
-          <li><a data-toggle="tab" href="#tabTemp">Temporal description</a></li>
-        </ul>
+        </li>
+        <li><a data-toggle="tab" href="#tabDescrStat">Descriptive statistics</a></li>
+        <li><a data-toggle="tab" href="#tabTemp">Temporal description</a></li>
+      </ul>
 
 
-        <div class="tab-content">
+      <div class="tab-content">
 
-          <div id="tabGeneral" class="tab-pane fade in active">
-            <h3> Number of occurrences of each sequence per URL</h3>
-            <div id="generalGraphLoadingSpin">
-              <p class="spinnerMessage">Loading general graph</p>
-            </div>
-            <svg id="generalGraph" width="960" height="500"></svg>
-
+        <div id="tabGeneral" class="tab-pane fade in active">
+          <h3> Number of occurrences of each sequence per URL</h3>
+          <div id="generalGraphLoadingSpin">
+            <p class="spinnerMessage">Loading general graph</p>
           </div>
+          <svg id="generalGraph" width="960" height="500"></svg>
 
-          <div id="tabTransitions" class="tab-pane fade">
-            <h3> Sankey diagram detailing the transitions between events for all sequences</h3>
-            <div id="sankeyGraphLoadingSpin">
-              <p class="spinnerMessage">Loading transitions</p>
-            </div>
-            <div id="sankeyGraph"></div>
-            <!--<div id="sankey-chart-simple" class="nvd3"></div>
+        </div>
+
+        <div id="tabTransitions" class="tab-pane fade">
+          <h3> Sankey diagram detailing the transitions between events for all sequences</h3>
+          <div id="sankeyGraphLoadingSpin">
+            <p class="spinnerMessage">Loading transitions</p>
+          </div>
+          <div id="sankeyGraph"></div>
+          <!--<div id="sankey-chart-simple" class="nvd3"></div>
         <div id="sankey-chart-advanced" class="nvd3"></div>-->
+        </div>
+        <div id="tabSunburst" class="tab-pane fade">
+          <div id="sequenceCountGraphLoadingSpin">
+            <p class="spinnerMessage">Loading sunburst graph</p>
           </div>
-          <div id="tabSunburst" class="tab-pane fade">
-            <div id="sequenceCountGraphLoadingSpin">
-              <p class="spinnerMessage">Loading sunburst graph</p>
-            </div>
-            <div id="sequenceCountGraph">
-              <div id="sunburstSequence"></div>
-              <div id="sunburstChart">
-                <div id="sunburstExplanation" style="visibility: hidden;">
-                  <span id="sunburstPercentage"></span><br/> of sequences begin with this subsequence
-                </div>
+          <div id="sequenceCountGraph">
+            <div id="sunburstSequence"></div>
+            <div id="sunburstChart">
+              <div id="sunburstExplanation" style="visibility: hidden;">
+                <span id="sunburstPercentage"></span><br/> of sequences begin with this subsequence
               </div>
             </div>
-            <div id="sunburstSidebar">
-              <input type="checkbox" id="sunburstTogglelegend"> Legend<br/>
-              <div id="sunburstLegend" style="visibility: hidden;"></div>
-            </div>
           </div>
-
-          <div id="tabDescrStat" class="tab-pane fade">
-            <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-          </div>
-          <div id="tabTemp" class="tab-pane fade">
-            <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.</p>
+          <div id="sunburstSidebar">
+            <input type="checkbox" id="sunburstTogglelegend"> Legend<br/>
+            <div id="sunburstLegend" style="visibility: hidden;"></div>
           </div>
         </div>
+
+        <div id="tabDescrStat" class="tab-pane fade">
+          <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+        </div>
+        <div id="tabTemp" class="tab-pane fade">
+          <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.</p>
+        </div>
       </div>
-
-      <div id="dialog-confirm" title="Empty the recycle bin?" style='display:none'>
-        <p><span class="glyphicon glyphicon-alert" style="float:left; margin:12px 12px 20px 0;"></span>These items will be permanently
-          deleted and cannot be recovered. Are you sure?</p>
-      </div>
-
-      <!-- TEMPLATES FOR THE CREATION OF WEB PAGE ELEMENTS -->
-      <table style='display:none'>
-        <tr id="queryResultItemTemplate" class="queryResultItem" style='display:none' queryTitle="">
-          <td class="title">NA</td>
-          <td class="date">NA</td>
-          <td class="numberOfObjects">NA</td>
-        </tr>
-
-
-        <tr id="queryCatalogItemTemplate" class="queryCatalogItem" style='display:none' queryTitle="" queryData="">
-          <td class="title">NA</td>
-          <td class="date">NA</td>
-          <td class="processTime">NA</td>
-          <td class="numberOfObjects">NA</td>
-        </tr>
-      </table>
-
-
-      <div id="queryRunningItemTemplate" class="queryRunningItem" style='display:none'>
-        <b class="title"></b>
-        <b class="step">-1</b>
-        <progress value="22" max="100" />
-      </div>
-
+    </div>
+  </div>
 </body>
 
 </html>

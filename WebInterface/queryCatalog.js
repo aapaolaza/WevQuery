@@ -1,21 +1,22 @@
 var queryCatalog = createqueryCatalogFunctions();
 
-/**
- * Lists the fields from the database to be hidden from the user
- * when listing the results
- */
-const omitInfo = ["_id", "queryXML", "opeartionID", "datems"];
-
-/**
- * Variables to keep a copy of all retrieved queries
- */
-var globalQueryCatalogListIndex = [];
-var globalQueryCatalogList = [];
-
 
 function createqueryCatalogFunctions() {
 
   var queryCatalogObject = {};
+
+  /**
+   * Lists the fields from the database to be hidden from the user
+   * when listing the results
+   */
+  queryCatalogObject.omitInfo = ["_id", "queryXML", "opeartionID", "datems"];
+
+  /**
+   * Variables to keep a copy of all retrieved queries
+   */
+  queryCatalogObject.globalQueryCatalogListIndex = [];
+  queryCatalogObject.globalQueryCatalogList = [];
+
 
   /**
    * Called when the page is loaded. Runs all the initialisation functions
@@ -23,7 +24,7 @@ function createqueryCatalogFunctions() {
    */
   queryCatalogObject.initialiseInterface = function () {
 
-    genericFunctions.addTabHeader();
+    genericFunctions.initTabHeader();
     //  queryCatalogConnection.requestCatalogQueries();
 
     //queryCatalogConnection.requestCompletedQueries();
@@ -81,15 +82,15 @@ function createqueryCatalogFunctions() {
    */
   queryCatalogObject.saveQueryCatalogList = function (queryCatalogList) {
     queryCatalogList.forEach(function (queryObject, index) {
-      globalQueryCatalogListIndex.push(queryObject.title);
-      globalQueryCatalogList.push(queryObject);
+      queryCatalog.globalQueryCatalogListIndex.push(queryObject.title);
+      queryCatalog.globalQueryCatalogList.push(queryObject);
     });
   }
   /**
    * Given a query catalog title, retrieves the information from the global variable
    */
   queryCatalogObject.getQueryCatalogInfo = function (queryTitle) {
-    return (globalQueryCatalogList[globalQueryCatalogListIndex.indexOf(queryTitle)]);
+    return (queryCatalog.globalQueryCatalogList[queryCatalog.globalQueryCatalogListIndex.indexOf(queryTitle)]);
   }
 
   /**
@@ -99,6 +100,12 @@ function createqueryCatalogFunctions() {
   */
   queryCatalogObject.addCatalogQueryResults = function (queryTitle, queryResultList) {
 
+    //If the element has been opened already, show a message to the user, and make it blink
+    if ($("div#" + queryTitle, "#queryResultListContainer").length > 0) {
+      $("div#" + queryTitle, "#queryResultListContainer").delay(100).fadeOut().fadeIn('slow');
+      genericFunctions.showToast("The results for that query has already been shown");
+      return;
+    }
     //Clone a new query Results item and fill it
     //If we add catalog categories, these can be used as headers, and various lists can be shown.
 
@@ -145,7 +152,7 @@ function createqueryCatalogFunctions() {
     var queryTableHeaderRow = $("<tr>");
     for (var property in queryCatalogInfo) {
       if (queryCatalogInfo.hasOwnProperty(property)) {
-        if (omitInfo.indexOf(property) == -1)//exclude unwanted fields
+        if (queryCatalog.omitInfo.indexOf(property) == -1)//exclude unwanted fields
           $(queryTableHeaderRow).append($("<th>", { text: property }))
       }
     }
@@ -162,7 +169,7 @@ function createqueryCatalogFunctions() {
     //Same as header, loop through object and create row content
     for (var property in queryCatalogInfo) {
       if (queryCatalogInfo.hasOwnProperty(property)) {
-        if (omitInfo.indexOf(property) == -1)//exclude unwanted fields
+        if (queryCatalog.omitInfo.indexOf(property) == -1)//exclude unwanted fields
           rowObject.append($("<th>", { text: queryCatalogInfo[property] }))
       }
     }
@@ -174,10 +181,13 @@ function createqueryCatalogFunctions() {
       //Feed the table header with the list of items from the first result
       var tableHeaderRow = $("<tr>");
 
+      //Add a first column to contain the "see results" icon
+      $(tableHeaderRow).append($("<th>", { text: "" }));
+
       //from https://stackoverflow.com/questions/8312459/iterate-through-object-properties
       for (var property in queryResultList[0]) {
         if (queryResultList[0].hasOwnProperty(property)) {
-          if (omitInfo.indexOf(property) == -1)//exclude unwanted fields
+          if (queryCatalog.omitInfo.indexOf(property) == -1)//exclude unwanted fields
             $(tableHeaderRow).append($("<th>", { text: property }))
         }
       }
@@ -195,10 +205,35 @@ function createqueryCatalogFunctions() {
         var rowObject = $("<tr>");
         tableBody.append(rowObject);
 
+        //Add the various interaction icons as the first column
+        rowObject.append($("<th>", { class: "resultOptions" })
+          .append($("<span>", { class: "glyphicon glyphicon-screenshot" })
+            .click(function () {
+              //When the icon is clicked, create a new tab and load the results there/
+              //the list of current result tabs is stored in a cookie
+              var resultTabList = JSON.parse(
+                genericFunctions.getCookie(genericFunctions.resultTabCookie));
+              if (resultTabList.indexOf(resultObject.resultTitle) == -1) {
+                //Open new tab with results and save to cookie.
+
+
+                genericFunctions.setCookie(genericFunctions.resultTabCookie,
+                  JSON.stringify(resultTabList.push(resultObject.resultTitle)));
+              }
+
+            })
+          )
+          .append($("<span>", { class: "glyphicon glyphicon-trash" })
+            .click(function () {
+              deleteQueryResults(resultObject.resultTitle);
+            })
+          )
+        );
+
         //Same as header, loop through object and create row content
         for (var property in resultObject) {
           if (resultObject.hasOwnProperty(property)) {
-            if (omitInfo.indexOf(property) == -1)//exclude unwanted fields
+            if (queryCatalog.omitInfo.indexOf(property) == -1)//exclude unwanted fields
               rowObject.append($("<th>", { text: resultObject[property] }))
           }
         }

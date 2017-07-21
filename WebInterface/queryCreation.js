@@ -6,8 +6,7 @@ var xmlSchemaPath = '../schema.xsd'
  */
 function initialiseInterface() {
 
-  genericFunctions.addTabHeader();
-
+  genericFunctions.initTabHeader();
 
   if (genericFunctions.getCookie("queryXMLData") !== "")
     importXML(genericFunctions.getCookie("queryXMLData"));

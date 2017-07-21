@@ -161,10 +161,10 @@ function getXmlQueryDataByCollection(queryCollName, callback) {
 /**
  * Deletes the collection with the data for the given query title
  */
-function deleteResultCollection(queryTitle, callback) {
+function deleteResultCollection(resultTitle, callback) {
   constants.connectAndValidateNodeJs(function (err, db) {
     if (err) return console.error("deleteResultCollection() ERROR connecting to DB" + err);
-    db.collection(queryCollectionPrefix + queryTitle).drop(function (err, result) {
+    db.collection(queryCollectionPrefix + resultTitle).drop(function (err, result) {
       if (err) {
         console.log(err);
       }
@@ -236,13 +236,14 @@ function deleteAllTempResultCollections() {
 
 /**
  * Runs the provided xmlQuery. Accessible from the WevQueryServer
- * @param {string} title of the query, the results will be stored in a collection of the same name
+ * @param {string} title of the query
+ * @param {string} name for the results of the query
  * @param {string} xmlQuery string containing the xml query to run
  * @param {object} queryOptions various options to be applied to the query.
  * @param {runXmlQueryCallback} callback to call when completed
  * @param {afterQueryStarts} callback to call as soon as the query has been succesfully started
  */
-function runXmlQuery(title, xmlQuery, queryOptions, endCallback, launchedCallback) {
+function runXmlQuery(queryTitle, resultTitle, xmlQuery, queryOptions, endCallback, launchedCallback) {
 
   //I am not sure if this assignment is necessary. Can I just pass "undefined" variables over?
   //The test for the validity of the callback will be done before calling it
@@ -253,8 +254,8 @@ function runXmlQuery(title, xmlQuery, queryOptions, endCallback, launchedCallbac
   var mapReduceVars = {};
   mapReduceVars.eventList = "";
   mapReduceVars.db = "";
-  mapReduceVars.title = title;
-  mapReduceVars.dbTitle = queryCollectionPrefix + title;
+  mapReduceVars.title = queryTitle;
+  mapReduceVars.dbTitle = queryCollectionPrefix + resultTitle;
   mapReduceVars.isTemp = false;
 
   //parse the options object

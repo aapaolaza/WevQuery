@@ -378,7 +378,7 @@ function createQueryCatalogLeftMenuFunctions() {
   /**
    * Deletes the selected query from the results
    */
-  queryCatalogLeftMenuObject.deleteQueryResults = function (queryTitle) {
+  queryCatalogLeftMenuObject.deleteQueryResults = function (resultTitle) {
     $("p", "#dialog-confirm").text("To retrieve these results you will have to run the query again.");
 
     var confirmDialog = $("#dialog-confirm").dialog({

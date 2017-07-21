@@ -12,10 +12,10 @@ var mapReduceConstants = require("./MapReduceConstantsNode.js");
 var mongoLogConstants = require("./mongoLog.js");
 
 mongoLogConstants.setConstants(mapReduceConstants);
-xmlToMongoDB.setConstants(mapReduceConstants,mongoLogConstants);
-queryDocument.setConstants(mapReduceConstants,mongoLogConstants);
-analyseData.setConstants(mapReduceConstants,mongoLogConstants,this);
-databaseInfo.setConstants(mapReduceConstants,mongoLogConstants,this);
+xmlToMongoDB.setConstants(mapReduceConstants, mongoLogConstants);
+queryDocument.setConstants(mapReduceConstants, mongoLogConstants);
+analyseData.setConstants(mapReduceConstants, mongoLogConstants, this);
+databaseInfo.setConstants(mapReduceConstants, mongoLogConstants, this);
 
 module.exports.requestDBname = databaseInfo.requestDBname;
 module.exports.requestDBCollections = databaseInfo.requestDBCollections;
@@ -46,8 +46,12 @@ module.exports.getRunningQueries = queryDocument.getRunningQueries;
 module.exports.deleteCompletedQuery = queryDocument.deleteCompletedQuery;
 module.exports.deleteCatalogQuery = queryDocument.deleteCatalogQuery;
 
-module.exports.stackedChart = analyseData.stackedChart;
-module.exports.getEventSequences = analyseData.getEventSequences;
-module.exports.getAllEventTransitions = analyseData.getAllEventTransitions;
+module.exports.setConstants = analyseData.setConstants;
+module.exports.getStackedChartDataAll = analyseData.getStackedChartDataAll;
+module.exports.getStackedChartDataForResult = analyseData.getStackedChartDataForResult;
+module.exports.getSunburstDataAll = analyseData.getSunburstDataAll;
+module.exports.getSunburstDataForResult = analyseData.getSunburstDataForResult;
+module.exports.getSankeyDataAll = analyseData.getSankeyDataAll;
+module.exports.getSankeyDataForResult = analyseData.getSankeyDataForResult;
 
 module.exports.closeConnection = mapReduceConstants.closeConnection;

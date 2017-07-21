@@ -1,3 +1,7 @@
+
+
+
+
 var genericFunctions = createGenericFunctions();
 
 //startup functions when jQuery is loaded
@@ -10,15 +14,22 @@ function createGenericFunctions() {
 
   var genericFunctionsObject = {};
 
+  genericFunctionsObject.resultTabCookie = "resultTabs";
+
+  genericFunctionsObject.initTabHeader = function () {
+    genericFunctions.addTabHeader();
+    genericFunctions.addResultTabs();
+    genericFunctions.updateActiveTab();
+
+  }
+
   /**
    * Adds the tab header to the page, under the "body" tag
    */
   genericFunctionsObject.addTabHeader = function () {
-    //Get current URL (only the webpage filename)
-    var url = window.location.pathname.split("/")[window.location.pathname.split("/").length - 1];
 
     //navbar options: fixed (navbar-fixed-top), static (navbar-static-top), default (leave only default class)
-    var $rootNavBar = $("<nav>", { class: "navbar navbar-default navbar-fixed-top pageheader" });
+    var $rootNavBar = $("<nav>", { class: "navbar navbar-default navbar-fixed-top", id: "pageheader" });
 
     //inner container for the tab bar, can be container-fluid
     var $tabBarContainer = $("<div>", { class: "container" });
@@ -36,40 +47,21 @@ function createGenericFunctions() {
     var $navigationTabBar = $("<div>", { class: "navbar-collapse collapse" });
     $tabBarContainer.append($navigationTabBar);
 
-    var $navTabList = $("<ul>", { class: "nav navbar-nav" });
+    var $navTabList = $("<ul>", { class: "nav navbar-nav", id: "tabPages" });
     $navigationTabBar.append($navTabList);
 
-    var $queryCreationTab = $("<li>");
+    var $queryCreationTab = $("<li>", { class: "queryCreation" });
     $queryCreationTab.append($("<a>", { href: "./queryCreation.html" }).text("Query Creation"));
     $navTabList.append($queryCreationTab);
 
-    var $catalogTab = $("<li>");
+    var $catalogTab = $("<li>", { class: "queryCatalog" });
     $catalogTab.append($("<a>", { href: "./queryCatalog.html" }).text("Query Catalog"));
     $navTabList.append($catalogTab);
 
-    var $resultsTab = $("<li>");
+    var $resultsTab = $("<li>", { class: "analysis" });
     $resultsTab.append($("<a>", { href: "./analysis.html" }).text("Results"));
     $navTabList.append($resultsTab);
 
-    switch (url) {
-      case "queryCreation.html":
-        $queryCreationTab.addClass("active");
-        $("<a>", $queryCreationTab).attr("aria-expanded", "true");
-        break;
-
-      case "queryCatalog.html":
-        $catalogTab.addClass("active");
-        $("<a>", $catalogTab).attr("aria-expanded", "true");
-        break;
-
-      case "analysis.html":
-        $resultsTab.addClass("active");
-        $("<a>", $resultsTab).attr("aria-expanded", "true");
-        break;
-
-      default:
-        break;
-    }
 
     /**
      * Set of tabs appearing to the right. I will use them for notifications and messages.
@@ -90,6 +82,93 @@ function createGenericFunctions() {
     $("body").prepend($rootNavBar);
   }
 
+  /**
+   * Checks the available result tabs from the cookies, and creates the corresponding tabs
+   * where the appropriate results will be stored
+   */
+  genericFunctionsObject.addResultTabs = function () {
+    var resultTabList = genericFunctions.getActiveResults();
+
+    /*TEST */
+    resultTabList = ["eics_case1_10s", "Q1"];
+    resultTabList.forEach(function (resultName) {
+      var $genericResultTab = $("<li>", { class: "analysis " + resultName });
+      $genericResultTab.append($("<a>", { href: "./analysis.html?" + resultName }).text(resultName));
+      $("ul#tabPages").append($genericResultTab);
+    });
+  }
+
+  /**
+   * Once the tab header has been built, it updates the currently active tab
+   */
+  genericFunctionsObject.updateActiveTab = function () {
+
+
+    //Get current URL (only the webpage filename)
+    var url = window.location.pathname.split("/")[window.location.pathname.split("/").length - 1];
+
+    switch (url) {
+      case "queryCreation.html":
+        $("li.queryCreation", "ul#tabPages").addClass("active");
+        $("li.queryCreation", "ul#tabPages").find("a").attr("aria-expanded", "true");
+        break;
+
+      case "queryCatalog.html":
+        $("li.queryCatalog", "ul#tabPages").addClass("active");
+        $("li.queryCatalog", "ul#tabPages").find("a").attr("aria-expanded", "true");
+        break;
+
+      //In the particular case of "analysis", the result being analysed needs to be determined
+      case "analysis.html":
+        //The result is stored in the hash of the link
+        var activeResultTitle = genericFunctions.getActiveResults();
+        if (activeResultTitle != "") {
+          $("li.analysis." + activeResultTitle, "ul#tabPages").addClass("active");
+          $("li.analysis." + activeResultTitle, "ul#tabPages").find("a").attr("aria-expanded", "true");
+        }
+        else {
+          $("li.analysis", "ul#tabPages").addClass("active");
+          $("li.analysis", "ul#tabPages").find("a").attr("aria-expanded", "true");
+        }
+        break;
+
+      default:
+        break;
+    }
+
+  }
+
+  /**
+   * Helper function to retrieve the active results to be shown
+   */
+  genericFunctionsObject.getActiveResults = function () {
+    if (window.location.search.split("?")[1])
+      return (window.location.search.split("?")[1]);
+    else
+      return "";
+  }
+
+  /**
+   * Helper function to add another active result to be shown
+   */
+  genericFunctionsObject.addActiveResult = function (resultTitle) {
+    var resultTabList = JSON.parse(genericFunctions.getCookie(genericFunctions.resultTabCookie));
+    resultTabList.push(resultTitle);
+
+    genericFunctions.setCookie(genericFunctions.resultTabCookie,
+      JSON.stringify(resultTabList));
+  }
+
+  /**
+   * Helper function to remove an active result to be shown
+   */
+  genericFunctionsObject.removeActiveResult = function (resultTitle) {
+    var resultTabList = JSON.parse(genericFunctions.getCookie(genericFunctions.resultTabCookie));
+    resultTabList.splice(resultTitle, 1);
+
+    genericFunctions.setCookie(genericFunctions.resultTabCookie,
+      JSON.stringify(resultTabList));
+  }
 
   /**
    * Cookie setting helper

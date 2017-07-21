@@ -8,7 +8,7 @@ var fs = require('fs');
 
 
 function initialiseSockets(generalMongoDAO, generalSocketGeneric,
-  generalSocketConnection, generalSocketInstance,resultsFolderName) {
+  generalSocketConnection, generalSocketInstance, resultsFolderName) {
 
   mongoDAO = generalMongoDAO;
   socketConnection = generalSocketConnection;
@@ -16,19 +16,41 @@ function initialiseSockets(generalMongoDAO, generalSocketGeneric,
   socketInstance = generalSocketInstance;
   resultsFolder = resultsFolderName;
 
-  socketInstance.on('serverAnalyseGeneralOverview', function (data) {
-    console.log("serverAnalyseGeneralOverview, requesting general information of all results");
-    analyseQueryData();
+  socketInstance.on('serverRequestStackedChartData', function (data) {
+    if (data.resultTitle == "") {
+      console.log("serverRequestStackedChartData, requesting stacked chart data for all results");
+      mongoDAO.getStackedChartDataAll(stackedChartDataReady);
+    }
+    else {
+      console.log("serverRequestStackedChartData, requesting stacked chart data for " + data.resultTitle);
+      mongoDAO.getStackedChartDataForResult(data.resultTitle, stackedChartDataReady);
+    }
   });
 
-  socketInstance.on('serverEventSequences', function (data) {
-    console.log("serverEventSequences, requesting count for all event sequences");
-    getEventSeqCount();
+  socketInstance.on('serverRequestSunburstData', function (data) {
+    console.log("serverRequestSunburstData, requesting count for all event sequences");
+    if (data.resultTitle == "") {
+      console.log("serverRequestSunburstData, requesting Event Sequences for all results");
+      mongoDAO.getSunburstDataAll(sunburstDataReady);
+    }
+    else {
+      console.log("serverRequestSunburstData, requesting Event Sequences for "
+        + data.resultTitle);
+      mongoDAO.getSunburstDataForResult(data.resultTitle, sunburstDataReady);
+    }
   });
 
-  socketInstance.on('serverAllEventTransitions', function (data) {
-    console.log("serverAllEventTransitions, requesting transitions for all event sequences");
-    getAllEventTransitions();
+  socketInstance.on('serverRequestSankeyData', function (data) {
+    console.log("serverRequestSankeyData, requesting transitions for all event sequences");
+    if (data.resultTitle == "") {
+      console.log("serverRequestSankeyData, requesting Event transitions for all results");
+      mongoDAO.getSankeyDataAll(sankeyDataReady);
+    }
+    else {
+      console.log("serverRequestSankeyData, requesting Event transitions for "
+        + data.resultTitle);
+      mongoDAO.getSankeyDataForResult(data.resultTitle, sankeyDataReady);
+    }
   });
 
   socketInstance.on('serverRequestQueryData', function (data) {
@@ -71,56 +93,34 @@ function storeQueryJson(queryTitle, callback) {
   });
 }
 
-/**
- * Analyse the query and create some analysis data
- * TODO: uses the data from the results folder to run analysis
- */
 
-function analyseQueryData() {
-  //I can use https://plot.ly/nodejs/ to create nice graphs
-  mongoDAO.stackedChart(analyseQueryDataReady);
-}
-
-function analyseQueryDataReady(err, allCollectionsList, uniqueUrls) {
+function stackedChartDataReady(err, allCollectionsList, uniqueUrls) {
   if (err) {
-    socketGeneric.sendMessageToUser(socketInstance.id, "analyseQueryDataReady ERROR" + err, true, socketConnection);
-    console.error("analyseQueryDataReady() ERROR retrieving data" + err);
+    socketGeneric.sendMessageToUser(socketInstance.id, "stackedChartDataReady ERROR" + err, true, socketConnection);
+    console.error("stackedChartDataReady() ERROR retrieving data" + err);
   }
-  socketConnection.emit('analyseGeneralOverviewProcessed', {
+  console.log("send clientSendStackedChartData");
+  socketConnection.emit('clientSendStackedChartData', {
     'generalOverviewData': allCollectionsList,
     'urlIndexes': uniqueUrls
   });
 }
 
-/**
- * Request the count for all event sequences
- */
-function getEventSeqCount() {
-  mongoDAO.getEventSequences(getEventSeqCountReady);
-}
-
-function getEventSeqCountReady(err, sequenceList, eventNameList) {
-  if (err) return console.error("getEventSeqCountReady() ERROR retrieving data" + err);
-  console.log("getEventSeqCountReady() Received the sequences count, responding client");
-  socketConnection.emit('eventSequenceCountProcessed', {
+function sunburstDataReady(err, sequenceList, eventNameList) {
+  if (err) return console.error("sunburstDataReady() ERROR retrieving data" + err);
+  console.log("sunburstDataReady() Received the sequences count, responding client");
+  socketConnection.emit('clientSendSunburstData', {
     'eventSeqCountList': sequenceList,
     'eventNameList': eventNameList
   });
 }
 
 
-/**
- * Request the transitions for all event sequences
- */
-function getAllEventTransitions() {
-  mongoDAO.getAllEventTransitions(getAllEventTransitionsReady);
-}
-
-function getAllEventTransitionsReady(err, transitionObject) {
-  if (err) return console.error("getAllEventTransitionsReady() ERROR retrieving data" + err);
-  console.log("getAllEventTransitionsReady() Received the transition sequences, responding client");
+function sankeyDataReady(err, transitionObject) {
+  if (err) return console.error("sankeyDataReady() ERROR retrieving data" + err);
+  console.log("sankeyDataReady() Received the transition sequences, responding client");
   //console.log(JSON.stringify(transitionObject, null, 2));
-  socketConnection.emit('serverAllEventTransitionsProcessed', {
+  socketConnection.emit('clientSendSankeyData', {
     'transitionObject': transitionObject
   });
 }

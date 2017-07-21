@@ -27,7 +27,6 @@ button a, button a:hover, button a:focus{
 #eventPaletteTitle {
   cursor: pointer;
   width:275px;
-  margin-top: 55px;
 
 }
 #eventPaletteTitle:hover {
