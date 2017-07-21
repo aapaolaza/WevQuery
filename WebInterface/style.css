@@ -1,14 +1,22 @@
 /*Font for the main tab elements*/
-ul.webpageTabs{
-
+#pageHeader{
+  padding-right: 30px;
 }
 
+/*Font for the "close result" icon in the results tabs*/
+#pageHeader .closeResults{
+  cursor:pointer;
+  font-size:10px;
+  float:right;
+  padding:2px;
+  z-index: 2;
+}
 /* Move down content because we have a fixed navbar that is 50px tall */
 body {
   padding-top: 50px;
 }
 
-#pageheader img{
+#pageHeader img{
   float: left;
   height:40px;
 }

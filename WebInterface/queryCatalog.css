@@ -5,6 +5,7 @@
 #queryResultListContainer .glyphicon{
   padding-left: 5px;
   padding-right: 5px;
+  cursor: pointer;
 }
 
 /*Make the cell containing the query options larger, so both icons fit*/

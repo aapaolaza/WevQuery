@@ -210,17 +210,8 @@ function createqueryCatalogFunctions() {
           .append($("<span>", { class: "glyphicon glyphicon-screenshot" })
             .click(function () {
               //When the icon is clicked, create a new tab and load the results there/
-              //the list of current result tabs is stored in a cookie
-              var resultTabList = JSON.parse(
-                genericFunctions.getCookie(genericFunctions.resultTabCookie));
-              if (resultTabList.indexOf(resultObject.resultTitle) == -1) {
-                //Open new tab with results and save to cookie.
-
-
-                genericFunctions.setCookie(genericFunctions.resultTabCookie,
-                  JSON.stringify(resultTabList.push(resultObject.resultTitle)));
-              }
-
+              genericFunctions.addActiveResult(resultObject.resultTitle);
+              genericFunctions.resetTabHeader();
             })
           )
           .append($("<span>", { class: "glyphicon glyphicon-trash" })

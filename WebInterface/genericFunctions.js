@@ -18,9 +18,13 @@ function createGenericFunctions() {
 
   genericFunctionsObject.initTabHeader = function () {
     genericFunctions.addTabHeader();
-    genericFunctions.addResultTabs();
+    genericFunctions.fillResultTabs();
     genericFunctions.updateActiveTab();
+  }
 
+  genericFunctionsObject.resetTabHeader = function () {
+    $("#pageHeader").remove();
+    genericFunctions.initTabHeader();
   }
 
   /**
@@ -29,10 +33,10 @@ function createGenericFunctions() {
   genericFunctionsObject.addTabHeader = function () {
 
     //navbar options: fixed (navbar-fixed-top), static (navbar-static-top), default (leave only default class)
-    var $rootNavBar = $("<nav>", { class: "navbar navbar-default navbar-fixed-top", id: "pageheader" });
+    var $rootNavBar = $("<nav>", { class: "navbar navbar-default navbar-fixed-top", id: "pageHeader" });
 
-    //inner container for the tab bar, can be container-fluid
-    var $tabBarContainer = $("<div>", { class: "container" });
+    //inner container for the tab bar, can be container-fluid, so more elements fit inside
+    var $tabBarContainer = $("<div>", { class: "container-fluid" });
     $rootNavBar.append($tabBarContainer);
 
     //tabHeader, can have the name and logo
@@ -86,14 +90,24 @@ function createGenericFunctions() {
    * Checks the available result tabs from the cookies, and creates the corresponding tabs
    * where the appropriate results will be stored
    */
-  genericFunctionsObject.addResultTabs = function () {
-    var resultTabList = genericFunctions.getActiveResults();
+  genericFunctionsObject.fillResultTabs = function () {
+    var resultTabList = genericFunctions.getActiveResultList();
 
     /*TEST */
-    resultTabList = ["eics_case1_10s", "Q1"];
+    resultTabList = resultTabList.concat(["eics_case1_10s", "Q1"]);
+
     resultTabList.forEach(function (resultName) {
       var $genericResultTab = $("<li>", { class: "analysis " + resultName });
-      $genericResultTab.append($("<a>", { href: "./analysis.html?" + resultName }).text(resultName));
+      //The order in which these elements are added is relevant!! the closeResults must go first
+      $genericResultTab.append($("<span>", { class: "glyphicon glyphicon-remove closeResults" })
+        .click(function (event) {
+          //When "closeResults" is clicked the tab is deleted from the list
+          $("ul#tabPages li." + resultName).remove();
+        })
+      );
+      $genericResultTab.append($("<a>", { href: "./analysis.html?" + resultName })
+        .text(resultName));
+
       $("ul#tabPages").append($genericResultTab);
     });
   }
@@ -121,7 +135,7 @@ function createGenericFunctions() {
       //In the particular case of "analysis", the result being analysed needs to be determined
       case "analysis.html":
         //The result is stored in the hash of the link
-        var activeResultTitle = genericFunctions.getActiveResults();
+        var activeResultTitle = genericFunctions.getActiveResult();
         if (activeResultTitle != "") {
           $("li.analysis." + activeResultTitle, "ul#tabPages").addClass("active");
           $("li.analysis." + activeResultTitle, "ul#tabPages").find("a").attr("aria-expanded", "true");
@@ -139,9 +153,9 @@ function createGenericFunctions() {
   }
 
   /**
-   * Helper function to retrieve the active results to be shown
+   * Helper function to retrieve the active result to be shown
    */
-  genericFunctionsObject.getActiveResults = function () {
+  genericFunctionsObject.getActiveResult = function () {
     if (window.location.search.split("?")[1])
       return (window.location.search.split("?")[1]);
     else
@@ -149,11 +163,24 @@ function createGenericFunctions() {
   }
 
   /**
-   * Helper function to add another active result to be shown
+  * Helper function to retrieve the active results
+  */
+  genericFunctionsObject.getActiveResultList = function () {
+    var resultListCookie = genericFunctions.getCookie(genericFunctions.resultTabCookie);
+    if (resultListCookie == "")
+      return [];
+    else
+      return (JSON.parse(resultListCookie));
+  }
+
+  /**
+   * Helper function to add another active result to the tab list
    */
   genericFunctionsObject.addActiveResult = function (resultTitle) {
-    var resultTabList = JSON.parse(genericFunctions.getCookie(genericFunctions.resultTabCookie));
-    resultTabList.push(resultTitle);
+    var resultTabList = genericFunctions.getActiveResultList();
+
+    if (resultTabList.indexOf(resultTitle) == -1)
+      resultTabList.push(resultTitle);
 
     genericFunctions.setCookie(genericFunctions.resultTabCookie,
       JSON.stringify(resultTabList));
@@ -163,7 +190,7 @@ function createGenericFunctions() {
    * Helper function to remove an active result to be shown
    */
   genericFunctionsObject.removeActiveResult = function (resultTitle) {
-    var resultTabList = JSON.parse(genericFunctions.getCookie(genericFunctions.resultTabCookie));
+    var resultTabList = resultTabList();
     resultTabList.splice(resultTitle, 1);
 
     genericFunctions.setCookie(genericFunctions.resultTabCookie,
