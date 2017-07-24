@@ -38,8 +38,8 @@ function initialiseSockets(generalMongoDAO, generalSocketGeneric,
       else {
         if (isXmlValid) {
           // XML validation was correct, run query
-          mongoDAO.isQueryTitleUnique(data.xmlTitle, function (err, isTitleCorrect) {
-            if (isTitleCorrect)
+          mongoDAO.isQueryTitleInResults(data.xmlTitle, function (err, isTitleInUse) {
+            if (!isTitleInUse)
               startXmlQuery(data);
             else {
               console.log("Title is not valid, notify user that an error happened.");

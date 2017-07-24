@@ -129,10 +129,10 @@ function isQueryTitleInResults(queryTitle, callback) {
       if (err) return console.error("isQueryTitleInResults() ERROR REQUESTING DISTINCT TITLES from " + constants.xmlQueryResults + err);
       if (items.indexOf(queryTitle) > -1) {
         //Query title is in use
-        callback(null, false);
+        callback(null, true);
         return;
       }
-      callback(null, true);
+      callback(null, false);
     });
 
   });
