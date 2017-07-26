@@ -163,7 +163,7 @@ function isQueryTitleInCatalog(queryTitle, callback) {
 /**
  * Saves the given query title and data to the catalog
  */
-function saveQuery(queryTitle, queryDescription, queryData) {
+function saveQuery(queryTitle, queryData, queryDescription) {
 
   constants.connectAndValidateNodeJs(function (err, db) {
     if (err) return console.error("saveQuery() ERROR connecting to DB" + err);
