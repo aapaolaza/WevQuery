@@ -285,7 +285,7 @@ function createQueryCatalogLeftMenuFunctions() {
     * The sortable tables need udpating.
     */
   queryCatalogLeftMenuObject.updateLeftMenu = function () {
-    
+
     var marginLeft = $("#leftMenuContent").width() + 30;
     //if the content is hidden, it will still have width, override it with the parent width
     if (!$("#leftMenuContent").is(':visible'))
@@ -321,9 +321,9 @@ function createQueryCatalogLeftMenuFunctions() {
     queryCatalogLeftMenu.updateOptionsMenu();
   }
 
-/**
- * If there is any event that modifies the tables, I need to update the options menus accordingly
- */
+  /**
+   * If there is any event that modifies the tables, I need to update the options menus accordingly
+   */
   queryCatalogLeftMenuObject.updateOptionsMenu = function () {
     if ($("#queryResultsTable").is(":visible")) {
       if ($("tr.active", "#queryResultsTable").length > 0) {
@@ -465,34 +465,41 @@ function createQueryCatalogLeftMenuFunctions() {
 
   /**
    * Initialises the patern Analysis tab in the left column.
-   * Takes the list of existing result titles from the database,
-   * and add them as options.
+   * TODO: retrieve a set of previously selected results from the cookies
    */
   queryCatalogLeftMenuObject.initPatternTab = function () {
 
-    queryCatalogConnection.requestCompletedQueriesTitles();
-
-    $("#resultMultiSelector").chosen({
-      disable_search_threshold: 10,
-      placeholder_text_multiple: "select inputs",
-      no_results_text: "Oops, nothing found!",
-      width: "100%"
-    }).change(function () {
-      queryCatalogLeftMenu.updateLeftMenu();
+    //Initialises the "add input" functionality
+    $("#patternInputList .addPatternInput").click(function(){
+      queryCatalogLeftMenu.selectResultFromInterface();
     });
-
   }
 
   /**
- * This function takes a multioption object as a parameter
- * and loads a a series of query result titles.
- */
-  queryCatalogLeftMenuObject.updateResultMultiChoice = function (titlesList) {
-    console.log("loadResultNames() loading" + titlesList.length + " result title options");
-    titlesList.forEach(function (titleItem) {
-      $("#resultMultiSelector").append('<option>' + titleItem + '</option>');
+   * Activates the selection step of a result to be added to the pattern input pool
+   */
+  queryCatalogLeftMenuObject.selectResultFromInterface = function () {
+
+    //Highlight the selectable results, the css class will include hovering feedback actions
+    $(".resultsTable tbody tr").addClass("selectableResult");
+
+    $(".resultsTable tbody tr").one("click", function (e) {
+      e.stopPropagation();
+      queryCatalogLeftMenu.waitForSelectResultFromInterface(this);
     });
-    $("#resultMultiSelector").trigger('chosen:updated');
+  }
+
+  /**
+   * Action to be triggered when a result is selected as an input for the pattern pool
+   */
+  queryCatalogLeftMenuObject.waitForSelectResultFromInterface = function (clickedresult) {
+
+    var resultTitle = $(clickedresult).attr("id");
+    console.log("click received for result " + resultTitle);
+    $("#patternInputList").append($("<li>", { class: "list-group-item" }).text(resultTitle));
+    //remove the highlighted class, and store the selected result if applicable
+    $(".resultsTable tbody tr").removeClass("selectableResult");
+    genericFunctions.showToast(resultTitle + " selected");
   }
 
   return queryCatalogLeftMenuObject;

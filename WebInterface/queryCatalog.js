@@ -9,7 +9,7 @@ function createqueryCatalogFunctions() {
    * Lists the fields from the database to be hidden from the user
    * when listing the results
    */
-  queryCatalogObject.omitInfo = ["_id", "queryXML", "opeartionID", "datems"];
+  queryCatalogObject.omitInfo = ["_id", "queryXML", "operationID", "datems"];
 
   /**
    * Variables to keep a copy of all retrieved queries
@@ -203,6 +203,10 @@ function createqueryCatalogFunctions() {
       //For each result, add another item to the table. If no results are found, place a message instead
       queryResultList.forEach(function (resultObject, index) {
         var rowObject = $("<tr>");
+        
+        //add the result title as the id for this row
+        rowObject.attr("id", resultObject.resultTitle);
+
         tableBody.append(rowObject);
 
         //Add the various interaction icons as the first column

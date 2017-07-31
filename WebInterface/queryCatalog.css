@@ -17,6 +17,20 @@
   padding-left: 10px;
 }
 
+/** Style to apply to pattern related functionalities,
+such as highlighting the results that
+can be selected as inputs for the pattern mining**/
+#patternInputList .addPatternInput{
+  cursor: pointer;
+}
+.selectableResult{
+  background: gray;
+  cursor: pointer;
+}
+.selectableResult:hover{
+  background: lightgray;
+}
+
 /**All this CSS is deprecated, from a version with a long list of buttons.**/
 /*The default colour behaviour of the buttons is set by bootstrap.
 In order to override it, the colour setting for all conditionas need to be overriden*/

@@ -42,19 +42,17 @@ function initialiseSockets(generalMongoDAO, generalSocketGeneric,
 
           var resultTitle = data.xmlTitle + "_" + new Date().getTime();
 
-          mongoDAO.isQueryTitleInResults(data.xmlTitle, function (err, isTitleCorrect) {
-            //try to retrieve the information from the catalog
-            mongoDAO.getCatalogQueryInfo(data.xmlTitle, function (err, catalogObject) {
-              if (err) {
-                console.log(err);
-                //for some reason the query doesn't exist in catalog
-                socketGeneric.sendMessageToUser(socketInstance.id, "The provided query name " +
-                  data.xmlTitle + " doesn't exist in the catalog", true, socketConnection);
-              } else {
-                //if it exist, run the query 
-                startXmlQuery(resultTitle, catalogObject, data.isStrictMode);
-              }
-            });
+          //try to retrieve the information from the catalog
+          mongoDAO.getCatalogQueryInfo(data.xmlTitle, function (err, catalogObject) {
+            if (err) {
+              console.log(err);
+              //for some reason the query doesn't exist in catalog
+              socketGeneric.sendMessageToUser(socketInstance.id, "The provided query name " +
+                data.xmlTitle + " doesn't exist in the catalog", true, socketConnection);
+            } else {
+              //if it exist, run the query 
+              startXmlQuery(resultTitle, catalogObject, data.isStrictMode);
+            }
           });
         } else {
           console.log("xml was invalid, notify user that an error happened.");

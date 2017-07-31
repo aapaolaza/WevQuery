@@ -1,7 +1,3 @@
-
-
-
-
 var genericFunctions = createGenericFunctions();
 
 //startup functions when jQuery is loaded
@@ -42,8 +38,17 @@ function createGenericFunctions() {
     //tabHeader, can have the name and logo
     var $tabHeader = $("<div>", { class: "navbar-header" });
 
-    $tabHeader.append($("<img>", { src: "./res/WevQueryLogoNoText.png", style: "padding-top:5px", alt: "WevQuery tool logo" }));
-    $tabHeader.append($("<img>", { src: "./res/WevQueryText.png", style: "padding-top:10px", alt: "WevQuery tool name" }));
+    $tabHeader.append($("<img>", {
+      src: "./res/WevQueryLogoNoText.png",
+      style: "padding-top:5px",
+      alt: "WevQuery tool logo"
+    }));
+
+    $tabHeader.append($("<img>", {
+      src: "./res/WevQueryText.png",
+      style: "padding-top:10px",
+      alt: "WevQuery tool name"
+    }));
 
     $tabBarContainer.append($tabHeader);
 
@@ -97,7 +102,7 @@ function createGenericFunctions() {
     resultTabList = resultTabList.concat(["eics_case1_10s", "Q1"]);
 
     resultTabList.forEach(function (resultName) {
-      var $genericResultTab = $("<li>", { class: "analysis " + resultName });
+      var $genericResultTab = $("<li>", { class: "analysis closeable " + resultName });
       //The order in which these elements are added is relevant!! the closeResults must go first
       $genericResultTab.append($("<span>", { class: "glyphicon glyphicon-remove closeResults" })
         .click(function (event) {

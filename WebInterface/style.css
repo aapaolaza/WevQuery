@@ -11,6 +11,12 @@
   padding:2px;
   z-index: 2;
 }
+
+/*Style for tha tabs that can be closed*/
+#pageHeader .closeable{
+  font-style: italic;
+}
+
 /* Move down content because we have a fixed navbar that is 50px tall */
 body {
   padding-top: 50px;

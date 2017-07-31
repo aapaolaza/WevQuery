@@ -14,15 +14,6 @@ function createqueryCatalogConnectionFunctions() {
   }
 
   /**
- * Requests the list of the titles of all available collections
- */
-
-  queryCatalogConnectionObject.requestCompletedQueriesTitles = function () {
-    socket.emit('serverRequestCompletedQueryTitles');
-  }
-
-
-  /**
    * Requests the list of all queries in Catalog
    */
   queryCatalogConnectionObject.requestCatalogQueries = function () {
@@ -99,11 +90,6 @@ function createqueryCatalogConnectionFunctions() {
 socket.on('clientCompletedQueriesFinished', function (data) {
   notifyUser(data.queryList.length + " finished queries have been retrieved", data.isError);
   queryCatalogLeftMenu.updateCompletedQueries(data.queryList);
-});
-
-socket.on('clientCompletedQueryTitlesFinished', function (data) {
-  notifyUser(data.titleList.length + " titles of finished queries have been retrieved", data.isError);
-  queryCatalogLeftMenu.updateResultMultiChoice(data.titleList);
 });
 
 socket.on('serverRequestCatalogQueriesFinished', function (data) {
