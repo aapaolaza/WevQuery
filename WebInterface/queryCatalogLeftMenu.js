@@ -470,9 +470,26 @@ function createQueryCatalogLeftMenuFunctions() {
   queryCatalogLeftMenuObject.initPatternTab = function () {
 
     //Initialises the "add input" functionality
-    $("#patternInputList .addPatternInput").click(function(){
-      queryCatalogLeftMenu.selectResultFromInterface();
+    $("#patternInputList .addPatternInput").text("Add another input");
+    $("#patternInputList .addPatternInput").prepend($("<span>", { class: "glyphicon glyphicon-plus" }));
+
+    //initialises the "toggling" behaviours of the button
+    $("#patternInputList .addPatternInput").click(function () {
+      $(this).text("Cancel pattern input");
+      $(this).prepend($("<span>", { class: "glyphicon glyphicon-remove" }));
+      queryCatalogLeftMenu.cancelSelectResultFromInterface();
     });
+
+    //When an algorithm type is selected, update the corresponding options
+    $("input[name='algoType']").on("change", queryCatalogLeftMenu.fillPatternAlgorithmOptions);
+
+  }
+
+
+  /**Function to be called when a result item is selected as pattern input */
+  var selectResultAsPatternInput = function (e) {
+    e.stopPropagation();
+    queryCatalogLeftMenu.waitForSelectResultFromInterface(this);
   }
 
   /**
@@ -480,13 +497,34 @@ function createQueryCatalogLeftMenuFunctions() {
    */
   queryCatalogLeftMenuObject.selectResultFromInterface = function () {
 
+    //Toggle the functionality of the adding inputs button
+    $("#patternInputList .addPatternInput").click(function () {
+      $(this).text("Cancel pattern input");
+      $(this).prepend($("<span>", { class: "glyphicon glyphicon-remove" }));
+      queryCatalogLeftMenu.cancelSelectResultFromInterface();
+    });
+
     //Highlight the selectable results, the css class will include hovering feedback actions
     $(".resultsTable tbody tr").addClass("selectableResult");
 
-    $(".resultsTable tbody tr").one("click", function (e) {
-      e.stopPropagation();
-      queryCatalogLeftMenu.waitForSelectResultFromInterface(this);
+    $(".resultsTable tbody tr").on("click", selectResultAsPatternInput);
+  }
+
+  /**
+   * Deactivates the selection step of a result to be added to the pattern input pool
+   */
+  queryCatalogLeftMenuObject.cancelSelectResultFromInterface = function () {
+
+    //Toggle the functionality of the adding inputs button
+    $("#patternInputList .addPatternInput").click(function () {
+      $(this).text("Add another input");
+      $(this).prepend($("<span>", { class: "glyphicon glyphicon-plus" }));
+      queryCatalogLeftMenu.selectResultFromInterface();
     });
+
+    $(".resultsTable tbody tr").removeClass("selectableResult");
+
+    $(".resultsTable tbody tr").off("click", selectResultAsPatternInput);
   }
 
   /**
@@ -496,10 +534,79 @@ function createQueryCatalogLeftMenuFunctions() {
 
     var resultTitle = $(clickedresult).attr("id");
     console.log("click received for result " + resultTitle);
-    $("#patternInputList").append($("<li>", { class: "list-group-item" }).text(resultTitle));
-    //remove the highlighted class, and store the selected result if applicable
-    $(".resultsTable tbody tr").removeClass("selectableResult");
-    genericFunctions.showToast(resultTitle + " selected");
+
+    //Check if input is already in the list
+    var inputInUse = false
+    $("#patternInputList li").each(function () {
+      console.log($(this).text());
+      if ($(this).text() == resultTitle) {
+        genericFunctions.showToast("This input has already been selected.");
+        inputInUse = true;
+      }
+    });
+
+    if (!inputInUse) {
+      $("#patternInputList").append($("<li>", { class: "list-group-item" }).text(resultTitle));
+      //remove the highlighted class, and store the selected result if applicable
+      $(".resultsTable tbody tr").removeClass("selectableResult");
+      genericFunctions.showToast(resultTitle + " selected");
+      console.log(resultTitle + " selected");
+    }
+  }
+
+  /**
+   * Fill in the corresponding options to the various pattern algorithms.
+   * When an algorithm type is selected, the corresponding options change.
+   * Defaults will be loaded, so the user do not need to change them.
+   * A default algorithm will also be selected
+   */
+  queryCatalogLeftMenuObject.fillPatternAlgorithmOptions = function () {
+    //First hide all the options, we will disclose them if necessary
+    $("#patternAlgoOptions .input-group").hide();
+
+    //get the corresponding algorithm type
+    switch ($("input[name='algoType']:checked").val()) {
+      case "freqItemSet":
+        $("#patternAlgoOptions #patternMinSupportOptionInput").show();
+
+        break;
+      case "assocRule":
+        console.log("Association Rule Mining");
+        $("#patternAlgoOptions #patternMinSupportOptionInput").show();
+        $("#patternAlgoOptions #patternMinConfidenceOptionInput").show();
+
+        break;
+      case "seqPattern":
+        console.log("Sequential Pattern Mining");
+        $("#patternAlgoOptions #patternMinSupportOptionInput").show();
+
+        break;
+      default:
+        console.log("Unknown option selected, probably none?")
+        break;
+    }
+    //if it's the first selection, disclose the element
+    if (!$("#patternAlgoOptions").is(':visible'))
+      $("#patternAlgoOptions").slideDown();
+  }
+
+  /**
+   * Helper function that creates a minimum support input element
+   * DEPRECATED: I am trying instead with static inputs that are disclosed as necessary
+   */
+  function createMinSupportInput() {
+    var minSupportOptionInput = $("<div>", { class: "input-group" });
+    minSupportOptionInput.append(
+      $("<span>", { class: "input-group-addon" })
+        .text("Minimum support threshold")
+    );
+    minSupportOptionInput.append(
+      $("<input>", { type: "text", class: "form-control", "aria-label": "minimum support threshold value in percentage" })
+    );
+    minSupportOptionInput.append(
+      $("<span>", { class: "input-group-addon" }).text("%")
+    );
+    return (minSupportOptionInput);
   }
 
   return queryCatalogLeftMenuObject;

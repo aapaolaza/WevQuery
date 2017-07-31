@@ -116,11 +116,37 @@
 
             <div id="tabPatternAnalysis" class="tab-pane fade">
               <h2 id="Pattern Matching">Pattern Matching</h2>
+              <h3>Input</h3>
               <p> Select inputs for the pattern matching algorithm</p>
               <ul id="patternInputList" class="list-group">
-                <li class="list-group-item addPatternInput">
-                  <span class="glyphicon glyphicon-plus"></span> Add another input</li>
+                <li class="list-group-item addPatternInput"></li>
               </ul>
+              <h3>Algorithm type</h3>
+              <form>
+                <input type="radio" name="algoType" value="freqItemSet"> Frequent Itemset mining<br>
+                <input type="radio" name="algoType" value="assocRule"> Association Rule Mining<br>
+                <input type="radio" name="algoType" value="seqPattern"> Sequential Pattern Mining
+              </form>
+              <div id="patternAlgoOptions" style="display:none">
+                <h3>Additional options</h3>
+                <div id="patternMinSupportOptionInput" class="input-group">
+                  <span class="input-group-addon">Minimum support threshold</span>
+                  <input type="text" class="form-control" aria-label="minimum support threshold value in percentage">
+                  <span class="input-group-addon">%</span>
+                </div>
+                <div id="patternMinConfidenceOptionInput" class="input-group">
+                  <span class="input-group-addon">Minimum confidence threshold</span>
+                  <input type="text" class="form-control" aria-label="minimum confidence threshold value in percentage">
+                  <span class="input-group-addon">%</span>
+                </div>
+                <button id="patternClearButton" type="button" class="btn btn-default">
+                  <span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Clear Options
+                </button>
+                <button id="patternRunButton" type="button" class="btn btn-default">
+                  <span class="glyphicon glyphicon-cog" aria-hidden="true"></span> Run
+                </button>
+              </div>
+
             </div>
           </div>
 

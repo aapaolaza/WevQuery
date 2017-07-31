@@ -10,7 +10,7 @@
   overflow-y: auto;
   padding-bottom: 30px;
   background: white;
-  min-width: 370px;/*min width so is enver too small*/
+  /*min-width: 370px;*//*min width so is never too small. UPDATE 2017-07-31 18:27:49 Not sure why I needed this*/
   height: 90%;
 }
 
@@ -119,4 +119,23 @@ table.tablesorter thead tr .headerSortDown:after{
   border-width: 10px;
   border-style: solid;
   border-color: transparent transparent #aaaaaa transparent;
+}
+
+
+.addPatternInput .glyphicon{
+  padding-right:5px;
+}
+
+/*Prevents the tab from getting too big when form options are shown*/
+#patternAlgoOptions .input-group{
+  padding-bottom:5px;
+  max-width: 330px;
+}
+#patternAlgoOptions #patternRunButton{
+  float:right;
+}
+
+#patternAlgoOptions .button{
+  min-height:30px;
+  width:auto;
 }

@@ -16,6 +16,10 @@
 #infoMainPanel{
   padding-left: 10px;
 }
+/*The class page-header was adding too much space at the top*/
+#infoMainPanel .page-header{
+  margin-top: 5px;
+}
 
 /** Style to apply to pattern related functionalities,
 such as highlighting the results that
