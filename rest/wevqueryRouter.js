@@ -52,7 +52,6 @@ router.route("/:queryname/")
   .get(function (req, res) {
 
     var queryName = req.params.queryname;
-    var userId = req.params.userid;
 
     var queryOptions = {};
 
@@ -60,7 +59,7 @@ router.route("/:queryname/")
     //If any of the following parameters is provided, store them as queryOptions
 
     if (typeof req.query.userid !== 'undefined')
-      queryOptions.userList = [userId];
+      queryOptions.userList = [req.query.userid];
 
     if (typeof req.query.starttime !== 'undefined')
       queryOptions.startTimems = req.query.starttime.toString();
@@ -73,9 +72,9 @@ router.route("/:queryname/")
 
 
     if (typeof req.query.fillEventInfo !== 'undefined')
-      queryOptions.fillEventInfo = req.query.fillEventInfo;
+      queryOptions.fillEventInfo = req.query.fillEventInfo == "true";
 
-    var title = queryName + "_" + userId;
+    var title = queryName;
 
     //If any of the variables has not been defined, return an error
     if (queryName) {

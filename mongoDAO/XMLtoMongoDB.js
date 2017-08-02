@@ -1055,7 +1055,7 @@ function feedQueryInformationByCollection(queryCollName, callback) {
             }
             else {
               mongoLog.logMessage("optime", "feedQueryResultsInformation",
-                constants.websiteId, "feedQueryResultsInformation finished successfully " + queryTitle, startTimems, new Date());
+                constants.websiteId, "feedQueryResultsInformation finished successfully " + queryCollName, startTimems, new Date());
 
               //Update count, and call parent callback when count reaches end
               resultCount++;
