@@ -68,11 +68,11 @@ router.route("/:queryname/")
       queryOptions.endTimems = req.query.endtime.toString();
 
     if (typeof req.query.strictMode !== 'undefined')
-      queryOptions.isQueryStrict = req.query.strictMode;
+      queryOptions.isQueryStrict = req.query.strictMode.toLowerCase() == "true";
 
 
     if (typeof req.query.fillEventInfo !== 'undefined')
-      queryOptions.fillEventInfo = req.query.fillEventInfo == "true";
+      queryOptions.fillEventInfo = req.query.fillEventInfo.toLowerCase() == "true";
 
     var title = queryName;
 
