@@ -17,6 +17,7 @@ queryDocument.setConstants(mapReduceConstants, mongoLogConstants);
 analyseData.setConstants(mapReduceConstants, mongoLogConstants, this);
 databaseInfo.setConstants(mapReduceConstants, mongoLogConstants, this);
 
+
 module.exports.requestDBname = databaseInfo.requestDBname;
 module.exports.requestDBCollections = databaseInfo.requestDBCollections;
 module.exports.requestIndexes = databaseInfo.requestIndexes;
@@ -54,4 +55,5 @@ module.exports.getSunburstDataForResult = analyseData.getSunburstDataForResult;
 module.exports.getSankeyDataAll = analyseData.getSankeyDataAll;
 module.exports.getSankeyDataForResult = analyseData.getSankeyDataForResult;
 
+module.exports.initialiseIndexes = mapReduceConstants.initialiseIndexes;
 module.exports.closeConnection = mapReduceConstants.closeConnection;

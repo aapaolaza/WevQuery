@@ -439,6 +439,22 @@ function deleteCatalogQuery(queryTitle, callback) {
   });
 }
 
+/**
+ * Returns a list of unique sids from the given result Title(s)
+ */
+function listResultsSids(resultTitleList, callback) {
+  constants.connectAndValidateNodeJs(function (err, db) {
+    let userIDList = [];
+    if (err) return console.error("listResultsSids() ERROR connecting to DB" + err);
+    resultTitleList.array.forEach(function (resultTitle) {
+      db.collection(queryCollectionPrefix + resultTitle)
+        .find({ "value.xmlQueryCounter": { $gt: 0 } }).forEach(function(element) {
+          userIDList.push(element._id.sid);
+        }, this);
+    });
+    console.log(userIDList);
+  });
+}
 
 module.exports.setConstants = setConstants;
 module.exports.addNewQueryDocument = addNewQueryDocument;

@@ -1,3 +1,4 @@
+
 /**
  * Adds the functionality for the left Menu elements.
  */
@@ -353,8 +354,8 @@ function createQueryCatalogLeftMenuFunctions() {
    * For some reason it doesn't work with tables?
    */
   queryCatalogLeftMenuObject.positionOptions = function (parentElement, optionsMenuID) {
-    console.log("moving " + optionsMenuID + " under ");
-    console.log(parentElement);
+    // console.log("moving " + optionsMenuID + " under ");
+    // console.log(parentElement);
     $("#" + optionsMenuID).position({
       of: parentElement,
       //where the element will fit with regards to the specified position
@@ -469,44 +470,64 @@ function createQueryCatalogLeftMenuFunctions() {
    */
   queryCatalogLeftMenuObject.initPatternTab = function () {
 
+    $("#patternInputList").sortable();
+    $("#sortable").disableSelection();
+
+
+    var patternAddInputButton = $("#patternAddInputButton");
     //Initialises the "add input" functionality
-    $("#patternInputList .addPatternInput").text("Add another input");
-    $("#patternInputList .addPatternInput").prepend($("<span>", { class: "glyphicon glyphicon-plus" }));
+    $(patternAddInputButton).text("Add another input");
+    $(patternAddInputButton).prepend($("<span>", { class: "glyphicon glyphicon-plus" }));
 
     //initialises the "toggling" behaviours of the button
-    $("#patternInputList .addPatternInput").click(function () {
+    $(patternAddInputButton).click(function () {
       $(this).text("Cancel pattern input");
       $(this).prepend($("<span>", { class: "glyphicon glyphicon-remove" }));
-      queryCatalogLeftMenu.cancelSelectResultFromInterface();
+      queryCatalogLeftMenu.selectResultFromInterface();
+    });
+
+    //Functionality for the "clear input list" button
+    $("#patternClearInputButton").click(function () {
+      genericFunctions.showConfirmDialog("Clear input list",
+        "Are you sure you want to clear the list of inputs?",
+        function () {
+          $("#patternInputList").empty();
+        })
     });
 
     //When an algorithm type is selected, update the corresponding options
     $("input[name='algoType']").on("change", queryCatalogLeftMenu.fillPatternAlgorithmOptions);
 
-  }
+    //Functions for buttons at the bottom
 
-
-  /**Function to be called when a result item is selected as pattern input */
-  var selectResultAsPatternInput = function (e) {
-    e.stopPropagation();
-    queryCatalogLeftMenu.waitForSelectResultFromInterface(this);
+    //when "run" is clicked, take the text for all the existing inputs
+    // and pass it on to the patternMining functions
+    $("#patternRunButton").click(function () {
+      let resultTitleList = [];
+      $("#patternInputList li").each(function () {
+        resultTitleList.push($(this).text());
+      });
+      queryCatalogConnection.requestPreparePatternDataset(resultTitleList);
+    });
   }
 
   /**
    * Activates the selection step of a result to be added to the pattern input pool
    */
   queryCatalogLeftMenuObject.selectResultFromInterface = function () {
+    var patternAddInputButton = $("#patternAddInputButton");
+
+    //update the label for the button
+    $(patternAddInputButton).text("Stop adding inputs");
+    $(patternAddInputButton).prepend($("<span>", { class: "glyphicon glyphicon-remove" }));
 
     //Toggle the functionality of the adding inputs button
-    $("#patternInputList .addPatternInput").click(function () {
-      $(this).text("Cancel pattern input");
-      $(this).prepend($("<span>", { class: "glyphicon glyphicon-remove" }));
+    $(patternAddInputButton).click(function () {
       queryCatalogLeftMenu.cancelSelectResultFromInterface();
     });
 
     //Highlight the selectable results, the css class will include hovering feedback actions
     $(".resultsTable tbody tr").addClass("selectableResult");
-
     $(".resultsTable tbody tr").on("click", selectResultAsPatternInput);
   }
 
@@ -514,11 +535,14 @@ function createQueryCatalogLeftMenuFunctions() {
    * Deactivates the selection step of a result to be added to the pattern input pool
    */
   queryCatalogLeftMenuObject.cancelSelectResultFromInterface = function () {
+    var patternAddInputButton = $("#patternAddInputButton");
+
+    //update the labels on the button
+    $(patternAddInputButton).text("Add another input");
+    $(patternAddInputButton).prepend($("<span>", { class: "glyphicon glyphicon-plus" }));
 
     //Toggle the functionality of the adding inputs button
-    $("#patternInputList .addPatternInput").click(function () {
-      $(this).text("Add another input");
-      $(this).prepend($("<span>", { class: "glyphicon glyphicon-plus" }));
+    $(patternAddInputButton).click(function () {
       queryCatalogLeftMenu.selectResultFromInterface();
     });
 
@@ -530,8 +554,8 @@ function createQueryCatalogLeftMenuFunctions() {
   /**
    * Action to be triggered when a result is selected as an input for the pattern pool
    */
-  queryCatalogLeftMenuObject.waitForSelectResultFromInterface = function (clickedresult) {
-
+  var selectResultAsPatternInput = function (e) {
+    var clickedresult = this;
     var resultTitle = $(clickedresult).attr("id");
     console.log("click received for result " + resultTitle);
 
@@ -547,8 +571,6 @@ function createQueryCatalogLeftMenuFunctions() {
 
     if (!inputInUse) {
       $("#patternInputList").append($("<li>", { class: "list-group-item" }).text(resultTitle));
-      //remove the highlighted class, and store the selected result if applicable
-      $(".resultsTable tbody tr").removeClass("selectableResult");
       genericFunctions.showToast(resultTitle + " selected");
       console.log(resultTitle + " selected");
     }
@@ -607,6 +629,13 @@ function createQueryCatalogLeftMenuFunctions() {
       $("<span>", { class: "input-group-addon" }).text("%")
     );
     return (minSupportOptionInput);
+  }
+
+  /**
+   * To be triggered when the user clicks on the "run" option
+   */
+  queryCatalogLeftMenuObject.patternRunAlgorithm = function () {
+    //As a first step, create the sequence object
   }
 
   return queryCatalogLeftMenuObject;

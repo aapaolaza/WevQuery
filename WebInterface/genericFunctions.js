@@ -272,6 +272,39 @@ function createGenericFunctions() {
     confirmDialog.show();
   }
 
+  /**
+   * Given a title, a message to show, a function, and an optional parameter,
+   * shows a dialog asking the user to confirm the execution of the given function
+   */
+  genericFunctionsObject.showConfirmDialog = function (title, text, func, param) {
+    $("p", "#dialog-confirm").text(text);
+
+    var confirmDialog = $("#dialog-confirm").dialog({
+      title: title,
+      resizable: false,
+      height: "auto",
+      width: 400,
+      modal: true,
+      buttons: {
+        "Confirm": function () {
+          func(param);
+          confirmDialog.dialog("close");
+        },
+        Cancel: function () {
+          confirmDialog.dialog("close");
+        }
+      },
+      //The only purpose of the following code is to find the newly generated "close window" element, and fix the icon
+      //Clashes between bootstrap and jquery-ui break it by default
+      open: function () {
+        $(this).closest(".ui-dialog")
+          .find(".ui-dialog-titlebar-close")
+          .removeClass("ui-dialog-titlebar-close")
+          .html("<span class='glyphicon glyphicon-remove' onclick='confirmDialog.dialog( 'close');'></span>");
+      },
+    });
+  }
+
   return genericFunctionsObject;
 }
 

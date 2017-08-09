@@ -74,9 +74,11 @@ h2{
   margin-bottom:7px;
 }
 
+/*
 #leftMenu img,#leftMenu button,#leftMenu .dropdown-menu{
   width: 120px;
-}
+}*/
+
 #leftMenu img{
   margin: 15px;
 }

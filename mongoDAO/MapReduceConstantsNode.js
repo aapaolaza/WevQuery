@@ -4,7 +4,9 @@
 ///Same as MapReduceConstants, but I changed it so it can be used with Node JS http://stackoverflow.com/questions/5625569/include-external-js-file-in-node-js-app
 
 ///Module exports to act as interface can be found at the end, after all variables and functions are defined
-var mongodb = require('mongodb');
+const mongodb = require('mongodb');
+const async = require('async');
+
 
 var mongoClient = mongodb.MongoClient
   , Server = mongodb.Server;
@@ -35,6 +37,7 @@ const mongoTimeout = 0;//0
 
 const userCollection = "activeUsers";
 const eventCollection = "events";
+const nodeListCollection = "nodeList";
 
 //web site to be analysed, determined by its "sd" value. 10002 is kupb, 10006 is CS
 const websiteId = "10006";
@@ -140,6 +143,67 @@ function completeDateValsMilliseconds(dateVal) {
   else return dateVal;
 }
 
+/**
+ * Initialises the indexes for the database.
+ * If they exist, it won't take long.
+ * To be run only once!! never for each connection request
+ */
+function initialiseIndexes(callback) {
+  connectAndValidateNodeJs(function (err, db) {
+    if (err) return console.error("initialiseIndexes() ERROR connecting to DB" + err);
+
+    indexObjectList = [
+      { "sid": 1 },
+      { "sd": 1 },
+      { "event": 1 },
+      { "timestamp": 1 },
+      { "timestampms": 1 },
+      { "url": 1 },
+      { "sid": 1, "url": 1 },
+      { "sid": 1, "sd": 1 },
+      { "sid": 1, "episodecount": 1 },
+      { "sid": 1, "url": 1, "episodecount": 1 },
+    ];
+
+    let uniqueIndex = { "sid": 1, "sd": 1, "sessionstartms": 1, "event": 1, "timestampms": 1 };
+
+    async.each(indexObjectList, function (indexObject, callback) {
+      db.collection(eventCollection).createIndex(indexObject,
+        function (err) {
+          if (err) {
+            console.log(`Error creating the index:`);
+            console.log(indexObject);
+            callback(err);
+          } else {
+            console.log(`Created the index:`);
+            console.log(indexObject);
+            callback(null);
+          }
+        }
+      );
+    }, function (err) {
+      if (err) {
+        console.log('An index could not be created');
+      } else {
+        console.log('All indexes have been created');
+        console.log(`Creating unique index`);
+        db.collection(eventCollection).createIndex(uniqueIndex, { unique: true },
+          function (err) {
+            if (err) {
+              console.log(`Error creating the unique index:`);
+              console.log(indexObject);
+              callback(err);
+            } else {
+              console.log(`Created the unique index:`);
+              console.log(uniqueIndex);
+              callback(null);
+            }
+          }
+        );
+      }
+    });
+  });
+}
 
 /////////////////////////////////////////////START OF CONSTANTS/////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -219,15 +283,15 @@ function parseDateToMs2(input) {
   var parts = input.split(',');
 
   var date = parts[0].split('-');
-	/*var year = date[0];
-	var month = date[1];
-	var day = date[2];*/
+  /*var year = date[0];
+  var month = date[1];
+  var day = date[2];*/
 
   var time = parts[1].split(':');
-	/*var hour = time[0];
-	var minute = time[1];
-	var secs = time[2];
-	var millisecs = time[3];*/
+  /*var hour = time[0];
+  var minute = time[1];
+  var secs = time[2];
+  var millisecs = time[3];*/
   // new Date(year, month [, day [, hours[, minutes[, seconds[, ms]]]]])
   return new Date(date[0], date[1] - 1, date[2], time[0], time[1], time[2], time[3]).getTime(); // Note: months are 0-based
 }
@@ -324,8 +388,10 @@ module.exports.websiteId = websiteId;
 module.exports.userCollection = userCollection;
 module.exports.scopeObject = scopeObject;
 module.exports.eventCollection = eventCollection;
+module.exports.nodeListCollection = nodeListCollection;
 module.exports.bannedIPlist = bannedIPlist;
 module.exports.sessionTimeout = sessionTimeout;
 module.exports.mongoLogCollection = mongoLogCollection;
 module.exports.userProfileCollection = userProfileCollection;
 module.exports.episodeField = episodeField;
+module.exports.initialiseIndexes = initialiseIndexes;

@@ -1,28 +1,27 @@
-//2017-06-12 17:45:34
-//Created as a node js script. Run:
-//npm install mongodb --save
-//https://www.npmjs.com/package/xpath
-//npm install xpath
-//npm install xmldom
-//npm install yargs
-//To run the script:
-//node XMLtoMongoDB.js --file filename.xml [--strictMode]
+// 2017-06-12 17:45:34
+// Created as a node js script. Run:
+// npm install mongodb --save
+// https://www.npmjs.com/package/xpath
+// npm install xpath
+// npm install xmldom
+// npm install yargs
+// To run the script:
+// node XMLtoMongoDB.js --file filename.xml [--strictMode]
 
-//Remember to start the mongo Server
-//mongod --rest --bind_ip 127.0.0.1
-//The rest option enables the Web log interface:
-//http://localhost:28017/
+// Remember to start the mongo Server
+// mongod --rest --bind_ip 127.0.0.1
+// The rest option enables the Web log interface:
+// http://localhost:28017/
 
-//Old dependencies
-//I was using the following to convert the xml into a JS object (and then into JSON) but I don't need it
-//npm install xml2js //https://www.npmjs.com/package/xml2js
-//https://www.npmjs.com/package/json-query
+// Old dependencies
+// I was using the following to convert the xml into a JS object
+// (and then into JSON) but I don't need it
+// npm install xml2js //https://www.npmjs.com/package/xml2js
+// https://www.npmjs.com/package/json-query
 
-
-
-//////We need to load the constants file
-var constants;
-var mongoLog;
+// We need to load the constants file
+let constants;
+let mongoLog;
 
 function setConstants(mapReduceConstants, mongoLogConstants) {
   constants = mapReduceConstants;
@@ -30,63 +29,65 @@ function setConstants(mapReduceConstants, mongoLogConstants) {
 }
 
 
-var xpath = require('xpath')
-  , dom = require('xmldom').DOMParser;
-var async = require('async');
+const xpath = require('xpath');
+const dom = require('xmldom').DOMParser;
+const async = require('async');
 
 
-
-//This prefix will be added to all queries
-var queryCollectionPrefix = "xmlQuery_";
-var queryCollectionTempPrefix = "temp_xmlQuery_";
-
-
-//This command gives the nodelist the functionality to use "forEach"
-//From http://stackoverflow.com/questions/24775725/loop-through-childnodes
-//NodeList.prototype.forEach = Array.prototype.forEach
+// This prefix will be added to all queries
+const queryCollectionPrefix = 'xmlQuery_';
+const queryCollectionTempPrefix = 'temp_xmlQuery_';
 
 
-//true if the file was run via command line "node ./XMLtoMongoDB.js"
+// This command gives the nodelist the functionality to use "forEach"
+// From http://stackoverflow.com/questions/24775725/loop-through-childnodes
+// NodeList.prototype.forEach = Array.prototype.forEach
+
+
+// true if the file was run via command line "node ./XMLtoMongoDB.js"
 if (require.main === module) {
-  //Variables I need for the MapReduce function
-  var mapReduceVars = {};
-  mapReduceVars.eventList = "";
-  mapReduceVars.userList = "";
-  mapReduceVars.db = "";
+  // Variables I need for the MapReduce function
+  const mapReduceVars = {};
+  mapReduceVars.eventList = '';
+  mapReduceVars.userList = '';
+  mapReduceVars.db = '';
   mapReduceVars.isQueryStrict = false;
-  //bannedIPlist is provided by MapReduceConstants
-  var xmlDoc;
+  // bannedIPlist is provided by MapReduceConstants
+  let xmlDoc;
 
-  console.log("Running XMLtoMongoDB function at:" + datestamp());
-  //yargs eases the step of retrieving parameters from the command line
+  console.log(`Running XMLtoMongoDB function at: ${datestamp()}`);
+  // yargs eases the step of retrieving parameters from the command line
   // Make sure we got a filename on the command line.
-  var argv = require('yargs')
+
+  // Adds the possibility for console use of XMLtoMongoDB.js
+  const argv = require('yargs')
     .usage('Usage: $0 --file [filename.xml] --strictMode')
     .demandOption(['file'])
     .argv;
-  console.log("All params right, carry on");
-  //if --strictMode is not set, the following variable will be "undefined"
-  if (argv.strictMode)
+  console.log('All params right, carry on');
+  // if --strictMode is not set, the following variable will be "undefined"
+  if (argv.strictMode) {
     mapReduceVars.isQueryStrict = true;
-  console.log("StrictMode is " + mapReduceVars.isQueryStrict);
+  }
+  console.log(`StrictMode is ${mapReduceVars.isQueryStrict}`);
 
-  //Start the xml Loading
+  // Start the xml Loading
   loadXml(argv.file, function (err, data) {
     if (err) return console.error('There was an error loading the XML', err);
     xmlDoc = data;
-    //If the command is launched from the console, the title is set to the filename
-    mapReduceVars.title = queryCollectionPrefix + argv.file.split(".")[0];
-    //notify user of the error, or the result of the query
+    // If the command is launched from the console, the title is set to the filename
+    mapReduceVars.title = queryCollectionPrefix + argv.file.split('.')[0];
+    // notify user of the error, or the result of the query
     prepareXml(xmlDoc, mapReduceVars, function (err, data) {
-      //notify user of the error, or the result of the query
-      console.log("Execution ended");
+      // notify user of the error, or the result of the query
+      console.log('Execution ended');
     });
   });
 }
 else {
-  var path = require('path');
-  var filename = path.basename(__filename);
-  console.log(filename + " correctly loaded at " + datestamp());
+  const path = require('path');
+  const filename = path.basename(__filename);
+  console.log(`${filename} correctly loaded at ${datestamp()}`);
 }
 
 
@@ -94,7 +95,7 @@ else {
  * Given a query title, retrieves all the documents from the corresponding collection, and calls the given callback
  * function providing chunks of the resulting data
  * @param [queryTitle] the title of the query to store
- * @param [callback] The callback needs to follow this structure(err,title,item,isStillFinished);
+ * @param [callback] The callback needs to follow this structure(err,title,documents);
  */
 
 function getXmlQueryData(queryTitle, callback) {
@@ -102,23 +103,23 @@ function getXmlQueryData(queryTitle, callback) {
   var collectionTitle = queryCollectionPrefix + queryTitle;
 
   constants.connectAndValidateNodeJs(function (err, db) {
-    if (err) return console.error("getXmlQueryData() ERROR connecting to DB" + err);
-    console.log("getXmlQueryData() Successfully connected to DB");
+    if (err) return console.error('getXmlQueryData() ERROR connecting to DB' + err);
+    console.log('getXmlQueryData() Successfully connected to DB');
 
     // Does the corresponding collection exist?
     db.listCollections({ name: collectionTitle }).toArray(function (err, items) {
-      if (err) return console.error("getXmlQueryData() ERROR REQUESTING COLLECTION" + err);
+      if (err) return console.error('getXmlQueryData() ERROR REQUESTING COLLECTION' + err);
       if (items.length == 1) {
-        //Collection exists, query its elements
-        //var cursor =
-        db.collection(collectionTitle).find({ "value.xmlQueryCounter": { $gt: 0 } }).toArray(function (err, documents) {
-          console.log("printing results");
-          console.log("Returning " + documents.length + " items");
+        // Collection exists, query its elements
+        // var cursor =
+        db.collection(collectionTitle).find({ 'value.xmlQueryCounter': { $gt: 0 } }).toArray(function (err, documents) {
+          console.log('printing results');
+          console.log('Returning ' + documents.length + ' items');
           callback(null, queryTitle, documents);
         });
       }
       else {
-        //Collection doesn't exist, return an error
+        // Collection doesn't exist, return an error
         return console.error("getXmlQueryData() requested query doesn't exist:" + queryTitle);
       }
     });
@@ -135,23 +136,23 @@ function getXmlQueryData(queryTitle, callback) {
 function getXmlQueryDataByCollection(queryCollName, callback) {
 
   constants.connectAndValidateNodeJs(function (err, db) {
-    if (err) return console.error("getTempXmlQueryData() ERROR connecting to DB" + err);
-    console.log("getTempXmlQueryData() Successfully connected to DB");
+    if (err) return console.error('getTempXmlQueryData() ERROR connecting to DB' + err);
+    console.log('getTempXmlQueryData() Successfully connected to DB');
 
     // Does the corresponding collection exist?
     db.listCollections({ name: queryCollName }).toArray(function (err, items) {
-      if (err) return console.error("getTempXmlQueryData() ERROR REQUESTING COLLECTION" + err);
+      if (err) return console.error('getTempXmlQueryData() ERROR REQUESTING COLLECTION' + err);
       if (items.length == 1) {
-        //Collection exists, query its elements
-        //var cursor =
-        db.collection(queryCollName).find({ "value.xmlQueryCounter": { $gt: 0 } }).toArray(function (err, documents) {
-          console.log("printing results");
-          console.log("Returning " + documents.length + " items");
+        // Collection exists, query its elements
+        // var cursor =
+        db.collection(queryCollName).find({ 'value.xmlQueryCounter': { $gt: 0 } }).toArray(function (err, documents) {
+          console.log('printing results');
+          console.log('Returning ' + documents.length + ' items');
           callback(null, queryCollName, documents);
         });
       }
       else {
-        //Collection doesn't exist, return an error
+        // Collection doesn't exist, return an error
         return console.error("getTempXmlQueryData() requested query doesn't exist:" + queryCollName);
       }
     });
@@ -163,7 +164,7 @@ function getXmlQueryDataByCollection(queryCollName, callback) {
  */
 function deleteResultCollection(resultTitle, callback) {
   constants.connectAndValidateNodeJs(function (err, db) {
-    if (err) return console.error("deleteResultCollection() ERROR connecting to DB" + err);
+    if (err) return console.error('deleteResultCollection() ERROR connecting to DB' + err);
     db.collection(queryCollectionPrefix + resultTitle).drop(function (err, result) {
       if (err) {
         console.log(err);
@@ -180,10 +181,10 @@ function deleteResultCollection(resultTitle, callback) {
 function deleteTempResultCollection(queryCollName, callback) {
   console.log(queryCollName);
   if (!queryCollName.indexOf(queryCollectionTempPrefix) == 0)
-    return console.error("collection name " + queryCollName + " is not a temporal collection" + err);
+    return console.error('collection name ' + queryCollName + ' is not a temporal collection' + err);
 
   constants.connectAndValidateNodeJs(function (err, db) {
-    if (err) return console.error("deleteTempResultCollection() ERROR connecting to DB" + err);
+    if (err) return console.error('deleteTempResultCollection() ERROR connecting to DB' + err);
     db.collection(queryCollName).drop(function (err, result) {
       if (err) {
         console.log(err);
@@ -191,19 +192,19 @@ function deleteTempResultCollection(queryCollName, callback) {
       callback(null);
     });
   });
-  //deleteAllTempResultCollections();
+  // deleteAllTempResultCollections();
 }
 
 function deleteAllTempResultCollections() {
   constants.connectAndValidateNodeJs(function (err, db) {
-    if (err) return console.error("deleteAllTempResultCollections() ERROR connecting to DB" + err);
+    if (err) return console.error('deleteAllTempResultCollections() ERROR connecting to DB' + err);
 
     db.listCollections().toArray(function (err, collInfos) {
       // collInfos is an array of collection info objects that look like:
       // { name: 'test', options: {} }
       collInfos.forEach(function (collObject, index) {
         if (collObject.name.indexOf(queryCollectionTempPrefix) == 0) {
-          console.log("Found temporal collection, DELETING");
+          console.log('Found temporal collection, DELETING');
           console.log(collObject);
           db.collection(collObject.name).drop(function (err, result) {
             if (err) {
@@ -245,21 +246,21 @@ function deleteAllTempResultCollections() {
  */
 function runXmlQuery(queryTitle, resultTitle, xmlQuery, queryOptions, endCallback, launchedCallback) {
 
-  //I am not sure if this assignment is necessary. Can I just pass "undefined" variables over?
-  //The test for the validity of the callback will be done before calling it
+  // I am not sure if this assignment is necessary. Can I just pass "undefined" variables over?
+  // The test for the validity of the callback will be done before calling it
   var launchedCallback = typeof launchedCallback !== 'undefined' ? launchedCallback : null;
 
   xmlDoc = new dom().parseFromString(xmlQuery);
 
   var mapReduceVars = {};
-  mapReduceVars.eventList = "";
-  mapReduceVars.db = "";
+  mapReduceVars.eventList = '';
+  mapReduceVars.db = '';
   mapReduceVars.title = queryTitle;
   mapReduceVars.dbTitle = queryCollectionPrefix + resultTitle;
   mapReduceVars.isTemp = false;
 
-  //parse the options object
-  //Check if the option exist in the provided object, if not, set to default.
+  // parse the options object
+  // Check if the option exist in the provided object, if not, set to default.
   mapReduceVars.isQueryStrict = typeof queryOptions.isQueryStrict !== 'undefined' ?
     queryOptions.isQueryStrict : false;
   mapReduceVars.startTimems = typeof queryOptions.startTimems !== 'undefined' ?
@@ -282,21 +283,21 @@ function runXmlQuery(queryTitle, resultTitle, xmlQuery, queryOptions, endCallbac
  */
 function runXmlTempQuery(title, xmlQuery, queryOptions, endCallback, launchedCallback) {
 
-  //I am not sure if this assignment is necessary. Can I just pass "undefined" variables over?
-  //The test for the validity of the callback will be done before calling it
+  // I am not sure if this assignment is necessary. Can I just pass "undefined" variables over?
+  // The test for the validity of the callback will be done before calling it
   var launchedCallback = typeof launchedCallback !== 'undefined' ? launchedCallback : null;
 
   xmlDoc = new dom().parseFromString(xmlQuery);
 
   var mapReduceVars = {};
-  mapReduceVars.eventList = "";
-  mapReduceVars.db = "";
+  mapReduceVars.eventList = '';
+  mapReduceVars.db = '';
   mapReduceVars.title = title;
-  mapReduceVars.dbTitle = queryCollectionTempPrefix + title + "_" + new Date().getTime();
+  mapReduceVars.dbTitle = queryCollectionTempPrefix + title + '_' + new Date().getTime();
   mapReduceVars.isTemp = true;
 
-  //parse the options object
-  //Check if the option exist in the provided object, if not, set to default.
+  // parse the options object
+  // Check if the option exist in the provided object, if not, set to default.
   mapReduceVars.isQueryStrict = typeof queryOptions.isQueryStrict !== 'undefined' ?
     queryOptions.isQueryStrict : false;
   mapReduceVars.startTimems = typeof queryOptions.startTimems !== 'undefined' ?
@@ -323,7 +324,7 @@ function loadXml(filename, callback) {
     console.log(data);
     xmlDoc = new dom().parseFromString(data);
     callback(null, xmlDoc);
-    //var eventListNodes = xpath.select("//eventList", xmlDoc)
+    // var eventListNodes = xpath.select("//eventList", xmlDoc)
   });
 }
 
@@ -331,13 +332,13 @@ function loadXml(filename, callback) {
  * Once the XML is ready, I can read the values, and prepare the MapReduce script
  */
 function prepareXml(xmlQuery, xmlDoc, mapReduceVars, endCallback, launchedCallback) {
-  mapReduceVars.eventList = xpath.select("//eventList/text()", xmlDoc).toString().split(",");
+  mapReduceVars.eventList = xpath.select('//eventList/text()', xmlDoc).toString().split(',');
   mapReduceVars.eventList = uniqueArray(mapReduceVars.eventList);
   console.log(mapReduceVars.eventList);
-  //connect to the database
+  // connect to the database
   constants.connectAndValidateNodeJs(function (err, db) {
-    if (err) return console.error("prepareXml() ERROR connecting to DB" + err);
-    console.log("prepareXml() Successfully connected to DB");
+    if (err) return console.error('prepareXml() ERROR connecting to DB' + err);
+    console.log('prepareXml() Successfully connected to DB');
     mapReduceVars.db = db;
     executeXmlMapReduce(xmlQuery, xmlDoc, mapReduceVars, endCallback, launchedCallback);
   });
@@ -360,25 +361,25 @@ function executeXmlMapReduce(xmlQuery, xmlDoc, mapReduceVars, endCallback, launc
   var startTimems = new Date();
 
   var eventCollection = mapReduceVars.db.collection(constants.eventCollection);
-  //The xml needs to be processed, and transformed into JavaScript objects that MapReduce can process
+  // The xml needs to be processed, and transformed into JavaScript objects that MapReduce can process
   var mapReduceXMLQueryObject = parseXMLToMapReduceObject(xmlDoc);
-  constants.scopeObject["xmlQueryObject"] = mapReduceXMLQueryObject;
-  constants.scopeObject["requiredFieldList"] = retrieveQueriedFields(mapReduceXMLQueryObject);
+  constants.scopeObject['xmlQueryObject'] = mapReduceXMLQueryObject;
+  constants.scopeObject['requiredFieldList'] = retrieveQueriedFields(mapReduceXMLQueryObject);
 
-  constants.scopeObject["isQueryStrict"] = mapReduceVars.isQueryStrict;
+  constants.scopeObject['isQueryStrict'] = mapReduceVars.isQueryStrict;
 
-  console.log("executeXmlMapReduce() start with the following parameters:");
-  console.log("ip: $nin: " + constants.bannedIPlist);
-  console.log("event: $in: " + mapReduceVars.eventList);
-  console.log("information from events: " + constants.scopeObject["requiredFieldList"]);
-  console.log("isQueryStrict: " + constants.scopeObject["isQueryStrict"]);
-  console.log("title: " + mapReduceVars.title);
-  console.log("collection name: " + mapReduceVars.dbTitle);
+  console.log('executeXmlMapReduce() start with the following parameters:');
+  console.log('ip: $nin: ' + constants.bannedIPlist);
+  console.log('event: $in: ' + mapReduceVars.eventList);
+  console.log('information from events: ' + constants.scopeObject['requiredFieldList']);
+  console.log('isQueryStrict: ' + constants.scopeObject['isQueryStrict']);
+  console.log('title: ' + mapReduceVars.title);
+  console.log('collection name: ' + mapReduceVars.dbTitle);
 
   var queryObject = {};
   queryObject.ip = { $nin: constants.bannedIPlist };
   queryObject.event = { $in: mapReduceVars.eventList };
-  queryObject.sessionstartms = { "$exists": true };
+  queryObject.sessionstartms = { '$exists': true };
 
   if (mapReduceVars.userList) {
     queryObject.sid = { $in: mapReduceVars.userList };
@@ -394,10 +395,10 @@ function executeXmlMapReduce(xmlQuery, xmlDoc, mapReduceVars, endCallback, launc
     queryObject.timestampms.$lte = mapReduceVars.endTimems;
   }
 
-  console.log("Query options:")
+  console.log('Query options:')
   console.log(queryObject);
 
-  console.log("_------------------_");
+  console.log('_------------------_');
 
   var value = eventCollection.mapReduce(
     mapFunction.toString(),
@@ -405,39 +406,39 @@ function executeXmlMapReduce(xmlQuery, xmlDoc, mapReduceVars, endCallback, launc
     {
       out: { replace: mapReduceVars.dbTitle },
       query: queryObject,
-      //I add a scope with all the required variables.
+      // I add a scope with all the required variables.
       scope: constants.scopeObject,
       finalize: finalizeFunction.toString(),
       verbose: true
     },
     function (err, results, stats) {   // stats provided by verbose
-      console.log("executeXmlMapReduce() end");
+      console.log('executeXmlMapReduce() end');
 
       if (err) {
-        mongoLog.logMessage("optime", "mapReduceScript",
-          constants.websiteId, "MapReduce failed", startTimems, new Date());
+        mongoLog.logMessage('optime', 'mapReduceScript',
+          constants.websiteId, 'MapReduce failed', startTimems, new Date());
 
-        //if the mapReduce was temporary, delete any results
+        // if the mapReduce was temporary, delete any results
         if (mapReduceVars.isTemp) {
           mapReduceVars.db.collection(mapReduceVars.dbTitle).drop();
         }
-        return console.error("executeXmlMapReduce() ERROR " + err);
+        return console.error('executeXmlMapReduce() ERROR ' + err);
       }
 
-      mongoLog.logMessage("optime", "mapReduceScript",
-        constants.websiteId, "MapReduce finished successfully", startTimems, new Date());
+      mongoLog.logMessage('optime', 'mapReduceScript',
+        constants.websiteId, 'MapReduce finished successfully', startTimems, new Date());
 
       console.log(results);
       console.log(stats);
-      console.log("Query finished in " + stats.processtime + " ms");
+      console.log('Query finished in ' + stats.processtime + ' ms');
       endCallback(null, mapReduceVars.title, mapReduceVars.dbTitle, stats.processtime, mapReduceVars.isQueryStrict);
     }
   );
 
-  //Add a delay to the funcion, as the query will not be available straight away
+  // Add a delay to the funcion, as the query will not be available straight away
   if (launchedCallback !== null) {
     setTimeout(function () {
-      console.log("calling launchedCallback");
+      console.log('calling launchedCallback');
       console.log(mapReduceVars.title);
       console.log(xmlQuery);
       launchedCallback(null, mapReduceVars.title, mapReduceVars.dbTitle, xmlQuery, mapReduceVars.isQueryStrict);
@@ -452,64 +453,64 @@ function executeXmlMapReduce(xmlQuery, xmlDoc, mapReduceVars, endCallback, launc
 function parseXMLToMapReduceObject(xmlDoc) {
   console.log();
 
-  console.log("Start XML parsing");
+  console.log('Start XML parsing');
 
   var xmlQueryObject = {};
   xmlQueryObject.eventList = [];
   xmlQueryObject.tempConstrList = [];
-  //Each time an event is processed, its index in the query is stored, so it can be retrieved for the corresponding temporal restriction
+  // Each time an event is processed, its index in the query is stored, so it can be retrieved for the corresponding temporal restriction
   var eventIDTable = {};
 
-  //PROCESS XML
-  //For each occurrence of event, create an eventQueryObject
-  //i.e. if the event has more than one occurrence, create various.
-  //WARNING!!! "n" occurrences is not supported at the moment.
+  // PROCESS XML
+  // For each occurrence of event, create an eventQueryObject
+  // i.e. if the event has more than one occurrence, create various.
+  // WARNING!!! "n" occurrences is not supported at the moment.
 
-  //First event has predecesor null
-  currentID = "null";
-  //each element in the eventList is an eventQueryObject
-  //It will be identified by its index in the query array
+  // First event has predecesor null
+  currentID = 'null';
+  // each element in the eventList is an eventQueryObject
+  // It will be identified by its index in the query array
   areEventsLeft = true;
   while (areEventsLeft) {
-    //Check if exists an event after last one processed (stored at currentID)
-    //Instead of the "boolean" function, the length of the response can be checked:
-    //if (xpath.select("//event[@pre='" + currentID + "']", xmlDoc).length>0) { 
+    // Check if exists an event after last one processed (stored at currentID)
+    // Instead of the "boolean" function, the length of the response can be checked:
+    // if (xpath.select("//event[@pre='" + currentID + "']", xmlDoc).length>0) { 
     if (xpath.select("boolean(//event[@pre='" + currentID + "'])", xmlDoc)) {
       var eventQueryObject = new Object();
-      eventQueryObject.nameList = xpath.select("//event[@pre='" + currentID + "']/eventList/text()", xmlDoc).toString().split(",");
+      eventQueryObject.nameList = xpath.select("//event[@pre='" + currentID + "']/eventList/text()", xmlDoc).toString().split(',');
       eventQueryObject.occurrences = xpath.select("string(//event[@pre='" + currentID + "']/@occurrences)", xmlDoc);
 
       eventQueryObject.matchCriteria = xpath.select("string(//event[@pre='" + currentID + "']/@matchCriteria)", xmlDoc);
-      //retrocompatibility, if the attribute doesn't exist set to true.
+      // retrocompatibility, if the attribute doesn't exist set to true.
       if (eventQueryObject.matchCriteria === '')
         eventQueryObject.matchCriteria = 'true';
 
-      //Get the context for that event
+      // Get the context for that event
       eventQueryObject.context = new Object();
       eventQueryObject.context.typeList = [];
       eventQueryObject.context.valueList = [];
 
       var context = xpath.select("//event[@pre='" + currentID + "']/context", xmlDoc);
-      console.log(context.length + "context elements have been found");
+      console.log(context.length + 'context elements have been found');
 
       for (i = 0; i < context.length; i++) {
-        eventQueryObject.context.typeList[i] = context[i].getAttributeNode("type").value;
-        eventQueryObject.context.valueList[i] = context[i].getAttributeNode("value").value;
+        eventQueryObject.context.typeList[i] = context[i].getAttributeNode('type').value;
+        eventQueryObject.context.valueList[i] = context[i].getAttributeNode('value').value;
       }
 
-      //Modify the context list so it matches the corresponding values in the DB
+      // Modify the context list so it matches the corresponding values in the DB
       eventQueryObject.context = fixContextValues(eventQueryObject.context);
 
       currentID = xpath.select("string(//event[@pre='" + currentID + "']/@id)", xmlDoc);
-      //Keep the index of this event in the table. The '-1' is necessary to obtain the index of the last element
+      // Keep the index of this event in the table. The '-1' is necessary to obtain the index of the last element
       eventIDTable[currentID] = xmlQueryObject.eventList.push(eventQueryObject) - 1;
-      console.log("eventQueryObject with id=" + currentID);
+      console.log('eventQueryObject with id=' + currentID);
       console.log(eventQueryObject);
-      console.log("Adding " + (parseInt(eventQueryObject.occurrences) - 1) + " more events");
-      //push as many event copies as the occurrences indicate
+      console.log('Adding ' + (parseInt(eventQueryObject.occurrences) - 1) + ' more events');
+      // push as many event copies as the occurrences indicate
       for (i = 0; i < parseInt(eventQueryObject.occurrences) - 1; i++) {
-        //LOG 2016-12-16 15:14:12 I cannot see any reason why I need a proper clone
-        //a reference will do so the algorithm can abstract itself and just loop through everything
+        // LOG 2016-12-16 15:14:12 I cannot see any reason why I need a proper clone
+        // a reference will do so the algorithm can abstract itself and just loop through everything
         xmlQueryObject.eventList.push(eventQueryObject);
         console.log(eventQueryObject);
       }
@@ -517,40 +518,40 @@ function parseXMLToMapReduceObject(xmlDoc) {
     else
       areEventsLeft = false;
   }
-  console.log(xmlQueryObject.eventList.length + " eventQueryObjects were added to the list");
+  console.log(xmlQueryObject.eventList.length + ' eventQueryObjects were added to the list');
   console.log(xmlQueryObject);
 
-  //temporal restriction list will be created taking into account the index position of the event that they involve
+  // temporal restriction list will be created taking into account the index position of the event that they involve
   var tempRestrObject = {};
-  //2 event references, which will be set to the corresponding index
+  // 2 event references, which will be set to the corresponding index
   tempRestrObject.eventRef1;
   tempRestrObject.eventRef2;
   tempRestrObject.type;
-  //The unit will be used to transform the given time value to ms.
+  // The unit will be used to transform the given time value to ms.
   tempRestrObject.value;
 
-  var tempRestrNodeList = xpath.select("//temporalconstraint", xmlDoc)
+  var tempRestrNodeList = xpath.select('//temporalconstraint', xmlDoc)
   tempRestrNodeList.forEach(function (tempRestrNode, index) {
 
     tempRestrObject = new Object();
-    tempRestrObject.type = tempRestrNode.getAttribute("type");
+    tempRestrObject.type = tempRestrNode.getAttribute('type');
 
-    if (tempRestrNode.getAttribute("unit") == "sec")
-      tempRestrObject.value = tempRestrNode.getAttribute("value") * 1000;
-    else if (tempRestrNode.getAttribute("unit") == "min")
-      tempRestrObject.value = tempRestrNode.getAttribute("value") * 60 * 1000;
+    if (tempRestrNode.getAttribute('unit') == 'sec')
+      tempRestrObject.value = tempRestrNode.getAttribute('value') * 1000;
+    else if (tempRestrNode.getAttribute('unit') == 'min')
+      tempRestrObject.value = tempRestrNode.getAttribute('value') * 60 * 1000;
     else
-      interruptExecution("parseXMLToMapReduceObject(): ERROR WITH THE UNIT VALUE OF TEMPORAL CONSTRAINT");
+      interruptExecution('parseXMLToMapReduceObject(): ERROR WITH THE UNIT VALUE OF TEMPORAL CONSTRAINT');
 
-    //retrieve the event Ids for the temp constraints, and check the constructed table for the corresponding indexes
+    // retrieve the event Ids for the temp constraints, and check the constructed table for the corresponding indexes
     var eventRef = tempRestrNode.getElementsByTagName('eventref');
-    console.log("tempRestrObject with index=" + index);
-    console.log("eventRef1 is " + eventRef[0].getAttribute("id") + " which can be found in the following array:");
+    console.log('tempRestrObject with index=' + index);
+    console.log('eventRef1 is ' + eventRef[0].getAttribute('id') + ' which can be found in the following array:');
     console.log(eventIDTable);
 
-    tempRestrObject.eventRef1 = eventIDTable[eventRef[0].getAttribute("id")];
-    tempRestrObject.eventRef2 = eventIDTable[eventRef[1].getAttribute("id")];
-    console.log("tempRestrObject contains a restriction involving indexes " + tempRestrObject.eventRef1 + ", and " + tempRestrObject.eventRef2);
+    tempRestrObject.eventRef1 = eventIDTable[eventRef[0].getAttribute('id')];
+    tempRestrObject.eventRef2 = eventIDTable[eventRef[1].getAttribute('id')];
+    console.log('tempRestrObject contains a restriction involving indexes ' + tempRestrObject.eventRef1 + ', and ' + tempRestrObject.eventRef2);
     console.log(tempRestrObject);
     xmlQueryObject.tempConstrList.push(tempRestrObject);
   });
@@ -565,44 +566,44 @@ function parseXMLToMapReduceObject(xmlDoc) {
  * @param {Object} contextList 
  */
 function fixContextValues(contextInfo) {
-  //XML schema to be used to read the possible context values
-  //For the time being, we will use a hardcoded list of the values that need processing
-  //it will be hardcoded anyway in order to give each context a different treatment
+  // XML schema to be used to read the possible context values
+  // For the time being, we will use a hardcoded list of the values that need processing
+  // it will be hardcoded anyway in order to give each context a different treatment
   for (i = 0; i < contextInfo.typeList.length; i++) {
     switch (contextInfo.typeList[i]) {
-      case "NodeID":
-        contextInfo.typeList[i] = "nodeInfo.nodeId";
+      case 'NodeID':
+        contextInfo.typeList[i] = 'nodeInfo.nodeId';
         break;
-      case "NodeType":
-        contextInfo.typeList[i] = "nodeInfo.nodeType";
+      case 'NodeType':
+        contextInfo.typeList[i] = 'nodeInfo.nodeType';
         contextInfo.valueList[i] = contextInfo.valueList[i].toUpperCase();
         break;
-      case "NodeDom":
-        contextInfo.typeList[i] = "nodeInfo.nodeDom";
+      case 'NodeDom':
+        contextInfo.typeList[i] = 'nodeInfo.nodeDom';
         break;
-      case "NodeImg":
-        contextInfo.typeList[i] = "nodeInfo.nodeImg";
+      case 'NodeImg':
+        contextInfo.typeList[i] = 'nodeInfo.nodeImg';
         break;
-      case "NodeLink":
-        contextInfo.typeList[i] = "nodeInfo.nodeLink";
+      case 'NodeLink':
+        contextInfo.typeList[i] = 'nodeInfo.nodeLink';
         break;
-      case "NodeTextContent":
-        contextInfo.typeList[i] = "nodeInfo.nodeTextContent";
+      case 'NodeTextContent':
+        contextInfo.typeList[i] = 'nodeInfo.nodeTextContent';
         break;
-      case "NodeTextValue":
-        contextInfo.typeList[i] = "nodeInfo.nodeTextValue";
+      case 'NodeTextValue':
+        contextInfo.typeList[i] = 'nodeInfo.nodeTextValue';
         break;
-      case "URL":
-        contextInfo.typeList[i] = "url";
+      case 'URL':
+        contextInfo.typeList[i] = 'url';
         break;
-      case "ScrollState":
-        //This context will require more work, and can only be done live.
+      case 'ScrollState':
+        // This context will require more work, and can only be done live.
         break;
       default:
         break;
     }
   }
-  console.log("fixContextValues(): context values have been adapted");
+  console.log('fixContextValues(): context values have been adapted');
   console.log(contextInfo);
 
   return (contextInfo);
@@ -614,12 +615,12 @@ function fixContextValues(contextInfo) {
  * @param {Object} mapReduceXMLQueryObject 
  */
 function retrieveQueriedFields(mapReduceXMLQueryObject) {
-  //fields that are required for the MapReduce
-  var requiredFieldList = ["_id", "sd", "sid", "timestampms", "event", constants.episodeField];
+  // fields that are required for the MapReduce
+  var requiredFieldList = ['_id', 'sd', 'sid', 'timestampms', 'event', constants.episodeField];
 
-  //Additional fields to support the MapReduce query
+  // Additional fields to support the MapReduce query
   mapReduceXMLQueryObject.eventList.forEach(function (eventObject, index) {
-    //CAUTION the context is not actually a list, but an object that contains a list of type and value
+    // CAUTION the context is not actually a list, but an object that contains a list of type and value
     eventObject.context.typeList.forEach(function (contextTypeField, index) {
       if (requiredFieldList.indexOf(contextTypeField) == -1)
         requiredFieldList.push(contextTypeField);
@@ -632,7 +633,7 @@ function retrieveQueriedFields(mapReduceXMLQueryObject) {
 /**
  * This function filters out all unwanted events.
  * It gets executed for each object, and gives access to internal variables via "this".
- **/
+ * */
 function mapFunction() {
   /* 
     I am still not sure why, but accessing this with a variable returns undefined
@@ -648,24 +649,24 @@ function mapFunction() {
   var emitData = {};
 
   requiredFieldList.forEach(function (requiredField, index) {
-    //is the requiredField a nested field? if so the nesting needs to be tackled.
-    if (requiredField.indexOf(".") > -1) {
-      var mainField = requiredField.split(".")[0];
-      var nestedField = requiredField.split(".")[1];
+    // is the requiredField a nested field? if so the nesting needs to be tackled.
+    if (requiredField.indexOf('.') > -1) {
+      var mainField = requiredField.split('.')[0];
+      var nestedField = requiredField.split('.')[1];
 
-      //Only emit this field if the event contains it
+      // Only emit this field if the event contains it
       if (eventToEmit[mainField]) {
         var contentToEmit = eventToEmit[mainField][nestedField];
 
-        //check again if the nested field exists
+        // check again if the nested field exists
         if (contentToEmit) {
-          //Does the nested field contain additional nest levels AND the field still exists?
-          //If so, go down another level
-          while (contentToEmit && nestedField.indexOf(".") > -1) {
-            nestedField = nestedField.split(".")[1];
+          // Does the nested field contain additional nest levels AND the field still exists?
+          // If so, go down another level
+          while (contentToEmit && nestedField.indexOf('.') > -1) {
+            nestedField = nestedField.split('.')[1];
             contentToEmit = contentToEmit[nestedField];
           }
-          //final check, only emit if field exists
+          // final check, only emit if field exists
           if (contentToEmit) {
             emitData[requiredField] = contentToEmit;
           }
@@ -677,16 +678,16 @@ function mapFunction() {
   });
 
 
-  //emit({sid:this.sid, sessionstartms:this.sessionstartms, url:this.url, urlSessionCounter:this.urlSessionCounter},
+  // emit({sid:this.sid, sessionstartms:this.sessionstartms, url:this.url, urlSessionCounter:this.urlSessionCounter},
   emit({ sid: this.sid, url: this.url, episodeCount: this[episodeField] },
     {
-      "episodeEvents":
+      'episodeEvents':
       [
         emitData
       ]
     }
   );
-  //}
+  // }
 }
 
 
@@ -699,7 +700,7 @@ function mapFunction() {
  
  */
 function reduceFunction(key, values) {
-  var reduced = { "episodeEvents": [] };
+  var reduced = { 'episodeEvents': [] };
   for (var i in values) {
     var inter = values[i];
     for (var j in inter.episodeEvents) {
@@ -715,18 +716,18 @@ function reduceFunction(key, values) {
  */
 function skinnyReduceFunction(key, values) {
 
-  var reduced = { "episodeEvents": [] };
+  var reduced = { 'episodeEvents': [] };
   for (var i in values) {
     var inter = values[i];
     for (var j in inter.episodeEvents) {
-      //for all elements except the first one
-      //if (reduced.episodeEvents.length > 1) {
+      // for all elements except the first one
+      // if (reduced.episodeEvents.length > 1) {
       for (var fieldIndex in reduced.episodeEvents[j]) {
         if (requiredFieldList.indexOf(fieldIndex) == -1) {
           delete inter.episodeEvents[j][fieldIndex];
         }
       }
-      //}
+      // }
       reduced.episodeEvents.push(inter.episodeEvents[j]);
     }
   }
@@ -739,10 +740,10 @@ function skinnyReduceFunction(key, values) {
  * This is the function that has access to ALL data, and this is the step in which events can be ordered and processed
  */
 function finalizeFunction(key, reduceOutput) {
-  //print("STARTING FINALIZE");
+  // print("STARTING FINALIZE");
 
-  //////////////////////////START OF Auxiliary Functions/////////////////////////////
-  ///////////////////////////////////////////////////////////////////////////////////////////
+  // ////////////////////////START OF Auxiliary Functions/////////////////////////////
+  // /////////////////////////////////////////////////////////////////////////////////////////
   /**
   * We need our own compare function in order to be able to sort the array according to the timestamp
   */
@@ -752,14 +753,14 @@ function finalizeFunction(key, reduceOutput) {
     var objectBTime = Number(objectB.timestampms);
 
     if (objectATime < objectBTime) {
-      //timeDifference += "##" + objectATime+ "is SMALLER than " + objectBTime;
+      // timeDifference += "##" + objectATime+ "is SMALLER than " + objectBTime;
       return -1;
     }
     if (objectATime > objectBTime) {
-      //timeDifference += "##" + objectATime+ "is BIGGER than " + objectBTime;
+      // timeDifference += "##" + objectATime+ "is BIGGER than " + objectBTime;
       return 1;
     }
-    //timeDifference += "##" + objectATime+ "is EQUALS to " + objectBTime;
+    // timeDifference += "##" + objectATime+ "is EQUALS to " + objectBTime;
     return 0;
   }
 
@@ -769,11 +770,11 @@ function finalizeFunction(key, reduceOutput) {
    * if (JSON.stringify(currentEvent.nodeInfo) == JSON.stringify(this.lackOfMousePrecisionList[i].nodeInfo)){
    */
   function getNodeInfo(nodeInfo) {
-    return ("NodeInfo [nodeId=" + nodeInfo.nodeId + ", nodeName=" + nodeInfo.nodeName
-      + ", nodeDom=" + nodeInfo.nodeDom + ", nodeImg=" + nodeInfo.nodeImg
-      + ", nodeLink=" + nodeInfo.nodeLink + ", nodeText=" + nodeInfo.nodeText
-      + ", nodeType=" + nodeInfo.nodeType + ", nodeTextContent="
-      + nodeInfo.nodeTextContent + ", nodeTextValue=" + nodeInfo.nodeTextValue + "]");
+    return ('NodeInfo [nodeId=' + nodeInfo.nodeId + ', nodeName=' + nodeInfo.nodeName
+      + ', nodeDom=' + nodeInfo.nodeDom + ', nodeImg=' + nodeInfo.nodeImg
+      + ', nodeLink=' + nodeInfo.nodeLink + ', nodeText=' + nodeInfo.nodeText
+      + ', nodeType=' + nodeInfo.nodeType + ', nodeTextContent='
+      + nodeInfo.nodeTextContent + ', nodeTextValue=' + nodeInfo.nodeTextValue + ']');
   }
 
   /**
@@ -791,11 +792,11 @@ function finalizeFunction(key, reduceOutput) {
       return (values[half - 1] + values[half]) / 2.0;
   }
 
-  ///////////////////////////////////////////////////////////////////////////////////////////
-  //////////////////////////END OF Auxiliary Functions/////////////////////////////
+  // /////////////////////////////////////////////////////////////////////////////////////////
+  // ////////////////////////END OF Auxiliary Functions/////////////////////////////
 
-  //////////////////////////START OF XML query/////////////////////////////
-  ///////////////////////////////////////////////////////////////////////////////////////////
+  // ////////////////////////START OF XML query/////////////////////////////
+  // /////////////////////////////////////////////////////////////////////////////////////////
 
   /**
    * Constructor for the XmlQuery object.
@@ -803,10 +804,10 @@ function finalizeFunction(key, reduceOutput) {
    */
   function XmlQuery() {
 
-    //Stores the results of the query
+    // Stores the results of the query
     this.xmlQueryList = [];
 
-    //Stores the prospective query results
+    // Stores the prospective query results
     this.xmlQueryCandidatesList = [];
   }
 
@@ -835,8 +836,8 @@ function finalizeFunction(key, reduceOutput) {
   XmlQuery.prototype.processEvent = function (currentEvent) {
 
     var candidatesToRemove = [];
-    //copy "this" so it's visible within the next loop
-    /*2017-07-07 12:28:04 This is not a problem any more with the change to
+    // copy "this" so it's visible within the next loop
+    /* 2017-07-07 12:28:04 This is not a problem any more with the change to
      * a for loop (to enable stepping back negative match), but I will keep it as it is
      * to prevent problems if at any point the loop style is reverted
      */
@@ -847,147 +848,147 @@ function finalizeFunction(key, reduceOutput) {
 
       var indexToMatch = xmlQueryCandidate.length;
 
-      //print("####################################");
-      //print("event index to match");
-      //print(indexToMatch);
-      //print("event list length")
-      //print(xmlQueryObject.eventList.length);
-      //print("matching event:");
-      //print(xmlQueryObject.eventList[indexToMatch].nameList);
-      //print(xmlQueryObject.eventList[indexToMatch].matchCriteria);
+      // print("####################################");
+      // print("event index to match");
+      // print(indexToMatch);
+      // print("event list length")
+      // print(xmlQueryObject.eventList.length);
+      // print("matching event:");
+      // print(xmlQueryObject.eventList[indexToMatch].nameList);
+      // print(xmlQueryObject.eventList[indexToMatch].matchCriteria);
 
-      //print("####################################");
+      // print("####################################");
 
-      //Depending on the matchCriteria, we follow a different approach
-      if (xmlQueryObject.eventList[indexToMatch].matchCriteria == "true") {
+      // Depending on the matchCriteria, we follow a different approach
+      if (xmlQueryObject.eventList[indexToMatch].matchCriteria == 'true') {
 
-        //print("####################################");
-        //print("matching criteria was true");
-        //print("####################################");
+        // print("####################################");
+        // print("matching criteria was true");
+        // print("####################################");
         if (xmlQueryObject.eventList[indexToMatch].nameList.indexOf(currentEvent.event) > -1
           && matchContextInfo(currentEvent, xmlQueryObject.eventList[indexToMatch].context)) {
 
-          //This code is never used START
+          // This code is never used START
           currentEvent.contextInfo = {};
           currentEvent.contextInfo.currentEvent = currentEvent[xmlQueryObject.eventList[indexToMatch].context.typeList[0]];
           currentEvent.contextInfo.contextToMatch = xmlQueryObject.eventList[indexToMatch].context.valueList[0];
-          //this code is never used END
+          // this code is never used END
 
-          //the event matches, add it to the list, and test temporal constraints.
+          // the event matches, add it to the list, and test temporal constraints.
           xmlQueryCandidate.push(currentEvent);
 
           if (matchTemporalConstraintList(xmlQueryCandidate, xmlQueryObject.tempConstrList)) {
-            //Is a match, check if the full query has been matched
+            // Is a match, check if the full query has been matched
             if (xmlQueryObject.eventList.length == xmlQueryCandidate.length) {
-              //If it's fully finished, add it to the results list and mark it to be removed.
+              // If it's fully finished, add it to the results list and mark it to be removed.
               xmlQuery.xmlQueryList.push(xmlQueryCandidate);
               candidatesToRemove.push(xmlQueryCandidateIndex);
             }
           }
           else {
-            //It's not a match, mark it to be removed
+            // It's not a match, mark it to be removed
             candidatesToRemove.push(xmlQueryCandidateIndex);
           }
         } else if (isQueryStrict) {
-          //The event didn't match!
-          //I we need to be strict, this candidate is not valid any longer
+          // The event didn't match!
+          // I we need to be strict, this candidate is not valid any longer
           candidatesToRemove.push(xmlQueryCandidateIndex);
         }
       }
 
-      //matchingCriteria is false, made it else if instead of else for readability
-      else if (xmlQueryObject.eventList[indexToMatch].matchCriteria == "false") {
-        //print("####################################");
-        //print("matching criteria was false");
-        //print("####################################");
-        //IF current event is different (correct negative match)
-        //OR current event is same, but the context is different
+      // matchingCriteria is false, made it else if instead of else for readability
+      else if (xmlQueryObject.eventList[indexToMatch].matchCriteria == 'false') {
+        // print("####################################");
+        // print("matching criteria was false");
+        // print("####################################");
+        // IF current event is different (correct negative match)
+        // OR current event is same, but the context is different
         if (xmlQueryObject.eventList[indexToMatch].nameList.indexOf(currentEvent.event) == -1
           || matchContextInfo(currentEvent, xmlQueryObject.eventList[indexToMatch].context)) {
 
           // add the event for the check, if it's not suitable, I will remove it.
           xmlQueryCandidate.push(currentEvent);
 
-          //IF there is not any temporal constraint affecting the index that we are currently matching
-          //OR the temporal constraints are violated, then the current event can be matched
+          // IF there is not any temporal constraint affecting the index that we are currently matching
+          // OR the temporal constraints are violated, then the current event can be matched
           if (testTemporalConstraintAffectsIndex(indexToMatch, xmlQueryObject.tempConstrList)
             || !matchTemporalConstraintList(xmlQueryCandidate, xmlQueryObject.tempConstrList)) {
-            //Leave current event in the candidate list as the placeholder so later events can check it
-            //xmlQueryCandidate.push(currentEvent); //No need to add it, we will just not remove it
+            // Leave current event in the candidate list as the placeholder so later events can check it
+            // xmlQueryCandidate.push(currentEvent); //No need to add it, we will just not remove it
 
-            //print("####################################");
-            //print("negative match was found and added");
-            //print("the candidate list is now this long");
-            //print(xmlQueryCandidate.length);
-            //print("####################################");
+            // print("####################################");
+            // print("negative match was found and added");
+            // print("the candidate list is now this long");
+            // print(xmlQueryCandidate.length);
+            // print("####################################");
 
-            //Is a match, check if the full query has been matched
+            // Is a match, check if the full query has been matched
             if (xmlQueryObject.eventList.length == xmlQueryCandidate.length) {
-              //If it's fully finished, add it to the results list and mark it to be removed.
+              // If it's fully finished, add it to the results list and mark it to be removed.
               xmlQuery.xmlQueryList.push(xmlQueryCandidate);
               candidatesToRemove.push(xmlQueryCandidateIndex);
             }
             else {
-              //Once a negative match has been processed, we step forwards in the same candidate with the same event
-              //we might have negatively matched an event that will now be positively matched
-              //e.g. a single mouseout will match the following pattern: !mouseover followed by mouseout
-              //Decreasing the index will make the loop go through this same candidate again
+              // Once a negative match has been processed, we step forwards in the same candidate with the same event
+              // we might have negatively matched an event that will now be positively matched
+              // e.g. a single mouseout will match the following pattern: !mouseover followed by mouseout
+              // Decreasing the index will make the loop go through this same candidate again
               xmlQueryCandidateIndex--;
             }
           }
           else {
-            //current event was not a match, remove it from candidate
+            // current event was not a match, remove it from candidate
             xmlQueryCandidate.pop();
           }
 
         }
-        //Current event matches the event we are NOT looking for--> remove candidate
-        //no strict mode is being considered here, as we are purposedly avoiding it
+        // Current event matches the event we are NOT looking for--> remove candidate
+        // no strict mode is being considered here, as we are purposedly avoiding it
         else {
           candidatesToRemove.push(xmlQueryCandidateIndex);
         }
       }
     }
 
-    //Remove all non-valid candidates
+    // Remove all non-valid candidates
     while (candidatesToRemove.length) {
       this.xmlQueryCandidatesList.splice(candidatesToRemove.pop(), 1);
     }
 
-    //FIRST EVENT SITUATION
-    //Every event is capable of starting its own candidate if they match the first event
-    if (xmlQueryObject.eventList[0].matchCriteria == "true") {
-      //Compare current event to the first event in the matching list
+    // FIRST EVENT SITUATION
+    // Every event is capable of starting its own candidate if they match the first event
+    if (xmlQueryObject.eventList[0].matchCriteria == 'true') {
+      // Compare current event to the first event in the matching list
       if (xmlQueryObject.eventList[0].nameList.indexOf(currentEvent.event) > -1
         && matchContextInfo(currentEvent, xmlQueryObject.eventList[0].context)) {
-        //initialise a new candidate
+        // initialise a new candidate
         var candidateObject = [];
         candidateObject.push(currentEvent);
 
-        //is the query looking for sequences formed of a single event?
-        //If so, just store it as a match, if not, add it to the candidate list to match further events
+        // is the query looking for sequences formed of a single event?
+        // If so, just store it as a match, if not, add it to the candidate list to match further events
         if (xmlQueryObject.eventList.length == 1)
           xmlQuery.xmlQueryList.push(candidateObject);
         else
           this.xmlQueryCandidatesList.push(candidateObject);
       }
     }
-    else if (xmlQueryObject.eventList[0].matchCriteria == "false") {
-      //Compare current event to the first event in the matching list
+    else if (xmlQueryObject.eventList[0].matchCriteria == 'false') {
+      // Compare current event to the first event in the matching list
       if (xmlQueryObject.eventList[0].nameList.indexOf(currentEvent.event) == -1
         || matchContextInfo(currentEvent, xmlQueryObject.eventList[0].context)) {
-        //initialise a new candidate
+        // initialise a new candidate
         var candidateObject = [];
         candidateObject.push(currentEvent);
 
-        //is the query looking for sequences formed of a single event?
-        //If so, just store it as a match, if not, add it to the candidate list to match further events
+        // is the query looking for sequences formed of a single event?
+        // If so, just store it as a match, if not, add it to the candidate list to match further events
         if (xmlQueryObject.eventList.length == 1)
           xmlQuery.xmlQueryList.push(candidateObject);
         else {
           this.xmlQueryCandidatesList.push(candidateObject);
-          //Same as when a new negative matched is added to the candidate
-          //Once a negative match has been processed, we step forwards in the same candidate with the same event
+          // Same as when a new negative matched is added to the candidate
+          // Once a negative match has been processed, we step forwards in the same candidate with the same event
           xmlQueryCandidateIndex--;
         }
       }
@@ -998,14 +999,14 @@ function finalizeFunction(key, reduceOutput) {
    * Last event for this object. It takes any unfinished candidate and determines if it should be included or not
    */
   XmlQuery.prototype.endBehaviour = function (currentEvent) {
-    //TODO: If the last remaining item to match is a negative match, then we can finish the sequence
+    // TODO: If the last remaining item to match is a negative match, then we can finish the sequence
   }
 
   /**
    * Transforms the array into an object before returning it
    */
   XmlQuery.prototype.outputResult = function () {
-    //return ("##OUTPUT: outputting " + this.controlledBehaviourList.length+" elements");
+    // return ("##OUTPUT: outputting " + this.controlledBehaviourList.length+" elements");
     function toObject(arr) {
       var rv = {};
       for (var i = 0; i < arr.length; ++i)
@@ -1024,30 +1025,30 @@ function finalizeFunction(key, reduceOutput) {
    * tempRestrObject= {eventRef1, eventRef2, type,value}
    */
   function matchTemporalConstraintList(xmlQueryCandidate, tempConstraintList) {
-    //For some reason the forEach loop didn't work. 
+    // For some reason the forEach loop didn't work. 
     //    tempConstraintList.forEach(function (tempConstraint, index) {
     for (var index = 0; index < tempConstraintList.length; index++) {
       var tempConstraint = tempConstraintList[index];
 
-      //Events are added to the candidates list following the order as in the query
-      //Therefore the indexes must match the references initially set in the tempConstraint
+      // Events are added to the candidates list following the order as in the query
+      // Therefore the indexes must match the references initially set in the tempConstraint
 
-      //We only need to test for events that are already included in the candidate.
-      //If the length of the candidate is smaller than the index, then it will be ignored
+      // We only need to test for events that are already included in the candidate.
+      // If the length of the candidate is smaller than the index, then it will be ignored
       if (tempConstraint.eventRef1 < xmlQueryCandidate.length &&
         tempConstraint.eventRef2 < xmlQueryCandidate.length) {
         var event1 = xmlQueryCandidate[tempConstraint.eventRef1];
         var event2 = xmlQueryCandidate[tempConstraint.eventRef2];
         var timeDistance = Math.abs(event1.timestampms - event2.timestampms);
 
-        if (tempConstraint.type == "within" && timeDistance > tempConstraint.value)
+        if (tempConstraint.type == 'within' && timeDistance > tempConstraint.value)
           return (0);
-        else if (tempConstraint.type == "between" && timeDistance < tempConstraint.value)
+        else if (tempConstraint.type == 'between' && timeDistance < tempConstraint.value)
           return (0);
       }
-      //});
+      // });
     };
-    //at this point, all temporal constraints checked out
+    // at this point, all temporal constraints checked out
     return (1);
   }
 
@@ -1064,7 +1065,7 @@ function finalizeFunction(key, reduceOutput) {
       if (tempConstraint.eventRef1 == eventIndex || tempConstraint.eventRef2 == eventIndex)
         return true;
     }
-    //no temporal constraint affect the given index
+    // no temporal constraint affect the given index
     return false;
   }
 
@@ -1073,15 +1074,15 @@ function finalizeFunction(key, reduceOutput) {
     var fieldName;
     for (i = 0; i < contextInfo.typeList.length; i++) {
       fieldName = contextInfo.typeList[i];
-      //The nested fields need to be tackled in a different way
-      if (fieldName.indexOf(".") > -1) {
-        var mainField = fieldName.split(".")[0];
-        var nestedField = fieldName.split(".")[1];
+      // The nested fields need to be tackled in a different way
+      if (fieldName.indexOf('.') > -1) {
+        var mainField = fieldName.split('.')[0];
+        var nestedField = fieldName.split('.')[1];
         var contentToCompare = currentEvent[mainField][nestedField];
 
-        //Does the nested field contain additional nest levels? If so, go down another level
-        while (nestedField.indexOf(".") > - 1) {
-          nestedField = nestedField.split(".")[1];
+        // Does the nested field contain additional nest levels? If so, go down another level
+        while (nestedField.indexOf('.') > - 1) {
+          nestedField = nestedField.split('.')[1];
           contentToCompare = contentToCompare[nestedField];
         }
         if (contentToCompare != contextInfo.valueList[i])
@@ -1101,23 +1102,23 @@ function finalizeFunction(key, reduceOutput) {
     return true;
   }
 
-  ///////////////////////////////////////////////////////////////////////////////////////////
-  //////////////////////////END OF XML query/////////////////////////////
+  // /////////////////////////////////////////////////////////////////////////////////////////
+  // ////////////////////////END OF XML query/////////////////////////////
 
 
 
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////START OF FUNCTION//////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // //////////////////////////////////////////////////////////////////////////////////////////////////////
+  // /////////////////////////////////////////START OF FUNCTION//////////////////////////
+  // //////////////////////////////////////////////////////////////////////////////////////////////////////
   var valuesArray = reduceOutput.episodeEvents;
 
   valuesArraySorted = valuesArray.sort(compare);
-  //valuesArraySorted.sort(compare);
+  // valuesArraySorted.sort(compare);
 
-  var debugLog = "";
+  var debugLog = '';
 
-  //Behaviour Objects
+  // Behaviour Objects
   var xmlQuery = new XmlQuery();
 
   for (var i in valuesArraySorted) {
@@ -1126,7 +1127,7 @@ function finalizeFunction(key, reduceOutput) {
     xmlQuery.processEvent(valueObject);
   }
 
-  //debugLog +=
+  // debugLog +=
 
   xmlQuery.endBehaviour();
 
@@ -1156,17 +1157,17 @@ function feedQueryResultsByTitle(queryTitle, callback) {
  * @param {string} queryTitle with the name of the query results to feed back
  */
 function feedQueryInformationByCollection(queryCollName, callback) {
-  console.log("Starting the feed of the information");
+  console.log('Starting the feed of the information');
   var startTimems = new Date();
 
   constants.connectAndValidateNodeJs(function (err, db) {
     var resultCount = 0;
-    //Retrieve all documents with at least one result
-    db.collection(queryCollName).find({ "value.xmlQueryCounter": { $gt: 0 } })
+    // Retrieve all documents with at least one result
+    db.collection(queryCollName).find({ 'value.xmlQueryCounter': { $gt: 0 } })
       .toArray(function (err, documents) {
-        //docElem = documents[0];
+        // docElem = documents[0];
 
-        //async.eachLimit(documents, 1,
+        // async.eachLimit(documents, 1,
         async.each(documents,
           function (docElem, callback) {
             updateXmlQueryDocument(docElem, db, queryCollName, callback);
@@ -1174,15 +1175,15 @@ function feedQueryInformationByCollection(queryCollName, callback) {
           function (err) {
             if (err) {
               console.error(err.message);
-              mongoLog.logMessage("error", "feedQueryResultsInformation",
-                constants.websiteId, "feedQueryResultsInformation() failed", startTimems, new Date());
+              mongoLog.logMessage('error', 'feedQueryResultsInformation',
+                constants.websiteId, 'feedQueryResultsInformation() failed', startTimems, new Date());
               callback(err);
             }
             else {
-              mongoLog.logMessage("optime", "feedQueryResultsInformation",
-                constants.websiteId, "feedQueryResultsInformation finished successfully " + queryTitle, startTimems, new Date());
+              mongoLog.logMessage('optime', 'feedQueryResultsInformation',
+                constants.websiteId, 'feedQueryResultsInformation finished successfully ' + queryTitle, startTimems, new Date());
 
-              //Update count, and call parent callback when count reaches end
+              // Update count, and call parent callback when count reaches end
               resultCount++;
               if (resultCount >= documents.length);
               callback(null);
@@ -1202,12 +1203,12 @@ function feedQueryInformationByCollection(queryCollName, callback) {
 function updateXmlQueryDocument(docElem, db, queryCollName, callback) {
   var documentId = docElem._id;
   /*console.log("feedQueryResultsInformation of document:");
-  console.log(documentId);*/
+  console.log(documentId); */
 
   var resultTotal = 0;
   var resultCount = 0;
 
-  //quick loop through the object (no db operations) to count how many elements will be processed.
+  // quick loop through the object (no db operations) to count how many elements will be processed.
   for (var xmlQueryIndex in docElem.value.xmlQuery) {
     xmlQueryResult = docElem.value.xmlQuery[xmlQueryIndex];
     xmlQueryResult.forEach(function (eventInQuery, eventIndexInResult) {
@@ -1215,34 +1216,34 @@ function updateXmlQueryDocument(docElem, db, queryCollName, callback) {
     });
   }
 
-  //For each result
+  // For each result
   for (var xmlQueryIndex in docElem.value.xmlQuery) {
     xmlQueryResult = docElem.value.xmlQuery[xmlQueryIndex];
 
-    //For each event in the result, retrieve the corresponding information from the database
+    // For each event in the result, retrieve the corresponding information from the database
     xmlQueryResult.forEach(function (eventInQuery, eventIndexInResult) {
-      //."toArray()" is necessary so the eventFullInfo is not a cursor, and can be used to update the database directly
+      // ."toArray()" is necessary so the eventFullInfo is not a cursor, and can be used to update the database directly
       db.collection(constants.eventCollection).find({ _id: eventInQuery._id }).toArray(function (err, eventFullInfo) {
-        //Once the event is retrieved, we need to update the correspoding object in the results collection
-        //Only one event will match a single ID, get rid of the list
+        // Once the event is retrieved, we need to update the correspoding object in the results collection
+        // Only one event will match a single ID, get rid of the list
         eventFullInfo = eventFullInfo[0];
 
-        //Create an index so we can access this particular occurrence
-        //http://stackoverflow.com/questions/6702450/variable-with-mongodb-dotnotation
-        //We are updating the specific use of a particular event inside that collection.
+        // Create an index so we can access this particular occurrence
+        // http://stackoverflow.com/questions/6702450/variable-with-mongodb-dotnotation
+        // We are updating the specific use of a particular event inside that collection.
         var xmlQueryEventIndex = {}
         for (objectIndex in docElem._id) {
           xmlQueryEventIndex['_id.' + objectIndex] = docElem._id[objectIndex];
         }
 
-        //xmlQueryEventIndex["value.xmlQuery." + xmlQueryIndex + "._id"] = new constants.mongodb.ObjectID(eventInQuery._id);
-        xmlQueryEventIndex["value.xmlQuery." + xmlQueryIndex + "._id"] = eventInQuery._id;
-        //I don';t know why using the ID is not working. Testing with other values.
-        //xmlQueryEventIndex["value.xmlQuery." + xmlQueryIndex + ".timestampms"] = eventInQuery.timestampms;
-        //http://stackoverflow.com/questions/9200399/replacing-embedded-document-in-array-in-mongodb
+        // xmlQueryEventIndex["value.xmlQuery." + xmlQueryIndex + "._id"] = new constants.mongodb.ObjectID(eventInQuery._id);
+        xmlQueryEventIndex['value.xmlQuery.' + xmlQueryIndex + '._id'] = eventInQuery._id;
+        // I don';t know why using the ID is not working. Testing with other values.
+        // xmlQueryEventIndex["value.xmlQuery." + xmlQueryIndex + ".timestampms"] = eventInQuery.timestampms;
+        // http://stackoverflow.com/questions/9200399/replacing-embedded-document-in-array-in-mongodb
 
         var xmlQueryEventUpdatedValue = {};
-        xmlQueryEventUpdatedValue["value.xmlQuery." + xmlQueryIndex + ".$"] = eventFullInfo;
+        xmlQueryEventUpdatedValue['value.xmlQuery.' + xmlQueryIndex + '.$'] = eventFullInfo;
         /*
         console.log("Finding ID:");
         console.log(xmlQueryEventIndex);
@@ -1271,19 +1272,19 @@ function updateXmlQueryDocument(docElem, db, queryCollName, callback) {
  */
 function datestamp() {
   var currentDate = new Date();
-  return currentDate.getFullYear() + "-" + completeDateVals(currentDate.getMonth() + 1) + "-"
-    + completeDateVals(currentDate.getDate()) + "," + completeDateVals(currentDate.getHours())
-    + ":" + completeDateVals(currentDate.getMinutes())
-    + ":" + completeDateVals(currentDate.getSeconds())
-    + ":" + completeDateValsMilliseconds(currentDate.getMilliseconds());
+  return currentDate.getFullYear() + '-' + completeDateVals(currentDate.getMonth() + 1) + '-'
+    + completeDateVals(currentDate.getDate()) + ',' + completeDateVals(currentDate.getHours())
+    + ':' + completeDateVals(currentDate.getMinutes())
+    + ':' + completeDateVals(currentDate.getSeconds())
+    + ':' + completeDateValsMilliseconds(currentDate.getMilliseconds());
 
 }
 
 /** Completes single-digit numbers by a "0"-prefix
  *  */
 function completeDateVals(dateVal) {
-  var dateVal = "" + dateVal;
-  if (dateVal.length < 2) return "0" + dateVal;
+  var dateVal = '' + dateVal;
+  if (dateVal.length < 2) return '0' + dateVal;
   else return dateVal;
 }
 
@@ -1291,9 +1292,9 @@ function completeDateVals(dateVal) {
  * This is a special case for milliseconds, in which we will add up to two zeros
  * */
 function completeDateValsMilliseconds(dateVal) {
-  var dateVal = "" + dateVal;
-  if (dateVal.length < 2) return "00" + dateVal;
-  if (dateVal.length < 3) return "0" + dateVal;
+  var dateVal = '' + dateVal;
+  if (dateVal.length < 2) return '00' + dateVal;
+  if (dateVal.length < 3) return '0' + dateVal;
   else return dateVal;
 }
 
@@ -1302,10 +1303,10 @@ function completeDateValsMilliseconds(dateVal) {
  * Function to interrupt the execution at any time. An optional message can be added
  */
 function interruptExecution(message) {
-  console.log("XMLtoMongoDB execution failed");
+  console.log('XMLtoMongoDB execution failed');
   if (message)
     console.log(message);
-  //the code will be 1 by default, indicating a failure
+  // the code will be 1 by default, indicating a failure
   process.exit(1);
 }
 

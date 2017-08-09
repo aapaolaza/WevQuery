@@ -1,9 +1,9 @@
-var queryCatalogConnection = createqueryCatalogConnectionFunctions();
+let testGlobalPatternObject;
+
+const queryCatalogConnection = createqueryCatalogConnectionFunctions();
 
 function createqueryCatalogConnectionFunctions() {
-
-  var queryCatalogConnectionObject = {};
-
+  const queryCatalogConnectionObject = {};
 
   /**
  * Requests the list of all available collections
@@ -11,21 +11,21 @@ function createqueryCatalogConnectionFunctions() {
 
   queryCatalogConnectionObject.requestCompletedQueries = function () {
     socket.emit('serverRequestCompletedQueries');
-  }
+  };
 
   /**
    * Requests the list of all queries in Catalog
    */
   queryCatalogConnectionObject.requestCatalogQueries = function () {
     socket.emit('serverRequestCatalogQueries');
-  }
+  };
 
   /**
   * Request the result list for a given query
   */
   queryCatalogConnectionObject.requestQueryResultList = function (title) {
     socket.emit('serverRequestQueryResults', { "queryTitle": title });
-  }
+  };
 
   /**
  * Requests the list of all currently running queries
@@ -33,7 +33,7 @@ function createqueryCatalogConnectionFunctions() {
 
   queryCatalogConnectionObject.requestRunningQueries = function () {
     socket.emit('serverRequestRunningQueries');
-  }
+  };
 
 
   /**
@@ -44,7 +44,7 @@ function createqueryCatalogConnectionFunctions() {
     socket.emit('serverDeleteResults', {
       "resultTitle": resultTitle
     });
-  }
+  };
 
   /**
    * Requests the deletion of a Catalog element
@@ -54,7 +54,7 @@ function createqueryCatalogConnectionFunctions() {
     socket.emit('serverDeleteCatalog', {
       "queryTitle": queryTitle
     });
-  }
+  };
 
   /**
    * Initiates the give query, with the given parameters
@@ -71,7 +71,7 @@ function createqueryCatalogConnectionFunctions() {
       "xmlData": queryData,
       "timestamp": new Date().getTime()
     });
-  }
+  };
 
   /**
    * Request the data for a query
@@ -79,6 +79,14 @@ function createqueryCatalogConnectionFunctions() {
   function requestQueryData(title) {
     socket.emit('serverRequestQueryData', { "queryTitle": title });
   }
+
+  /**
+   * Request the preparation of a pattern Object
+   */
+  queryCatalogConnectionObject.requestPreparePatternDataset = function (resultTitleList, callback) {
+    console.log(`requesting dataset preparation for the following inputs: ${resultTitleList}`);
+    socket.emit('serverRequestPreparePatternDataset', { "resultTitleList": resultTitleList });
+  };
 
   return queryCatalogConnectionObject;
 }
@@ -136,4 +144,11 @@ socket.on('clientQueryDataProcessed', function (data) {
 
   //Construct the path to the resulting json file
   window.open(window.location.href.split("WebInterface")[0] + data.queryPath);
+});
+
+socket.on('clientPreparePatternDatasetProcessed', function (data) {
+  let message = `The pattern data for the input ${data.resultTitleList} has been processed`;
+  notifyUser(message);
+  console.log(message);
+  testGlobalPatternObject = data;
 });

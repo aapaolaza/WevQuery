@@ -22,6 +22,10 @@ var socketGeneric = require("./socketHandlers/socketGeneric.js");
 var socketXmlQuery = require("./socketHandlers/socketXmlQuery.js");
 var socketDataAnalysis = require("./socketHandlers/socketDataAnalysis.js");
 var socketDataInfo = require("./socketHandlers/socketDataInfo.js");
+const patternInterface = require('./patternMining/patternInterface.js');
+var socketPatternMining = require("./socketHandlers/socketPatternMining.js");
+
+
 
 //Start Express server
 var app = express();
@@ -47,20 +51,20 @@ else
   console.log("AUTHENTICATION DISABLED");
 
 //Restrict access to specific files and folders
-app.all('/mongoDAO/*', function (req,res, next) {
-   res.status(403).send({
-      message: 'Access Forbidden'
-   });
+app.all('/mongoDAO/*', function (req, res, next) {
+  res.status(403).send({
+    message: 'Access Forbidden'
+  });
 });
 
-app.all('/userCredentials.js', function (req,res, next) {
-   res.status(403).send({
-      message: 'Access Forbidden'
-   });
+app.all('/userCredentials.js', function (req, res, next) {
+  res.status(403).send({
+    message: 'Access Forbidden'
+  });
 });
 
 //Reroute the request for the schema so we can return the last version of the schema
-app.get('/schema.xsd', function(req, res){
+app.get('/schema.xsd', function (req, res) {
   res.sendFile(__dirname + '/eventsequencegrammar/eventseq_1.1.xsd');
 });
 
@@ -81,6 +85,9 @@ var path = require('path');
 var url = require("url");
 
 var mongoDAO = require("./mongoDAO/mongoDAO.js");
+mongoDAO.initialiseIndexes(function () {
+  console.log("ALL indexes have been initialised");
+});
 
 var resultsFolder = "./Results/";
 
@@ -95,6 +102,10 @@ socketConnection.on('connection', function (socketInstance) {
   socketXmlQuery.initialiseSockets(mongoDAO, socketGeneric, socketConnection, socketInstance);
   socketDataAnalysis.initialiseSockets(mongoDAO, socketGeneric, socketConnection, socketInstance, resultsFolder);
   socketDataInfo.initialiseSockets(mongoDAO, socketGeneric, socketConnection, socketInstance);
+
+  patternInterface.initialisePatternInterface(mongoDAO);
+  socketPatternMining.initialiseSockets(mongoDAO, socketGeneric, socketConnection, socketInstance, patternInterface);
+  
 });
 
 function authFunction(req, res, next) {

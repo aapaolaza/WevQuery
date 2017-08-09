@@ -118,8 +118,14 @@
               <h2 id="Pattern Matching">Pattern Matching</h2>
               <h3>Input</h3>
               <p> Select inputs for the pattern matching algorithm</p>
+              <div class="btn-group patternInputButtons" role="group" aria-label="Pattern input selection options">
+                <button id="patternAddInputButton" type="button" class="btn btn-secondary">Left</button>
+                <button id="patternClearInputButton" type="button" class="btn btn-secondary">
+                  <span class="glyphicon glyphicon-trash"></span>
+                  Clear List</button>
+              </div>
+
               <ul id="patternInputList" class="list-group">
-                <li class="list-group-item addPatternInput"></li>
               </ul>
               <h3>Algorithm type</h3>
               <form>
@@ -182,8 +188,7 @@
               <span id="runCatalogQuery" class="glyphicon glyphicon-play" aria-hidden="true"></span> Run Query
             </div>
             <div class="queryOptionItem">
-              <span id="runCatalogQueryStrict" class="glyphicon glyphicon-step-forward" aria-hidden="true"></span> Run
-              <i>Strict</i> Query
+              <span id="runCatalogQueryStrict" class="glyphicon glyphicon-step-forward" aria-hidden="true"></span> Run <i>Strict</i>              Query
             </div>
 
             <div class="queryOptionItem">
@@ -287,6 +292,11 @@
         </table>
       </div>
     </div>
+  </div>
+  
+  <div id="dialog-confirm" title="Empty the recycle bin?" style='display:none'>
+    <p><span class="glyphicon glyphicon-alert" style="float:left; margin:12px 12px 20px 0;"></span>These items will be permanently
+      deleted and cannot be recovered. Are you sure?</p>
   </div>
 </body>
 
