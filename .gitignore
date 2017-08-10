@@ -2,6 +2,9 @@
 Results
 # Logs
 logs
+# Pattern mining results
+patternMining/patternFiles
+
 *.log
 npm-debug.log*
 

@@ -139,11 +139,12 @@ function requestUserListWithEvents(callback) {
  * @param {callback} callback 
  */
 function requestUsers(callback) {
-  constants.connectAndValidateNodeJs(function (err, db) {
-    db.collection(constants.eventCollection).distinct('sid', function (err, userList) {
-      if (err) return console.error("requestUsers()", err);
-      callback(null, userList);
-    });
+  constants.connectAndValidateNodeJs((err, db) => {
+    db.collection(constants.eventCollection).distinct('sid',
+      (err, userList) => {
+        if (err) return console.error("requestUsers()", err);
+        callback(null, userList);
+      });
   });
 }
 
@@ -185,12 +186,14 @@ function createNodeCollection(callback) {
 
     // nodeIndex is a hash function that uniquely represents a node and serves as a direct index to it
     db.collection(constants.nodeListCollection).createIndex({ "index": 1 }, { unique: true });
+    db.collection(constants.nodeListCollection).createIndex({ "generalCount": 1 });
+
     // Before creating the list, remove any existing node Collection
     db.collection(constants.nodeListCollection).drop(function () {
       console.log(`collection deleted`);
       // Look for ALL events that have a node object.
       //db.collection(constants.eventCollection).find({ sid: "w62zkMya3kBE", "nodeInfo": { $exists: true } })
-      db.collection(constants.eventCollection).find({"nodeInfo": { $exists: true } })
+      db.collection(constants.eventCollection).find({ "nodeInfo": { $exists: true } })
         .forEach(function (eventItem) {
           // First generate the index
           // console.log(`creating index for ${JSON.stringify(eventItem.nodeInfo)}`);
@@ -199,6 +202,7 @@ function createNodeCollection(callback) {
           // if it exists, increase the count for the corresponding event name
           let incObject = {};
           incObject['eventCount.' + eventItem.event] = 1;
+          incObject['generalCount'] = 1;
 
           db.collection(constants.nodeListCollection).update({ index: nodeIndex },
             {

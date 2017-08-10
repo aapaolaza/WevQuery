@@ -1,9 +1,8 @@
-var mongoDAO;
-var socketConnection;
-var socketGeneric;
-var socketInstance;
-var patternMiningInterface;
-const fs = require('fs');
+let mongoDAO;
+let socketConnection;
+let socketGeneric;
+let socketInstance;
+let patternMiningInterface;
 
 
 function initialiseSockets(generalMongoDAO, generalSocketGeneric,
@@ -18,7 +17,7 @@ function initialiseSockets(generalMongoDAO, generalSocketGeneric,
   socketInstance.on('serverRequestPreparePatternDataset', function (data) {
     console.log(`serverRequestPreparePatternDataset, requesting pattern
       dataset for the following input ${data.resultTitleList}`);
-    patternMiningInterface.preparePatternDataset(data.resultTitleList,
+    patternMiningInterface.createPatternDataset(data.resultTitleList,
       function (err, patternDataset) {
         console.log("send clientPreparePatternDatasetProcessed");
 
@@ -26,8 +25,7 @@ function initialiseSockets(generalMongoDAO, generalSocketGeneric,
           'resultTitleList': data.resultTitleList,
           'patternDataset': patternDataset
         });
-      }
-    );
+      });
   });
 }
 
