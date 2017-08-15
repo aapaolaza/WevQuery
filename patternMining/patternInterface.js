@@ -17,6 +17,7 @@ const binarySearch = require('binarysearch');
 const crypto = require('crypto');
 
 const fs = require('fs');
+const readline = require('readline');
 
 const folderName = 'patternMining';
 const resultsFolderName = 'patternFiles';
@@ -64,46 +65,6 @@ function runSPMF(algoName, inputFile, outputFile, extraParams, callback) {
     });
 }
 
-
-/**
- * Runs the frequent sequential pattern mining algorithm
- * called PrefixSpan.
- * Takes inputFile as the input and stores the output of the algorithm in OutputFile
- * @param {String} inputFile 
- * @param {String} outputFile
- * @param {int} minimum support
- */
-function itemPatApriori(inputFile, outputFile, minSupport) {
-  console.log(`itemPatApriori started at ${new Date().toUTCString()}`);
-  const algoName = 'Apriori';
-  const extraParams = `${minSupport.toString()}%`;
-  runSPMF(algoName, inputFile, outputFile, extraParams,
-    (err) => {
-      if (err) console.log(err);
-      console.log(`itemPatApriori finished at ${new Date().toUTCString()}`);
-    });
-}
-
-/**
- * Runs the frequent sequential pattern mining algorithm
- * called PrefixSpan.
- * Takes inputFile as the input and stores the output of the algorithm in OutputFile
- * @param {String} inputFile 
- * @param {String} outputFile
- * @param {int} minimum support
- */
-function seqPatPrefixSpan(inputFile, outputFile, minSupport) {
-  console.log(`seqPatPrefixSpan started at ${new Date().toUTCString()}`);
-  const algoName = 'PrefixSpan';
-  const extraParams = `${minSupport.toString()}%`;
-  runSPMF(algoName, inputFile, outputFile, extraParams,
-    (err) => {
-      if (err) console.log(err);
-      console.log(`seqPatPrefixSpan finished at ${new Date().toUTCString()}`);
-    });
-}
-
-
 /**
  * patternDatasetObject provides the functionality to initialise and prepare a set of arrays
  * with information from a given set of results
@@ -130,6 +91,15 @@ function PatternDatasetObject(name) {
    * to minimise the dataset size. This array contains the directory of events
    */
   this.eventSet = [];
+
+  this.filenames = {
+    itemSet: `./${folderName}/${resultsFolderName}/${this.name}Itemset.txt`,
+    itemSetOutput: `./${folderName}/${resultsFolderName}/${this.name}ItemsetApriori.txt`,
+    itemSetOutputTranslated: `./${folderName}/${resultsFolderName}/${this.name}ItemsetAprioriTranslated.txt`,
+    seqSet: `./${folderName}/${resultsFolderName}/${this.name}Seq.txt`,
+    seqSetOutput: `./${folderName}/${resultsFolderName}/${this.name}SeqPrefixSpan.txt`,
+    seqSetOutputTranslated: `./${folderName}/${resultsFolderName}/${this.name}SeqPrefixSpanTranslated.txt`,
+  };
 
   console.log(this);
 }
@@ -228,12 +198,11 @@ PatternDatasetObject.prototype.printCounts = function () {
  * Stores relevant information about the provided patternDataset
  * Information such as the eventSet index, and the full list of
  * sequences can be found here
- * @param {PatternDatasetObject} patternDataset
  */
-function storePatternDatasetInfo(patternDataset) {
-  const filename = `./${folderName}/${resultsFolderName}/${patternDataset.name}info.json`;
-  fs.writeFile(filename, JSON.stringify(patternDataset, null, 2), 'utf-8');
-}
+PatternDatasetObject.prototype.storePatternDatasetInfo = function () {
+  const filename = `./${folderName}/${resultsFolderName}/${this.name}info.json`;
+  fs.writeFile(filename, JSON.stringify(this, null, 2), 'utf-8');
+};
 
 /**
  * Given a PatternDataset object, it creates a textfile
@@ -242,32 +211,104 @@ function storePatternDatasetInfo(patternDataset) {
  * The input should be formatted as a text file 
  * in which each line corresponds to a set of items
  * 
- * @param {PatternDatasetObject} patternDataset 
  */
-function prepareItemsetInput(patternDataset) {
-  console.log(`Starting the prepareItemsetInput of ${patternDataset.name}`);
-  const filename = `./${folderName}/${resultsFolderName}/${patternDataset.name}Itemset.txt`;
-  const dataOutput = fs.createWriteStream(filename, { flags: 'w' });
+PatternDatasetObject.prototype.prepareItemsetInput = function (callback) {
+  console.log(`Starting the prepareItemsetInput of ${this.name}`);
+  const dataOutput = fs.createWriteStream(this.filenames.itemSet, { flags: 'w' });
 
-  const seqIndexList = Object.keys(patternDataset.patternArray);
+  const seqIndexList = Object.keys(this.patternArray);
   seqIndexList.forEach((seqIndex) => {
     // If the sequence only has one item, ignore
-    if (patternDataset.patternArray[seqIndex].length !== 1) {
+    if (this.patternArray[seqIndex].length !== 1) {
       // For each sequence in the pattern array just print it out as a line
       let textLine = '';
-      patternDataset.patternArray[seqIndex].forEach((eventOcurr) => {
+      this.patternArray[seqIndex].forEach((eventOcurr) => {
         // For each item, print it out and add a space
         textLine += `${eventOcurr.eventKey} `;
       });
       dataOutput.write(`${textLine}\n`);
     }
   });
-  console.log(`Finished the prepareItemsetInput of ${patternDataset.name}`);
+  console.log(`Finished the prepareItemsetInput of ${this.name}`);
+  callback();
+};
 
-  const outputFilename = `./${folderName}/${resultsFolderName}/${patternDataset.name}ItemsetApriori.txt`;
-  itemPatApriori(filename, outputFilename, 2);
-}
 
+/**
+ * It translates the output from the itemset mining algorithms
+ * replacing event keys into event names
+ */
+PatternDatasetObject.prototype.translateItemsetOutput = function (callback) {
+  const rl = readline.createInterface({ input: fs.createReadStream(this.filenames.itemSetOutput) });
+
+  // All the output is redirected to a new file
+  const dataOutput = fs.createWriteStream(this.filenames.itemSetOutputTranslated, { flags: 'w' });
+
+  // For each line in the output, split it by spaces (default separation)
+  rl.on('line', (line) => {
+    // when all the numbers in the seq have been processed, we will just print the rest as it is
+    let seqProcessed = false;
+    line.split(' ').forEach((seqItem) => {
+      if (seqProcessed) {
+        // the seq was processed, just print out the rest of characters
+        dataOutput.write(seqItem);
+      } else if (isNaN(seqItem)) {
+        // Not a number, we are at the end of the seq, print the rest of the line
+        dataOutput.write(`:${seqItem}`);
+        seqProcessed = true;
+      } else if (!isNaN(seqItem)) {
+        // the only possible condition is being an index for eventset, but still test for number
+        // use eventSent to retrieve the event's name
+        dataOutput.write(this.eventSet[parseInt(seqItem, 10)]);
+      }
+    });
+    // line finished, add new line
+    dataOutput.write('\n');
+  });
+
+  // Triggered when input has been consumed
+  rl.on('close', () => {
+    callback();
+  });
+};
+
+/**
+ * Runs the frequent sequential pattern mining algorithm
+ * called PrefixSpan.
+ * Takes inputFile as the input and stores the output of the algorithm in OutputFile
+ * @param {String} inputFile 
+ * @param {String} outputFile
+ * @param {int} minimum support
+ */
+PatternDatasetObject.prototype.itemPatApriori = function (minSupport, callback) {
+  console.log(`itemPatApriori started at ${new Date().toUTCString()}`);
+  const algoName = 'Apriori';
+  const extraParams = `${minSupport.toString()}%`;
+  runSPMF(algoName, this.filenames.itemSet, this.filenames.itemSetOutput, extraParams,
+    (err) => {
+      if (err) console.log(err);
+      console.log(`itemPatApriori finished at ${new Date().toUTCString()}`);
+      callback();
+    });
+};
+
+PatternDatasetObject.prototype.runItemPatternMining = function (runCallback) {
+  const patternDataset = this;
+  async.waterfall([
+    function (callback) {
+      patternDataset.prepareItemsetInput(callback);
+    },
+    function (callback) {
+      patternDataset.itemPatApriori(2, callback);
+    },
+    function (callback) {
+      patternDataset.translateItemsetOutput(callback);
+    },
+  ], (err) => {
+    if (err) console.log(`The following error was triggered during runItemPatternMining(): ${err}`);
+    runCallback(`Itemset${patternDataset.name}`, patternDataset.filenames.itemSetOutputTranslated);
+  });
+};
 
 /**
  * Given a PatternDataset object, it creates a textfile
@@ -279,33 +320,117 @@ function prepareItemsetInput(patternDataset) {
  * separated with a space, and each itemset is separated
  * with a -1. The end of the sequence is marked with a -2.
  * 
- * @param {PatternDatasetObject} patternDataset
  */
-function prepareSequenceInput(patternDataset) {
-  console.log(`Starting the prepareSequenceInput of ${patternDataset.name}`);
-  const filename = `./${folderName}/${resultsFolderName}/${patternDataset.name}Sequence.txt`;
-  const dataOutput = fs.createWriteStream(filename, { flags: 'w' });
+PatternDatasetObject.prototype.prepareSequenceInput = function (callback) {
+  console.log(`Starting the prepareSequenceInput of ${this.name}`);
+  const dataOutput = fs.createWriteStream(this.filenames.seqSet, { flags: 'w' });
 
-  const seqIndexList = Object.keys(patternDataset.patternArray);
+  const seqIndexList = Object.keys(this.patternArray);
   seqIndexList.forEach((seqIndex) => {
     // If the sequence only has one item, ignore
-    if (patternDataset.patternArray[seqIndex].length !== 1) {
+    if (this.patternArray[seqIndex].length !== 1) {
       // For each sequence in the pattern array just print it out as a line
       let textLine = '';
-      patternDataset.patternArray[seqIndex].forEach((eventOcurr) => {
+      this.patternArray[seqIndex].forEach((eventOcurr) => {
         // For each item, print it out and add a space and a -1 followed by another space
         textLine += `${eventOcurr.eventKey} -1 `;
       });
-      // each line ends with a -2
-      dataOutput.write(`${textLine} -2\n`);
+      // each line ends with a -2 (NO SPACE!!!)
+      dataOutput.write(`${textLine}-2\n`);
     }
   });
-  console.log(`Finished the prepareSequenceInput of ${patternDataset.name}`);
+  console.log(`Finished the prepareSequenceInput of ${this.name}`);
+  callback();
+};
 
-  const outputFilename = `./${folderName}/${resultsFolderName}/${patternDataset.name}SeqPrefixSpan.txt`;
-  seqPatPrefixSpan(filename, outputFilename, 2);
-}
+/**
+ * It translates the output from the sequence mining algorithms
+ * replacing event keys into event names
+ * 
+ */
+PatternDatasetObject.prototype.translateSequenceOutput = function (callback) {
+  const rl = readline.createInterface({ input: fs.createReadStream(this.filenames.seqSetOutput) });
 
+  // All the output is redirected to a new file
+  const dataOutput = fs.createWriteStream(this.filenames.seqSetOutputTranslated, { flags: 'w' });
+
+  // For each line in the output, split it by spaces (default separation)
+  rl.on('line', (line) => {
+    // keep track if the item is the first one in its set, to delimit them with brackets
+    let firstItemInSet = true;
+    // when all the numbers in the seq have been processed, we will just print the rest as it is
+    let seqProcessed = false;
+    console.log(line);
+
+    line.split(' ').forEach((seqItem) => {
+      if (seqProcessed) {
+        // the seq was processed, just print out the rest of characters
+        dataOutput.write(seqItem);
+      } else if (isNaN(seqItem)) {
+        // Not a number, we are at the end of the seq, print the rest of the line
+        dataOutput.write(seqItem);
+        seqProcessed = true;
+      } else if (seqItem === '-1') {
+        // the item is an itemset separator
+        dataOutput.write(']');
+        firstItemInSet = true;
+      } else if (!isNaN(seqItem)) {
+        // the only possible condition is being an index for eventset, but still test for number
+        // is part of an item, add it to an itemset by printing starting brackets or comma
+        if (firstItemInSet) dataOutput.write('[');
+        else dataOutput.write(',');
+        firstItemInSet = false;
+        // use eventSent to retrieve the event's name
+        dataOutput.write(this.eventSet[parseInt(seqItem, 10)]);
+      }
+    });
+    // line finished, add new line
+    dataOutput.write('\n');
+  });
+
+  // Triggered when input has been consumed
+  rl.on('close', () => {
+    callback();
+  });
+};
+
+/**
+ * Runs the frequent sequential pattern mining algorithm
+ * called PrefixSpan.
+ * Takes inputFile as the input and stores the output of the algorithm in OutputFile
+ * @param {String} inputFile 
+ * @param {String} outputFile
+ * @param {int} minimum support
+ */
+PatternDatasetObject.prototype.seqPatPrefixSpan = function (minSupport, callback) {
+  console.log(`seqPatPrefixSpan started at ${new Date().toUTCString()}`);
+  const algoName = 'PrefixSpan';
+  const extraParams = `${minSupport.toString()}%`;
+  runSPMF(algoName, this.filenames.seqSet, this.filenames.seqSetOutput, extraParams,
+    (err) => {
+      if (err) console.log(err);
+      console.log(`seqPatPrefixSpan finished at ${new Date().toUTCString()}`);
+      callback();
+    });
+};
+
+PatternDatasetObject.prototype.runSequencePatternMining = function (runCallback) {
+  const patternDataset = this;
+  async.waterfall([
+    function (callback) {
+      patternDataset.prepareSequenceInput(callback);
+    },
+    function (callback) {
+      patternDataset.seqPatPrefixSpan(2, callback);
+    },
+    function (callback) {
+      patternDataset.translateSequenceOutput(callback);
+    },
+  ], (err) => {
+    if (err) console.log(`The following error was triggered during runSequencePatternMining(): ${err}`);
+    runCallback(`Seq${patternDataset.name}`, patternDataset.filenames.seqSetOutputTranslated);
+  });
+};
 
 /**
  * Given a list of result titles, creates an array of sequences of events.
@@ -314,7 +439,7 @@ function prepareSequenceInput(patternDataset) {
  * MasterArray[UserEpisodePair[OrderedEvents]]
  * where UserEpisodePair is a hash of the _id object from the results in the database
  */
-function createPatternDataset(resultTitleList, callback) {
+function createPatternDataset(resultTitleList, callback, itemsetCallback, sequenceCallback) {
   const patternDataset = new PatternDatasetObject(new Date().getTime());
   // It might look like a callback hell, but I am just using nested async.each functions
   // only the lowest level callback will be called from within the algorithm.
@@ -364,9 +489,9 @@ function createPatternDataset(resultTitleList, callback) {
     console.log(resultTitleList);
     console.log(`There were ${patternDataset.patternArray.length} arrays`);
     callback(null, patternDataset);
-    storePatternDatasetInfo(patternDataset);
-    prepareItemsetInput(patternDataset);
-    prepareSequenceInput(patternDataset);
+    patternDataset.storePatternDatasetInfo();
+    patternDataset.runItemPatternMining(itemsetCallback);
+    patternDataset.runSequencePatternMining(sequenceCallback);
   });
 }
 

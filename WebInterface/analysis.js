@@ -14,7 +14,7 @@ function createAnalysisFunctions() {
 
     genericFunctions.initTabHeader();
     //initTabHeader has already determined if we need to show the results from a particular collection
-    //the name of the collection to show is in genericFunctions.getActiveResult()
+    //the name of the collection to show is in genericFunctions.getURLHash()
 
     analysis.updateStackedChart();
     analysis.updateSunburst();
@@ -40,7 +40,7 @@ function createAnalysisFunctions() {
   };
 
   var spinnerStackedChart;
-  const stackedChartDataKey = "stackedChartDataKey_"+genericFunctions.getActiveResult();
+  const stackedChartDataKey = "stackedChartDataKey_"+genericFunctions.getURLHash();
   analysisObject.updateStackedChart = function () {
     var stackedChartData = sessionStorage.getItem(stackedChartDataKey);
 
@@ -48,7 +48,7 @@ function createAnalysisFunctions() {
       spinnerStackedChart = new Spinner(spinnerOptions).spin(document.getElementById("generalGraphLoadingSpin"));
       $("#generalGraphLoadingSpin p").show();
       console.log("starting spin");
-      analysisConnection.requestStackedChartData(genericFunctions.getActiveResult());
+      analysisConnection.requestStackedChartData(genericFunctions.getURLHash());
     }
     else
       analysis.stackedChartDataReceived($.parseJSON(stackedChartData));
@@ -79,14 +79,14 @@ function createAnalysisFunctions() {
   }
 
   var spinnerSunBurst;
-  const sunburstDataKey = "sunburstDataKey_"+genericFunctions.getActiveResult();
+  const sunburstDataKey = "sunburstDataKey_"+genericFunctions.getURLHash();
 
   analysisObject.updateSunburst = function () {
     var sunburstData = sessionStorage.getItem(sunburstDataKey);
     if (sunburstData === null) {
       spinnerSunBurst = new Spinner(spinnerOptions).spin(document.getElementById("sequenceCountGraphLoadingSpin"));
       $("#sequenceCountGraphLoadingSpin p").show();
-      analysisConnection.requestSunburstData(genericFunctions.getActiveResult());
+      analysisConnection.requestSunburstData(genericFunctions.getURLHash());
     }
     else
       analysis.sunburstDataReceived($.parseJSON(sunburstData));
@@ -108,7 +108,7 @@ function createAnalysisFunctions() {
   }
 
   var spinnerSankey;
-  const sankeyDataKey = "sankeyDataKey_"+genericFunctions.getActiveResult();
+  const sankeyDataKey = "sankeyDataKey_"+genericFunctions.getURLHash();
 
   analysisObject.updateSankey = function () {
     var sankeyData = sessionStorage.getItem(sankeyDataKey);
@@ -116,7 +116,7 @@ function createAnalysisFunctions() {
       spinnerSankey = new Spinner(spinnerOptions).spin(document.getElementById("sankeyGraphLoadingSpin"));
       $("#sankeyGraphLoadingSpin p").show();
 
-      analysisConnection.requestSankeyData(genericFunctions.getActiveResult());
+      analysisConnection.requestSankeyData(genericFunctions.getURLHash());
     }
     else
       analysis.sankeyDataReceived($.parseJSON(sankeyData));
