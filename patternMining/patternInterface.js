@@ -23,6 +23,9 @@ const folderName = 'patternMining';
 const resultsFolderName = 'patternFiles';
 const patternMiningJarFile = 'spmf.jar';
 
+// The support parameter is given as a %
+const defaultSupport = 2;
+
 let mongoDAO;
 
 function initialisePatternInterface(globalMongoDAO) {
@@ -56,12 +59,16 @@ function runSPMF(algoName, inputFile, outputFile, extraParams, callback) {
   console.log(`runSPMF with instructions: ${execInstr}`);
   const spmfProcess = exec(execInstr,
     // it might be necessary to remove the `.jar` from the file
-    (error, stdout, stderr) => {
+    (spmfError, stdout, stderr) => {
       console.log(`Output -> ${stdout}`);
-      if (error !== null) {
-        console.log(`Error -> ${error}`);
+      console.log(`SPMFError -> ${stderr}`);
+      console.log(spmfError);
+
+      if (spmfError !== null) {
+        console.log(`SPMFError -> ${stderr}`);
+        console.log(spmfError);
       }
-      callback(error);
+      callback(spmfError);
     });
 }
 
@@ -204,6 +211,27 @@ PatternDatasetObject.prototype.storePatternDatasetInfo = function () {
   fs.writeFile(filename, JSON.stringify(this, null, 2), 'utf-8');
 };
 
+
+/**
+ * given a patternObjectList and an output file,
+ * it outputs the pattern objects ranked decreasingly according to their support value.
+ * 
+ * @param {*} patternObjectList containing a list of pattern Objects.
+ * Each pattern object contains a support Value, and a string with the pattern output value.
+ * 
+ * @param {*} outputFile 
+ */
+function sortAndPrintOutput(patternObjectList, outputFile, callback) {
+  // Sort the list decreasingly with regards to the support value
+  patternObjectList.sort((a, b) => b.support - a.support);
+
+  const dataOutput = fs.createWriteStream(outputFile, { flags: 'w' });
+  patternObjectList.forEach((patternObject) => {
+    dataOutput.write(`${patternObject.stringValue}\n`);
+  });
+  callback();
+}
+
 /**
  * Given a PatternDataset object, it creates a textfile
  * suitable to be used as input for pattern mining
@@ -248,8 +276,12 @@ PatternDatasetObject.prototype.translateItemsetOutput = function (callback) {
   rl.on('line', (line) => {
     // when all the numbers in the seq have been processed, we will just print the rest as it is
     let seqProcessed = false;
+    console.log(line);
     line.split(' ').forEach((seqItem) => {
-      if (seqProcessed) {
+      if (seqItem === '') {
+        // some outputs might contain 2 spaces, breaking the parse
+        // In that case, do nothing
+      } else if (seqProcessed) {
         // the seq was processed, just print out the rest of characters
         dataOutput.write(seqItem);
       } else if (isNaN(seqItem)) {
@@ -259,7 +291,7 @@ PatternDatasetObject.prototype.translateItemsetOutput = function (callback) {
       } else if (!isNaN(seqItem)) {
         // the only possible condition is being an index for eventset, but still test for number
         // use eventSent to retrieve the event's name
-        dataOutput.write(this.eventSet[parseInt(seqItem, 10)]);
+        dataOutput.write(`[${this.eventSet[parseInt(seqItem, 10)]}]`);
       }
     });
     // line finished, add new line
@@ -268,7 +300,7 @@ PatternDatasetObject.prototype.translateItemsetOutput = function (callback) {
 
   // Triggered when input has been consumed
   rl.on('close', () => {
-    callback();
+    sortAndPrintOutput(patternObjectList, this.filenames.itemSetOutputTranslated, callback);
   });
 };
 
@@ -299,7 +331,7 @@ PatternDatasetObject.prototype.runItemPatternMining = function (runCallback) {
       patternDataset.prepareItemsetInput(callback);
     },
     function (callback) {
-      patternDataset.itemPatApriori(2, callback);
+      patternDataset.itemPatApriori(defaultSupport, callback);
     },
     function (callback) {
       patternDataset.translateItemsetOutput(callback);
@@ -421,7 +453,7 @@ PatternDatasetObject.prototype.runSequencePatternMining = function (runCallback)
       patternDataset.prepareSequenceInput(callback);
     },
     function (callback) {
-      patternDataset.seqPatPrefixSpan(2, callback);
+      patternDataset.seqPatPrefixSpan(defaultSupport, callback);
     },
     function (callback) {
       patternDataset.translateSequenceOutput(callback);
@@ -439,7 +471,8 @@ PatternDatasetObject.prototype.runSequencePatternMining = function (runCallback)
  * MasterArray[UserEpisodePair[OrderedEvents]]
  * where UserEpisodePair is a hash of the _id object from the results in the database
  */
-function createPatternDataset(resultTitleList, callback, itemsetCallback, sequenceCallback) {
+function createPatternDataset(resultTitleList, urlList,
+  callback, itemsetCallback, sequenceCallback) {
   const patternDataset = new PatternDatasetObject(new Date().getTime());
   // It might look like a callback hell, but I am just using nested async.each functions
   // only the lowest level callback will be called from within the algorithm.
@@ -448,7 +481,7 @@ function createPatternDataset(resultTitleList, callback, itemsetCallback, sequen
   // For each resultTitle
   async.each(resultTitleList, (resultTitle, resultTitleCallback) => {
     // retrieve result collection data
-    mongoDAO.getXmlQueryData(resultTitle, (err, title, resultData) => {
+    mongoDAO.getXmlQueryData(resultTitle, urlList, (err, title, resultData) => {
       if (err) return console.error(`createPatternDataset: getXmlQueryData() ERROR connecting to DB ${err}`);
       // For each user/episode pair item in the result collection
       async.each(resultData, (resultItem, resultItemCallback) => {

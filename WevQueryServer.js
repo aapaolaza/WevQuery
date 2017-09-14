@@ -1,4 +1,6 @@
-"use strict";//necessary for old NODE versions. otherwise some functions will not work
+
+
+// necessary for old NODE versions. otherwise some functions will not work
 
 /**
  * WevQuery server.
@@ -11,112 +13,109 @@
  * 3. node WevQueryServer.js
  */
 
-//Load libraries
-var express = require("express");
-var serveStatic = require('serve-static');
-var auth = require('basic-auth');
+// Load libraries
+const express = require('express');
+const serveStatic = require('serve-static');
+const auth = require('basic-auth');
 
-//Load external files
-var userCredentials = require('./userCredentials.js');
-var socketGeneric = require("./socketHandlers/socketGeneric.js");
-var socketXmlQuery = require("./socketHandlers/socketXmlQuery.js");
-var socketDataAnalysis = require("./socketHandlers/socketDataAnalysis.js");
-var socketDataInfo = require("./socketHandlers/socketDataInfo.js");
+// Load external files
+const userCredentials = require('./userCredentials.js');
+const socketGeneric = require('./socketHandlers/socketGeneric.js');
+const socketXmlQuery = require('./socketHandlers/socketXmlQuery.js');
+const socketDataAnalysis = require('./socketHandlers/socketDataAnalysis.js');
+const socketDataInfo = require('./socketHandlers/socketDataInfo.js');
 const patternInterface = require('./patternMining/patternInterface.js');
-var socketPatternMining = require("./socketHandlers/socketPatternMining.js");
+const socketPatternMining = require('./socketHandlers/socketPatternMining.js');
 
 
-
-//Start Express server
-var app = express();
-var router = express.Router();
+// Start Express server
+const app = express();
+const router = express.Router();
 
 const port = 2929;
-var logFile = "./wevQuery.log";
+const logFile = './wevQuery.log';
 
-//Start router
-var wevqueryRouter = require("./rest/wevqueryRouter.js");
+// Start router
+const wevqueryRouter = require('./rest/wevqueryRouter.js');
+
 app.use('/wevqueryrest', wevqueryRouter);
 
 console.log(userCredentials.userList);
 console.log(userCredentials.email);
 console.log(userCredentials);
 
-//Only add authentication if there are users in the list (apart from default, if still there)
+// Only add authentication if there are users in the list (apart from default, if still there)
 if (Object.keys(userCredentials.userList).length > 1
-  || (Object.keys(userCredentials.userList).length == 1 && userCredentials.userList["user"] != "password")) {
+  || (Object.keys(userCredentials.userList).length == 1 && userCredentials.userList.user != 'password')) {
   app.use(authFunction);
-}
-else
-  console.log("AUTHENTICATION DISABLED");
+} else { console.log('AUTHENTICATION DISABLED'); }
 
-//Restrict access to specific files and folders
-app.all('/mongoDAO/*', function (req, res, next) {
+// Restrict access to specific files and folders
+app.all('/mongoDAO/*', (req, res, next) => {
   res.status(403).send({
-    message: 'Access Forbidden'
+    message: 'Access Forbidden',
   });
 });
 
-app.all('/userCredentials.js', function (req, res, next) {
+app.all('/userCredentials.js', (req, res, next) => {
   res.status(403).send({
-    message: 'Access Forbidden'
+    message: 'Access Forbidden',
   });
 });
 
-//Reroute the request for the schema so we can return the last version of the schema
-app.get('/schema.xsd', function (req, res) {
-  res.sendFile(__dirname + '/eventsequencegrammar/eventseq_1.1.xsd');
+// Reroute the request for the schema so we can return the last version of the schema
+app.get('/schema.xsd', (req, res) => {
+  res.sendFile(`${__dirname}/eventsequencegrammar/eventseq_1.1.xsd`);
 });
 
-var httpServer = app.use(serveStatic(__dirname)).listen(port, function () {
-  console.log('WevQuery Server running on ' + port + '...');
+const httpServer = app.use(serveStatic(__dirname)).listen(port, () => {
+  console.log(`WevQuery Server running on ${port}...`);
 });
 
 
+const io = require('socket.io')(httpServer);
 
-var io = require('socket.io')(httpServer);
+const socketConnection = io.sockets;
 
-var socketConnection = io.sockets;
+// var socket = io.connect();
+const fs = require('fs');
+const exec = require('child_process').exec;
+const path = require('path');
+const url = require('url');
 
-//var socket = io.connect();
-var fs = require('fs');
-var exec = require('child_process').exec;
-var path = require('path');
-var url = require("url");
+const mongoDAO = require('./mongoDAO/mongoDAO.js');
 
-var mongoDAO = require("./mongoDAO/mongoDAO.js");
-mongoDAO.initialiseIndexes(function () {
-  console.log("ALL indexes have been initialised");
+mongoDAO.initialiseIndexes(() => {
+  console.log('ALL indexes have been initialised');
 });
 
-var resultsFolder = "./Results/";
+const resultsFolder = './Results/';
 
-//Create results folder if it doesn't exist
+// Create results folder if it doesn't exist
 if (!fs.existsSync(resultsFolder)) {
   fs.mkdirSync(resultsFolder);
 }
 
 
 // listen for commands from the Web dashboard
-socketConnection.on('connection', function (socketInstance) {
+socketConnection.on('connection', (socketInstance) => {
   socketXmlQuery.initialiseSockets(mongoDAO, socketGeneric, socketConnection, socketInstance);
-  socketDataAnalysis.initialiseSockets(mongoDAO, socketGeneric, socketConnection, socketInstance, resultsFolder);
+  socketDataAnalysis.initialiseSockets(mongoDAO, socketGeneric,
+    socketConnection, socketInstance, resultsFolder);
   socketDataInfo.initialiseSockets(mongoDAO, socketGeneric, socketConnection, socketInstance);
 
   patternInterface.initialisePatternInterface(mongoDAO);
-  socketPatternMining.initialiseSockets(mongoDAO, socketGeneric, socketConnection, socketInstance, patternInterface);
-  
+  socketPatternMining.initialiseSockets(mongoDAO, socketGeneric,
+    socketConnection, socketInstance, patternInterface);
 });
 
 function authFunction(req, res, next) {
-  var objUser = auth(req)
+  const objUser = auth(req);
   if (objUser === undefined || userCredentials.userList[objUser.name] !== objUser.pass) {
-    res.set("WWW-Authenticate", "Basic realm=Authorization Required")
-    res.status(401).end()
-  } else { next() }
+    res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
+    res.status(401).end();
+  } else { next(); }
 }
-
-
 
 
 /**
@@ -157,20 +156,19 @@ function sendEmailNotification(email, title, query, result) {
  * Log a message into the server's log file
  */
 function logText(message) {
-  var date = new Date(new Date().getTime());
-  var datevalues = date.getFullYear() + "," +
-    (date.getMonth() + 1) + "," +
-    date.getDate() + "," +
-    date.getHours() + ":" +
-    date.getMinutes() + ":" +
-    date.getSeconds();
+  const date = new Date(new Date().getTime());
+  const datevalues = `${date.getFullYear()},${
+    date.getMonth() + 1},${
+    date.getDate()},${
+    date.getHours()}:${
+    date.getMinutes()}:${
+    date.getSeconds()}`;
 
-  var logEntry = datevalues + " MESSAGE:" + message + "\n";
-  console.log("clientlog: " + logEntry);
+  const logEntry = `${datevalues} MESSAGE:${message}\n`;
+  console.log(`clientlog: ${logEntry}`);
 
-  var log = fs.createWriteStream(logFile, { 'flags': 'a' });
+  const log = fs.createWriteStream(logFile, { flags: 'a' });
   log.write(logEntry);
-
 }
 
 
@@ -178,7 +176,7 @@ function logText(message) {
  *  Empty the log file
  */
 function clearLog() {
-  fs.writeFile(logFile, "");
+  fs.writeFile(logFile, '');
 }
 
 /**
@@ -187,7 +185,7 @@ function clearLog() {
  */
 function saveLog(id) {
   // save log file to new file
-  fs.rename(logFile, logFile + "." + id);
+  fs.rename(logFile, `${logFile}.${id}`);
   clearLog();
 }
 
@@ -195,13 +193,13 @@ function saveLog(id) {
 /**
  * Error handling
  */
-process.stdin.resume();//so the program will not close instantly
+process.stdin.resume();// so the program will not close instantly
 
 function exitHandler(options, err) {
   if (options.adminInitiated) {
-    socketGeneric.sendMessageToUser(-1, "ADMINISTRATOR STOPPED THE SERVER", true, socketConnection);
+    socketGeneric.sendMessageToUser(-1, 'ADMINISTRATOR STOPPED THE SERVER', true, socketConnection);
   } else {
-    socketGeneric.sendMessageToUser(-1, "FATAL ERROR, CONTACT ADMINISTRATOR", true, socketConnection);
+    socketGeneric.sendMessageToUser(-1, 'FATAL ERROR, CONTACT ADMINISTRATOR', true, socketConnection);
   }
   if (options.cleanup) console.log('clean');
   if (err) console.log(err.stack);
@@ -209,12 +207,12 @@ function exitHandler(options, err) {
 }
 
 
-//do something when app is closing
+// do something when app is closing
 process.on('exit', exitHandler.bind(null, { cleanup: true }));
 
-//catches ctrl+c event
+// catches ctrl+c event
 process.on('SIGINT', exitHandler.bind(null, { adminInitiated: true, exit: true }));
 
-//catches uncaught exceptions
-//Do we want to close the server if there is an uncaught exception?
+// catches uncaught exceptions
+// Do we want to close the server if there is an uncaught exception?
 process.on('uncaughtException', exitHandler.bind(null, { exit: false }));

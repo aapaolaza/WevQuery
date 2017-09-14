@@ -117,8 +117,14 @@ function initialiseSockets(generalMongoDAO, generalSocketGeneric,
     });
   });
 
+  socketInstance.on('serverRequestTemplateEventInfo', function (serverData) {
+    console.log('serverRequestTemplateEventInfo');
+    mongoDAO.retrieveNodeTypeAndIDList((err, clientData) => {
+      if (err) return console.error(`serverRequestTemplateEventInfo() ERROR in deleteCatalogQuery callback ${err}`);
+      requestTemplateEventInfoFinished(clientData);
+    });
+  });
 }
-
 
 /**
  * Provided a query document, runs the provided query and stores a results document when finished
@@ -215,6 +221,14 @@ function deleteResultFinished(queryTitle) {
 function deleteCatalogFinished(queryTitle) {
   console.log("deleteCatalogFinished()");
   socketConnection.emit('deleteCatalogFinished', { 'message': "The Catalog of the query called " + queryTitle + " has been deleted" });
+}
+
+/**
+ * When the Catalog has been deleted, notify the user
+ */
+function requestTemplateEventInfoFinished(nodeList) {
+  console.log("requestTemplateEventInfoFinished()");
+  socketConnection.emit('clientTemplateEventInfoFinished', { nodeList });
 }
 
 

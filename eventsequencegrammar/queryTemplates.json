@@ -1,0 +1,7 @@
+[
+  {
+    "title": "mousedown_image",
+    "description": "mousedown on an image element",
+    "queryXML": "<eql><event id=\"event1\" pre=\"null\" occurrences=\"1\" matchCriteria=\"true\"><eventList>load</eventList></event><event id=\"event2\" pre=\"event1\" occurrences=\"1\" matchCriteria=\"true\"><eventList>scroll</eventList></event><temporalconstraintList/></eql>",
+  },
+]

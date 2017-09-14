@@ -1,4 +1,3 @@
-let testGlobalPatternObject;
 
 const queryCatalogConnection = createqueryCatalogConnectionFunctions();
 
@@ -24,7 +23,7 @@ function createqueryCatalogConnectionFunctions() {
   * Request the result list for a given query
   */
   queryCatalogConnectionObject.requestQueryResultList = function (title) {
-    socket.emit('serverRequestQueryResults', { "queryTitle": title });
+    socket.emit('serverRequestQueryResults', { 'queryTitle': title });
   };
 
   /**
@@ -40,9 +39,9 @@ function createqueryCatalogConnectionFunctions() {
    * Requests the deletion of a results collections
    */
   queryCatalogConnectionObject.requestQueryResultsDeletion = function (resultTitle) {
-    console.log("Delete " + queryTitle + " results");
+    console.log('Delete ' + queryTitle + ' results');
     socket.emit('serverDeleteResults', {
-      "resultTitle": resultTitle
+      'resultTitle': resultTitle,
     });
   };
 
@@ -50,9 +49,9 @@ function createqueryCatalogConnectionFunctions() {
    * Requests the deletion of a Catalog element
    */
   queryCatalogConnectionObject.requestQueryCatalogDeletion = function (queryTitle) {
-    console.log("Delete " + queryTitle + " Catalog");
+    console.log('Delete ' + queryTitle + ' Catalog');
     socket.emit('serverDeleteCatalog', {
-      "queryTitle": queryTitle
+      'queryTitle': queryTitle,
     });
   };
 
@@ -65,11 +64,11 @@ function createqueryCatalogConnectionFunctions() {
    */
   queryCatalogConnectionObject.requestExecuteQuery = function (email, isStrictMode, queryTitle, queryData) {
     socket.emit('serverRunXMLQuery', {
-      "email": email,
-      "isStrictMode": isStrictMode,
-      "xmlTitle": queryTitle,
-      "xmlData": queryData,
-      "timestamp": new Date().getTime()
+      'email': email,
+      'isStrictMode': isStrictMode,
+      xmlTitle: queryTitle,
+      'xmlData': queryData,
+      timestamp: new Date().getTime(),
     });
   };
 
@@ -77,15 +76,19 @@ function createqueryCatalogConnectionFunctions() {
    * Request the data for a query
    */
   function requestQueryData(title) {
-    socket.emit('serverRequestQueryData', { "queryTitle": title });
+    socket.emit('serverRequestQueryData', { queryTitle: title });
   }
 
   /**
    * Request the preparation of a pattern Object
    */
-  queryCatalogConnectionObject.requestPreparePatternDataset = function (resultTitleList, callback) {
+  queryCatalogConnectionObject.requestPreparePatternDataset = function (resultTitleList, urlList) {
     console.log(`requesting dataset preparation for the following inputs: ${resultTitleList}`);
-    socket.emit('serverRequestPreparePatternDataset', { "resultTitleList": resultTitleList });
+    socket.emit('serverRequestPreparePatternDataset', { resultTitleList, urlList });
+  };
+
+  queryCatalogConnectionObject.requestTemplateEventInfo = function () {
+    socket.emit('serverRequestTemplateEventInfo');
   };
 
   return queryCatalogConnectionObject;
@@ -95,41 +98,41 @@ function createqueryCatalogConnectionFunctions() {
 /**
  * Leave the socket connection receivers outside the function wrapper
  */
-socket.on('clientCompletedQueriesFinished', function (data) {
+socket.on('clientCompletedQueriesFinished', (data) => {
   notifyUser(data.queryList.length + " finished queries have been retrieved", data.isError);
   queryCatalogLeftMenu.updateCompletedQueries(data.queryList);
 });
 
-socket.on('serverRequestCatalogQueriesFinished', function (data) {
+socket.on('serverRequestCatalogQueriesFinished', (data) => {
   queryCatalog.saveQueryCatalogList(data.queryList);
   queryCatalogLeftMenu.updateCatalogQueries(data.queryList);
   notifyUser(data.queryList.length + " Catalog queries have been retrieved");
 });
 
-socket.on('serverRequestQueryResultsFinished', function (data) {
+socket.on('serverRequestQueryResultsFinished', (data) => {
   notifyUser(data.resultList.length + " results for the query " + data.queryTitle
     + " have been retrieved");
   queryCatalog.addCatalogQueryResults(data.queryTitle, data.resultList);
 });
 
 
-socket.on('serverRequestRunningQueriesFinished', function (data) {
+socket.on('serverRequestRunningQueriesFinished', (data) => {
   queryCatalogLeftMenu.updateRunningQueries(data.queryList);
   notifyUser(data.queryList.length + " running queries have been retrieved");
 });
 
 
-socket.on('deleteResultFinished', function (data) {
+socket.on('deleteResultFinished', (data) => {
   notifyUser("Results deleted" + data.message, false);
   queryCatalogConnection.requestCompletedQueries();
 });
 
-socket.on('deleteCatalogFinished', function (data) {
+socket.on('deleteCatalogFinished', (data) => {
   notifyUser("Catalog deleted" + data.message, false);
   queryCatalogConnection.requestCatalogQueries();
 });
 
-socket.on('clientXmlQueryFinished', function (data) {
+socket.on('clientXmlQueryFinished', (data) => {
   notifyUser(data.message);
 });
 
@@ -137,7 +140,7 @@ socket.on('clientXmlQueryFinished', function (data) {
  * Processes received json object
  * TODO: I don't like the idea of downloading the whole collection to the client. I think it's better to abstract him from that.
  */
-socket.on('clientQueryDataProcessed', function (data) {
+socket.on('clientQueryDataProcessed', (data) => {
   notifyUser("A document for the query " + data.queryTitle + " has been received");
   console.log("A document for the query " + data.queryTitle + " has been received");
   console.log("The file is available in " + data.queryPath);
@@ -146,9 +149,14 @@ socket.on('clientQueryDataProcessed', function (data) {
   window.open(window.location.href.split("WebInterface")[0] + data.queryPath);
 });
 
-socket.on('clientPreparePatternDatasetProcessed', function (data) {
+socket.on('clientPreparePatternDatasetProcessed', (data) => {
   let message = `The pattern data for the input ${data.resultTitleList} has been processed`;
   notifyUser(message);
   console.log(message);
-  testGlobalPatternObject = data;
+});
+
+socket.on('clientTemplateEventInfoFinished', (data) => {
+  const message = 'Information about the template events was received';
+  notifyUser(message);
+  queryCatalogLeftMenu.fillTemplateEventInterface(data.nodeList);
 });

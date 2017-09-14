@@ -3,10 +3,10 @@
  * analysis of data in the client
  */
 
-//////We need to load the constants file
-var constants;
-var mongoLog;
-var mongoDAO;
+// ////We need to load the constants file
+let constants;
+let mongoLog;
+let mongoDAO;
 
 function setConstants(mapReduceConstants, mongoLogConstants, mongoDAOConstants) {
   constants = mapReduceConstants;
@@ -15,21 +15,21 @@ function setConstants(mapReduceConstants, mongoLogConstants, mongoDAOConstants) 
 }
 
 
-var fs = require('fs');
-var util = require('util');
+const fs = require('fs');
+const util = require('util');
 
-//This tag can be found in the "msg" field in the current ops command of MapReduce commands
-const mapReduceTag = "m/r";
-const xmlQueryResults = "xmlQueryResults";
-const xmlQueryCatalog = "xmlQueryCatalog";
+// This tag can be found in the "msg" field in the current ops command of MapReduce commands
+const mapReduceTag = 'm/r';
+const xmlQueryResults = 'xmlQueryResults';
+const xmlQueryCatalog = 'xmlQueryCatalog';
 
-//This prefix will be added to all queries
-const queryCollectionPrefix = "xmlQuery_"
+// This prefix will be added to all queries
+const queryCollectionPrefix = 'xmlQuery_';
 
-const analysisResultsFolder = "./Results/analysisResults";
+const analysisResultsFolder = './Results/analysisResults';
 
-const homeURL = "http://www.cs.manchester.ac.uk/";
-const homeURLReplace = "HOME/";
+const homeURL = 'http://www.cs.manchester.ac.uk/';
+const homeURLReplace = 'HOME/';
 
 /**
  * Provides a general overview of the data, taking into account all collections.
@@ -41,26 +41,23 @@ const homeURLReplace = "HOME/";
  * it returns a string with the filename of the created CSV
  */
 function stackedChartCSV(callback) {
+  constants.connectAndValidateNodeJs((err, db) => {
+    if (err) return console.error(`getQueryData() ERROR connecting to DB${err}`);
+    mongoDAO.getCompletedQueries((err, resultCollectionList) => {
+      let collectionsProcessed = 0;
 
+      // keeps track of which collection is at which index
+      const titleList = [];
+      // keeps a list of all Url counts for all collections
+      const allCollectionsList = [];
+      // keeps a list of all unique urls to ease the construction of the final csv
+      const uniqueUrls = [];
 
-  constants.connectAndValidateNodeJs(function (err, db) {
-    if (err) return console.error("getQueryData() ERROR connecting to DB" + err);
-    mongoDAO.getCompletedQueries(function (err, resultCollectionList) {
-      var collectionsProcessed = 0;
-
-      //keeps track of which collection is at which index
-      var titleList = [];
-      //keeps a list of all Url counts for all collections
-      var allCollectionsList = [];
-      //keeps a list of all unique urls to ease the construction of the final csv
-      var uniqueUrls = [];
-
-      resultCollectionList.forEach(function (resultCollectionTitle, collectionIndex, collectionsArray) {
-
-        //for each results collection, loop through its documents
+      resultCollectionList.forEach((resultCollectionTitle, collectionIndex, collectionsArray) => {
+        // for each results collection, loop through its documents
         db.collection(queryCollectionPrefix + resultCollectionTitle.title).find({
-          "value.xmlQueryCounter": { $gt: 0 }
-        }).toArray(function (err, documents) {
+          'value.xmlQueryCounter': { $gt: 0 },
+        }).toArray((err, documents) => {
           console.log("Returning " + documents.length + " items");
 
           //For each collection, create an object list of urls
@@ -140,7 +137,6 @@ function stackedChartCSV(callback) {
           }
         });
       });
-
     });
   });
 }
@@ -150,31 +146,30 @@ function stackedChartCSV(callback) {
  * Returns an object describing the general stats for the collections
  */
 function getStackedChartDataAll(callback) {
-  //all the occurrences for urls below this threshold of frequency will be removed before sending them out 
-  var urlCountThreshold = 20;
+  // all the occurrences for urls below this threshold of frequency will be removed before sending them out 
+  const urlCountThreshold = 20;
 
-  constants.connectAndValidateNodeJs(function (err, db) {
-    if (err) return console.error("getStackedChartDataAll() ERROR connecting to DB" + err);
-    mongoDAO.getCompletedQueries(function (err, resultCollectionList) {
-      var collectionsProcessed = 0;
+  constants.connectAndValidateNodeJs((err, db) => {
+    if (err) return console.error(`getStackedChartDataAll() ERROR connecting to DB${ err}`);
+    mongoDAO.getCompletedQueries((err, resultCollectionList) => {
+      let collectionsProcessed = 0;
 
-      //keeps a list of all Url counts for all collections
-      var allCollectionsList = [];
-      //keeps a list of all unique urls to ease the construction of the final csv
-      var uniqueUrls = [];
-      //We keep track of the number of occurrences per URL, so we can return only the most popular subset
-      var urlFreqCount = [];
+      // keeps a list of all Url counts for all collections
+      const allCollectionsList = [];
+      // keeps a list of all unique urls to ease the construction of the final csv
+      const uniqueUrls = [];
+      // We keep track of the number of occurrences per URL, so we can return only the most popular subset
+      const urlFreqCount = [];
 
       if (resultCollectionList.length == 0) {
         callback(null, [], []);
       }
 
-      resultCollectionList.forEach(function (resultCollectionTitle, collectionIndex, collectionsArray) {
-
-        //for each results collection, loop through its documents
+      resultCollectionList.forEach((resultCollectionTitle, collectionIndex, collectionsArray) => {
+        // for each results collection, loop through its documents
         db.collection(queryCollectionPrefix + resultCollectionTitle.title).find({
-          "value.xmlQueryCounter": { $gt: 0 }
-        }).toArray(function (err, documents) {
+          'value.xmlQueryCounter': { $gt: 0 },
+        }).toArray((err, documents) => {
           console.log("Returning " + documents.length + " items");
 
           //For each collection, create an object list of urls
@@ -252,12 +247,9 @@ function getStackedChartDataAll(callback) {
           }
         });
       });
-
     });
   });
 }
-
-
 
 
 /**
@@ -266,78 +258,74 @@ function getStackedChartDataAll(callback) {
  * but only has one item in the list of URLs
  */
 function getStackedChartDataForResult(resultTitle, callback) {
-  //all the occurrences for urls below this threshold of frequency will be removed before sending them out 
-  var urlCountThreshold = 20;
+  // all the occurrences for urls below this threshold of frequency will be removed before sending them out 
+  const urlCountThreshold = 20;
 
-  constants.connectAndValidateNodeJs(function (err, db) {
-    if (err) return console.error("getStackedChartDataForResult() ERROR connecting to DB" + err);
+  constants.connectAndValidateNodeJs((err, db) => {
+    if (err) return console.error(`getStackedChartDataForResult() ERROR connecting to DB${ err}`);
 
-    var collectionsProcessed = 0;
+    const collectionsProcessed = 0;
 
-    //keeps a list of all Url counts for all collections
-    var allCollectionsList = [];
-    //keeps a list of all unique urls to ease the construction of the final csv
-    var uniqueUrls = [];
-    //We keep track of the number of occurrences per URL, so we can return only the most popular subset
-    var urlFreqCount = [];
+    // keeps a list of all Url counts for all collections
+    const allCollectionsList = [];
+    // keeps a list of all unique urls to ease the construction of the final csv
+    const uniqueUrls = [];
+    // We keep track of the number of occurrences per URL, so we can return only the most popular subset
+    const urlFreqCount = [];
 
-    //for each results collection, loop through its documents
+    // for each results collection, loop through its documents
     db.collection(queryCollectionPrefix + resultTitle).find({
-      "value.xmlQueryCounter": { $gt: 0 }
-    }).toArray(function (err, documents) {
-      console.log("Returning " + documents.length + " items");
+      'value.xmlQueryCounter': { $gt: 0 },
+    }).toArray((err, documents) => {
+      console.log(`Returning ${  documents.length  } items`);
 
-      //For each collection, create an object list of urls
-      var collectionUrlCountList = {};
+      // For each collection, create an object list of urls
+      const collectionUrlCountList = {};
 
-      //For each document, create a csv row
-      documents.forEach(function (docElem, index) {
-
-        //each document might have several occurrences of the same behaviour
+      // For each document, create a csv row
+      documents.forEach((docElem, index) => {
+        // each document might have several occurrences of the same behaviour
 
         for (var index in docElem.value.xmlQuery) {
           seqOccurence = docElem.value.xmlQuery[index];
           if (typeof collectionUrlCountList[docElem._id.url] === 'undefined') {
             collectionUrlCountList[docElem._id.url] = 1;
-          }
-          else {
+          } else {
             collectionUrlCountList[docElem._id.url]++;
           }
           if (uniqueUrls.indexOf(docElem._id.url) == -1) {
             uniqueUrls.push(docElem._id.url);
             urlFreqCount[uniqueUrls.indexOf(docElem._id.url)] = 0;
-          }
-          else {
+          } else {
             urlFreqCount[uniqueUrls.indexOf(docElem._id.url)]++;
           }
         }
       });
 
       if (countProperties(collectionUrlCountList) > 0) {
-        var resultObject = {}
+        const resultObject = {};
         resultObject.key = resultTitle;
         resultObject.valuesObjectArray = collectionUrlCountList;
         allCollectionsList.push(resultObject);
       }
 
-      var freqUrlList = returnTop(uniqueUrls, urlFreqCount, urlCountThreshold)
+      const freqUrlList = returnTop(uniqueUrls, urlFreqCount, urlCountThreshold);
 
 
-      //Once we have processed all the data, I need to crate an array of x,y values for the graph
-      //in this case, it will be an array of url, count pairs, but it needs to be an array for the graph to interpret it
+      // Once we have processed all the data, I need to crate an array of x,y values for the graph
+      // in this case, it will be an array of url, count pairs, but it needs to be an array for the graph to interpret it
 
-      //We basically translate references to a URL into a number.
-      //This number corresponds to the position of that URL in the freqUrlList list
-      allCollectionsList.forEach(function (collectionObject, index) {
-
+      // We basically translate references to a URL into a number.
+      // This number corresponds to the position of that URL in the freqUrlList list
+      allCollectionsList.forEach((collectionObject, index) => {
         collectionObject.values = [];
-        var urlObjectArray = collectionObject.valuesObjectArray;
-        for (var valueIndex in urlObjectArray) {
+        let urlObjectArray = collectionObject.valuesObjectArray;
+        for (let valueIndex in urlObjectArray) {
           if (urlObjectArray.hasOwnProperty(valueIndex)) {
             if (freqUrlList.indexOf(valueIndex) > -1) {
               collectionObject.values.push({
                 x: freqUrlList.indexOf(valueIndex),
-                y: urlObjectArray[valueIndex]
+                y: urlObjectArray[valueIndex],
               });
             }
           }
@@ -350,8 +338,6 @@ function getStackedChartDataForResult(resultTitle, callback) {
 }
 
 
-
-
 /**
  * Queries all finished queries and retrieves the event sequences
  * It groups them and counts them
@@ -359,28 +345,27 @@ function getStackedChartDataForResult(resultTitle, callback) {
  */
 
 function getSunburstDataAll(callback) {
+  // It will keep all sequences using the event names as indexes.
+  const sequenceList = {};
 
-  //It will keep all sequences using the event names as indexes.
-  var sequenceList = {};
+  // keep a list of all unique event names
+  const eventNameList = [];
 
-  //keep a list of all unique event names
-  var eventNameList = [];
+  constants.connectAndValidateNodeJs((err, db) => {
+    if (err) return console.error(`getSunburstDataAll() ERROR connecting to DB${ err}`);
 
-  constants.connectAndValidateNodeJs(function (err, db) {
-    if (err) return console.error("getSunburstDataAll() ERROR connecting to DB" + err);
-
-    mongoDAO.getCompletedQueries(function (err, resultCollectionList) {
-      if (err) return console.error("getSunburstDataAll() ERROR REQUESTING COMPLETED QUERIES" + err);
-      var collectionsProcessed = 0;
+    mongoDAO.getCompletedQueries((err, resultCollectionList) => {
+      if (err) return console.error(`getSunburstDataAll() ERROR REQUESTING COMPLETED QUERIES${  err}`);
+      let collectionsProcessed = 0;
 
 
       if (resultCollectionList.length == 0) {
         callback(null, [], []);
       }
 
-      resultCollectionList.forEach(function (resultCollectionTitle, index, collectionsArray) {
-        console.log("getSunburstDataAll(): Processing " + resultCollectionTitle.title);
-        db.collection(queryCollectionPrefix + resultCollectionTitle.title).find({ "value.xmlQueryCounter": { $gt: 0 } }).toArray(function (err, documents) {
+      resultCollectionList.forEach((resultCollectionTitle, index, collectionsArray) => {
+        console.log('getSunburstDataAll(): Processing ' + resultCollectionTitle.title);
+        db.collection(queryCollectionPrefix + resultCollectionTitle.title).find({ 'value.xmlQueryCounter': { $gt: 0 } }).toArray((err, documents) => {
           //for each document, loop for each event name
           documents.forEach(function (documentItem, index) {
             var eventList = "";
@@ -440,24 +425,23 @@ function getSunburstDataAll(callback) {
  */
 
 function getSunburstDataForResult(resultTitle, callback) {
+  // It will keep all sequences using the event names as indexes.
+  const sequenceList = {};
 
-  //It will keep all sequences using the event names as indexes.
-  var sequenceList = {};
+  // keep a list of all unique event names
+  const eventNameList = [];
 
-  //keep a list of all unique event names
-  var eventNameList = [];
+  constants.connectAndValidateNodeJs((err, db) => {
+    if (err) return console.error(`getSunburstDataForResult() ERROR connecting to DB${err}`);
 
-  constants.connectAndValidateNodeJs(function (err, db) {
-    if (err) return console.error("getSunburstDataForResult() ERROR connecting to DB" + err);
+    console.log(`getSunburstDataForResult(): Processing ${resultTitle}`);
+    db.collection(queryCollectionPrefix + resultTitle).find({ 'value.xmlQueryCounter': { $gt: 0 } }).toArray((err, documents) => {
+      // for each document, loop for each event name
+      documents.forEach((documentItem, index) => {
+        let eventList = '';
 
-    console.log("getSunburstDataForResult(): Processing " + resultTitle);
-    db.collection(queryCollectionPrefix + resultTitle).find({ "value.xmlQueryCounter": { $gt: 0 } }).toArray(function (err, documents) {
-      //for each document, loop for each event name
-      documents.forEach(function (documentItem, index) {
-        var eventList = "";
-
-        //The xmlQuery collection is nested twice (noted as a bug)
-        documentItem.value.xmlQuery[0].forEach(function (eventItem, index) {
+        // The xmlQuery collection is nested twice (noted as a bug)
+        documentItem.value.xmlQuery[0].forEach((eventItem, index) => {
           if (eventNameList.indexOf(eventItem.event) == -1)
             eventNameList.push(eventItem.event);
 
@@ -467,24 +451,22 @@ function getSunburstDataForResult(resultTitle, callback) {
             eventList += "-" + eventItem.event;
         });
 
-        //using eventList as the index, increase the count for this sequence
+        // using eventList as the index, increase the count for this sequence
         if (typeof sequenceList[eventList] === 'undefined') {
           sequenceList[eventList] = 1;
-        }
-        else {
+        } else {
           sequenceList[eventList]++;
         }
-
       });
 
-      console.log("getSunburstDataForResult(): All collections processed");
-      //All documents for all resultCollectionList have been collectionsProcessed
-      //transform the object array into an array of key,values
-      var sequenceArray = [];
+      console.log('getSunburstDataForResult(): All collections processed');
+      // All documents for all resultCollectionList have been collectionsProcessed
+      // transform the object array into an array of key,values
+      const sequenceArray = [];
 
-      for (var prop in sequenceList) {
+      for (const prop in sequenceList) {
         if (sequenceList.hasOwnProperty(prop)) {
-          var seqItem = {}
+          const seqItem = {};
           seqItem.key = prop;
           seqItem.value = sequenceList[prop];
           sequenceArray.push(seqItem);
@@ -507,40 +489,40 @@ function getSunburstDataForResult(resultTitle, callback) {
  */
 
 function getSankeyDataAll(callback) {
-  //It will keep all sequences using the union of 2 event names as indexes.
-  var transitionIndex = "";
-  var sequenceList = {};
+  // It will keep all sequences using the union of 2 event names as indexes.
+  let transitionIndex = '';
+  const sequenceList = {};
 
-  //keep a list of all unique event names
-  var eventNameList = [];
+  // keep a list of all unique event names
+  const eventNameList = [];
 
-  //keep a list of all unique event names to ease the search of the index
-  var nodesIndex = [];
-  //Keep another list with pairs "name": label, to return to the client
-  var nodes = [];
+  // keep a list of all unique event names to ease the search of the index
+  const nodesIndex = [];
+  // Keep another list with pairs "name": label, to return to the client
+  const nodes = [];
 
-  //It will keep all sequences using the event names as indexes.
-  var links = [];
+  // It will keep all sequences using the event names as indexes.
+  const links = [];
 
-  constants.connectAndValidateNodeJs(function (err, db) {
-    if (err) return console.error("getSankeyDataAll() ERROR connecting to DB" + err);
+  constants.connectAndValidateNodeJs((err, db) => {
+    if (err) return console.error(`getSankeyDataAll() ERROR connecting to DB${err}`);
 
-    mongoDAO.getCompletedQueries(function (err, resultCollectionList) {
-      if (err) return console.error("getSankeyDataAll() ERROR REQUESTING COMPLETED QUERIES" + err);
-      var collectionsProcessed = 0;
+    mongoDAO.getCompletedQueries((err, resultCollectionList) => {
+      if (err) return console.error(`getSankeyDataAll() ERROR REQUESTING COMPLETED QUERIES${  err}`);
+      let collectionsProcessed = 0;
 
       if (resultCollectionList.length == 0) {
-        var emptyTransitionObject = {
+        const emptyTransitionObject = {
           nodes: [],
-          links: []
+          links: [],
         };
 
         callback(null, emptyTransitionObject);
       }
 
-      resultCollectionList.forEach(function (resultCollectionTitle, index, collectionsArray) {
-        console.log("getSankeyDataAll(): Processing " + resultCollectionTitle.title);
-        db.collection(queryCollectionPrefix + resultCollectionTitle.title).find({ "value.xmlQueryCounter": { $gt: 0 } }).toArray(function (err, documents) {
+      resultCollectionList.forEach((resultCollectionTitle, index, collectionsArray) => {
+        console.log('getSankeyDataAll(): Processing ' + resultCollectionTitle.title);
+        db.collection(queryCollectionPrefix + resultCollectionTitle.title).find({ 'value.xmlQueryCounter': { $gt: 0 } }).toArray((err, documents) => {
           //for each document, loop for each event name
           documents.forEach(function (documentItem, index) {
             var predecesor = "";
@@ -608,32 +590,32 @@ function getSankeyDataAll(callback) {
  */
 
 function getSankeyDataForResult(resultTitle, callback) {
-  //It will keep all sequences using the union of 2 event names as indexes.
-  var transitionIndex = "";
-  var sequenceList = {};
+  // It will keep all sequences using the union of 2 event names as indexes.
+  let transitionIndex = '';
+  const sequenceList = {};
 
-  //keep a list of all unique event names
-  var eventNameList = [];
+  // keep a list of all unique event names
+  const eventNameList = [];
 
-  //keep a list of all unique event names to ease the search of the index
-  var nodesIndex = [];
-  //Keep another list with pairs "name": label, to return to the client
-  var nodes = [];
+  // keep a list of all unique event names to ease the search of the index
+  const nodesIndex = [];
+  // Keep another list with pairs "name": label, to return to the client
+  const nodes = [];
 
-  //It will keep all sequences using the event names as indexes.
-  var links = [];
+  // It will keep all sequences using the event names as indexes.
+  const links = [];
 
-  constants.connectAndValidateNodeJs(function (err, db) {
-    if (err) return console.error("getSankeyDataForResult() ERROR connecting to DB" + err);
+  constants.connectAndValidateNodeJs((err, db) => {
+    if (err) return console.error(`getSankeyDataForResult() ERROR connecting to DB${err}`);
 
-    console.log("getSankeyDataForResult(): Processing " + resultTitle);
-    db.collection(queryCollectionPrefix + resultTitle).find({ "value.xmlQueryCounter": { $gt: 0 } }).toArray(function (err, documents) {
-      //for each document, loop for each event name
-      documents.forEach(function (documentItem, index) {
-        var predecesor = "";
+    console.log(`getSankeyDataForResult(): Processing ${resultTitle}`);
+    db.collection(queryCollectionPrefix + resultTitle).find({ 'value.xmlQueryCounter': { $gt: 0 } }).toArray((err, documents) => {
+      // for each document, loop for each event name
+      documents.forEach((documentItem, index) => {
+        let predecesor = '';
 
-        //The xmlQuery collection is nested twice (noted as a bug)
-        documentItem.value.xmlQuery[0].forEach(function (eventItem, index) {
+        // The xmlQuery collection is nested twice (noted as a bug)
+        documentItem.value.xmlQuery[0].forEach((eventItem, index) => {
           if (nodesIndex.indexOf(eventItem.event) == -1) {
             nodesIndex.push(eventItem.event);
             nodes.push({ "name": eventItem.event });
@@ -654,23 +636,22 @@ function getSankeyDataForResult(resultTitle, callback) {
         });
       });
 
-      //transform the array of transitions into source,target,value pairs, using nodes' indexes
+      // transform the array of transitions into source,target,value pairs, using nodes' indexes
 
 
-      for (var prop in sequenceList) {
+      for (const prop in sequenceList) {
         if (sequenceList.hasOwnProperty(prop)) {
-          var seqItem = {}
-          //For each source and target, look for their corresponding index
-          seqItem.source = nodesIndex.indexOf(prop.split("_")[0]);
-          seqItem.target = nodesIndex.indexOf(prop.split("_")[1]);
+          const seqItem = {};
+          // For each source and target, look for their corresponding index
+          seqItem.source = nodesIndex.indexOf(prop.split('_')[0]);
+          seqItem.target = nodesIndex.indexOf(prop.split('_')[1]);
           seqItem.value = sequenceList[prop];
           links.push(seqItem);
         }
       }
-      var transitionObject = { nodes, links };
+      const transitionObject = { nodes, links };
 
       callback(null, transitionObject);
-
     });
   });
 }
@@ -679,21 +660,20 @@ function getSankeyDataForResult(resultTitle, callback) {
  * Given a frequency array, and a content array, it returns the top X most recurring elements
  */
 function returnTop(contentArray, freqArray, threshold) {
-  console.log("returnTop()");
+  console.log('returnTop()');
   console.log(contentArray);
-  freqArray.forEach(function (freqItem, index) {
-    if (isNaN(Number(freqItem)))
-      console.log(freqItem);
+  freqArray.forEach((freqItem, index) => {
+    if (isNaN(Number(freqItem))) { console.log(freqItem); }
   });
-  //The regular Math.max doesn't work on node js. I need to call an abstract function for that
+  // The regular Math.max doesn't work on node js. I need to call an abstract function for that
   console.log();
 
-  var result = [];
-  var index;
-  var maxTemp;
-  //Makes the max operation threshold times
+  const result = [];
+  let index;
+  let maxTemp;
+  // Makes the max operation threshold times
   while (result.length < threshold) {
-    maxTemp = freqArray.reduce(function (a, b) { return Math.max(a, b); }, 0);
+    maxTemp = freqArray.reduce((a, b) => Math.max(a, b), 0);
     index = freqArray.indexOf(maxTemp);
 
     // console.log("biggest element was:" + maxTemp);
@@ -703,23 +683,22 @@ function returnTop(contentArray, freqArray, threshold) {
     contentArray.splice(index, 1);
     freqArray.splice(index, 1);
   }
-  console.log("returning the top elements:" + result)
+  console.log(`returning the top elements:${result}`);
   return result;
 }
 
 function countProperties(obj) {
-  var count = 0;
+  let count = 0;
 
-  for (var prop in obj) {
-    if (obj.hasOwnProperty(prop))
-      ++count;
+  for (const prop in obj) {
+    if (obj.hasOwnProperty(prop)) { ++count; }
   }
 
   return count;
 }
 
 function safeCsv(field) {
-  return (util.format("%s", field).replace(",", "_"));
+  return (util.format('%s', field).replace(',', '_'));
 }
 
 module.exports.setConstants = setConstants;

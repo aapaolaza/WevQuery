@@ -37,7 +37,7 @@
   <script src="./connection.js"></script>
   <script src="./genericFunctions.js"></script>
   <script src="./genericConnection.js"></script>
-  
+
   <script src="./queryCatalog.js"></script>
   <script src="./queryCatalogLeftMenu.js"></script>
   <script src="./queryCatalogConnection.js"></script>
@@ -118,6 +118,44 @@
 
             <div id="tabPatternAnalysis" class="tab-pane fade">
               <h2 id="Pattern Matching">Pattern Matching</h2>
+              <h3>Template Inputs</h3>
+              <p>Select the URLs to include in the analysis</p>
+              <div id="urlMultiSelectorContainer">
+                <select name="urlList" id="urlMultiSelector" multiple="multiple">
+              </select>
+              </div>
+
+              <h3>Template Inputs</h3>
+              <p> Select template inputs for the pattern matching algorithm</p>
+              <h4> Event types to include</h4>
+              <div id="patternTemplateEvents" class="btn-group colors" data-toggle="buttons">
+                <label class="btn btn-primary active">
+                  <input type="checkbox" name="options" value="red" autocomplete="off"> Red
+                </label>
+                <label class="btn btn-primary">
+                  <input type="checkbox" name="options" value="orange" autocomplete="off"> Orange
+                </label>
+                <label class="btn btn-primary">
+                  <input type="checkbox" name="options" value="yellow" autocomplete="off"> Yellow
+                </label>
+              </div>
+              <h4> Node types to include</h4>
+              <div id="patternTemplateNodeTypes" class="btn-group colors" data-toggle="buttons">
+                <label class="btn btn-primary active">
+                  <input type="checkbox" name="options" value="red" autocomplete="off"> Red
+                </label>
+                <label class="btn btn-primary">
+                  <input type="checkbox" name="options" value="orange" autocomplete="off"> Orange
+                </label>
+                <label class="btn btn-primary">
+                  <input type="checkbox" name="options" value="yellow" autocomplete="off"> Yellow
+                </label>
+              </div>
+              <h4> The following node IDs will always be included</h4>
+              <ul id="patternTemplateNodeIds">
+              </ul>
+
+
               <h3>Input</h3>
               <p> Select inputs for the pattern matching algorithm</p>
               <div class="btn-group patternInputButtons" role="group" aria-label="Pattern input selection options">
@@ -295,7 +333,7 @@
       </div>
     </div>
   </div>
-  
+
   <div id="dialog-confirm" title="Empty the recycle bin?" style='display:none'>
     <p><span class="glyphicon glyphicon-alert" style="float:left; margin:12px 12px 20px 0;"></span>These items will be permanently
       deleted and cannot be recovered. Are you sure?</p>

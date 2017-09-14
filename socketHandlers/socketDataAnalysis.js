@@ -73,7 +73,7 @@ function storeQueryJson(queryTitle, callback) {
       callback(null, queryTitle, filename);
     } else if (err.code == 'ENOENT') {
       // file does not exist, request data from mongo, and write
-      mongoDAO.getXmlQueryData(queryTitle, function (err, title, itemList) {
+      mongoDAO.getXmlQueryData(queryTitle, null, (err, title, itemList) => {
         if (err) return console.error("getXmlQueryData() ERROR connecting to DB" + err);
 
         var dataOutput = fs.createWriteStream(filename, { 'flags': 'a' });

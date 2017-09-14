@@ -31,7 +31,7 @@ function initialiseSockets(generalMongoDAO, generalSocketGeneric,
   socketInstance.on('serverRequestPreparePatternDataset', (data) => {
     console.log(`serverRequestPreparePatternDataset, requesting pattern
       dataset for the following input ${data.resultTitleList}`);
-    patternMiningInterface.createPatternDataset(data.resultTitleList,
+    patternMiningInterface.createPatternDataset(data.resultTitleList, data.urlList,
       (err, patternDataset) => {
         console.log('send clientPreparePatternDatasetProcessed');
 

@@ -134,6 +134,11 @@ table.tablesorter thead tr .headerSortDown:after{
 }
 
 /*Prevents the tab from getting too big when form options are shown*/
+
+#urlMultiSelectorContainer{
+  max-width: 330px;  
+}
+
 #patternAlgoOptions .input-group{
   padding-bottom:5px;
   max-width: 330px;

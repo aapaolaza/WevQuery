@@ -98,27 +98,31 @@ else {
  * @param [callback] The callback needs to follow this structure(err,title,documents);
  */
 
-function getXmlQueryData(queryTitle, callback) {
+function getXmlQueryData(queryTitle, urlList, callback) {
+  const searchOpt = { 'value.xmlQueryCounter': { $gt: 0 } };
 
-  var collectionTitle = queryCollectionPrefix + queryTitle;
+  if (urlList) {
+    searchOpt['_id.url'] = { $in: urlList };
+  }
 
-  constants.connectAndValidateNodeJs(function (err, db) {
+  const collectionTitle = queryCollectionPrefix + queryTitle;
+
+  constants.connectAndValidateNodeJs((err, db) => {
     if (err) return console.error('getXmlQueryData() ERROR connecting to DB' + err);
     console.log('getXmlQueryData() Successfully connected to DB');
 
     // Does the corresponding collection exist?
-    db.listCollections({ name: collectionTitle }).toArray(function (err, items) {
-      if (err) return console.error('getXmlQueryData() ERROR REQUESTING COLLECTION' + err);
-      if (items.length == 1) {
+    db.listCollections({ name: collectionTitle }).toArray((listColErr, items) => {
+      if (listColErr) return console.error('getXmlQueryData() ERROR REQUESTING COLLECTION' + listColErr);
+      if (items.length === 1) {
         // Collection exists, query its elements
         // var cursor =
-        db.collection(collectionTitle).find({ 'value.xmlQueryCounter': { $gt: 0 } }).toArray(function (err, documents) {
+        db.collection(collectionTitle).find(searchOpt).toArray((findErr, documents) => {
           console.log('printing results');
-          console.log('Returning ' + documents.length + ' items');
+          console.log(`Returning ${documents.length} for collection ${queryTitle}`);
           callback(null, queryTitle, documents);
         });
-      }
-      else {
+      } else {
         // Collection doesn't exist, return an error
         return console.error("getXmlQueryData() requested query doesn't exist:" + queryTitle);
       }
@@ -307,6 +311,9 @@ function runXmlTempQuery(title, xmlQuery, queryOptions, endCallback, launchedCal
   mapReduceVars.userList = typeof queryOptions.userList !== 'undefined' ?
     queryOptions.userList : null;
 
+  mapReduceVars.urlRestriction = typeof queryOptions.urlRestriction !== 'undefined' ?
+    queryOptions.urlRestriction : null;
+
   prepareXml(xmlQuery, xmlDoc, mapReduceVars, endCallback, launchedCallback);
 }
 
@@ -395,7 +402,11 @@ function executeXmlMapReduce(xmlQuery, xmlDoc, mapReduceVars, endCallback, launc
     queryObject.timestampms.$lte = mapReduceVars.endTimems;
   }
 
-  console.log('Query options:')
+  if (mapReduceVars.urlRestriction) {
+    queryObject.url = mapReduceVars.urlRestriction;
+  }
+
+  console.log('Query options:');
   console.log(queryObject);
 
   console.log('_------------------_');
@@ -467,7 +478,7 @@ function parseXMLToMapReduceObject(xmlDoc) {
   // WARNING!!! "n" occurrences is not supported at the moment.
 
   // First event has predecesor null
-  currentID = 'null';
+  let currentID = 'null';
   // each element in the eventList is an eventQueryObject
   // It will be identified by its index in the query array
   areEventsLeft = true;
@@ -1094,9 +1105,21 @@ function finalizeFunction(key, reduceOutput) {
     return true;
   }
 
+  /**
+   * Given an event and an object with information about context,
+   * checks if the given event matches that content.
+   * A context value of "null", indicates that the field should not exist.
+   * @param {*} currentEvent 
+   * @param {*} contextInfo 
+   */
   function matchContextInfo(currentEvent, contextInfo) {
     for (i = 0; i < contextInfo.typeList.length; i++) {
-      if (currentEvent[contextInfo.typeList[i]] != contextInfo.valueList[i])
+      // Check for non-existing field if the value is "null"
+      if (contextInfo.valueList[i] === 'null') {
+        //if it has the corresponding context value, then return not matched
+        if (currentEvent.hasOwnProperty(contextInfo.typeList[i])) return false;
+      }
+      else if (currentEvent[contextInfo.typeList[i]] != contextInfo.valueList[i])
         return false;
     }
     return true;

@@ -370,8 +370,9 @@ function createGenericFunctions() {
           confirmDialog.dialog('close');
         }
       },
-      //The only purpose of the following code is to find the newly generated "close window" element, and fix the icon
-      //Clashes between bootstrap and jquery-ui break it by default
+      // The only purpose of the following code is to find the newly
+      // generated "close window" element, and fix the icon
+      // Clashes between bootstrap and jquery-ui break it by default
       open: function () {
         $(this).closest('.ui-dialog')
           .find('.ui-dialog-titlebar-close')
@@ -379,7 +380,7 @@ function createGenericFunctions() {
           .html("<span class='glyphicon glyphicon-remove' onclick='confirmDialog.dialog( 'close');'></span>");
       },
     });
-  }
+  };
 
   return genericFunctionsObject;
 }

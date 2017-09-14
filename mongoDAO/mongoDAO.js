@@ -2,20 +2,34 @@
  * Serves as the interface to the mongoDB modules.
  */
 
-var databaseInfo = require("./databaseInfo.js");
-var queryDocument = require("./queryDocumentBean.js");
-var xmlToMongoDB = require("./XMLtoMongoDB.js");
-var analyseData = require("./analyseData.js");
+const databaseInfo = require('./databaseInfo.js');
+const queryDocument = require('./queryDocumentBean.js');
+const xmlToMongoDB = require('./XMLtoMongoDB.js');
+const analyseData = require('./analyseData.js');
+const templateEventCreation = require('./templateEventCreation.js');
 
-//The database connection is shared within the app, to reduce the number of opened connections
-var mapReduceConstants = require("./MapReduceConstantsNode.js");
-var mongoLogConstants = require("./mongoLog.js");
+// The database connection is shared within the app, to reduce the number of opened connections
+const mapReduceConstants = require('./MapReduceConstantsNode.js');
+const mongoLogConstants = require('./mongoLog.js');
 
 mongoLogConstants.setConstants(mapReduceConstants);
 xmlToMongoDB.setConstants(mapReduceConstants, mongoLogConstants);
 queryDocument.setConstants(mapReduceConstants, mongoLogConstants);
 analyseData.setConstants(mapReduceConstants, mongoLogConstants, this);
-databaseInfo.setConstants(mapReduceConstants, mongoLogConstants, this);
+databaseInfo.setConstants(mapReduceConstants, mongoLogConstants);
+templateEventCreation.setConstants(mapReduceConstants, mongoLogConstants, this);
+
+/**
+ * To be called to initialise the templates. It will be moved to the main Catalog interface
+ */
+templateEventCreation.createTemplates((templateErr) => {
+  if (templateErr) console.error(templateErr);
+  console.log('all event templates have been created');
+  templateEventCreation.runTemplateQueries(false, (runTemplatesErr) => {
+    if (runTemplatesErr) console.log(runTemplatesErr);
+    else console.log('All template queries have been run');
+  });
+});
 
 
 module.exports.requestDBname = databaseInfo.requestDBname;
@@ -54,6 +68,8 @@ module.exports.getSunburstDataAll = analyseData.getSunburstDataAll;
 module.exports.getSunburstDataForResult = analyseData.getSunburstDataForResult;
 module.exports.getSankeyDataAll = analyseData.getSankeyDataAll;
 module.exports.getSankeyDataForResult = analyseData.getSankeyDataForResult;
+
+module.exports.retrieveNodeTypeAndIDList = templateEventCreation.retrieveNodeTypeAndIDList;
 
 module.exports.initialiseIndexes = mapReduceConstants.initialiseIndexes;
 module.exports.closeConnection = mapReduceConstants.closeConnection;

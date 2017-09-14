@@ -3,11 +3,11 @@
  * Adds the functionality for the left Menu elements.
  */
 
-var queryCatalogLeftMenu = createQueryCatalogLeftMenuFunctions();
+const queryCatalogLeftMenu = createQueryCatalogLeftMenuFunctions();
 
 function createQueryCatalogLeftMenuFunctions() {
 
-  var queryCatalogLeftMenuObject = {};
+  const queryCatalogLeftMenuObject = {};
 
   queryCatalogLeftMenuObject.leftMenuInitialise = function () {
 
@@ -463,6 +463,7 @@ function createQueryCatalogLeftMenuFunctions() {
     window.location.replace("./queryCreation.html");
   }
 
+  /***************** PATTERN TAB ******************/
 
   /**
    * Initialises the patern Analysis tab in the left column.
@@ -470,6 +471,13 @@ function createQueryCatalogLeftMenuFunctions() {
    */
   queryCatalogLeftMenuObject.initPatternTab = function () {
 
+    // initialise the URL input
+    initMultiURLInput();
+
+    // Request the information to fill in the template event node information
+    queryCatalogConnection.requestTemplateEventInfo();
+
+    // Selection of designer made patterns
     $("#patternInputList").sortable();
     $("#sortable").disableSelection();
 
@@ -500,16 +508,108 @@ function createQueryCatalogLeftMenuFunctions() {
 
     //Functions for buttons at the bottom
 
-    //when "run" is clicked, take the text for all the existing inputs
+    // when "run" is clicked, take the text for all the existing inputs
     // and pass it on to the patternMining functions
     $("#patternRunButton").click(function () {
-      let resultTitleList = [];
-      $("#patternInputList li").each(function () {
-        resultTitleList.push($(this).text());
-      });
-      queryCatalogConnection.requestPreparePatternDataset(resultTitleList);
+      patternRunAlgorithm();
     });
   }
+
+  /**
+   * Init the URL selection "chosen" input
+   */
+
+  function initMultiURLInput() {
+
+    loadURLList($("#urlMultiSelector"));
+
+    $("#urlMultiSelector").chosen({
+      disable_search_threshold: 10,
+      placeholder_text_multiple: "select the URLS to be considered",
+      no_results_text: "Oops, nothing found!",
+      width: "95%"
+    }).change(() => { queryCatalogLeftMenu.updateLeftMenu() });
+  }
+
+  /**
+   * This function takes a multioption object as a parameter
+   * and loads a series of URL values.
+   * 
+   * At the moment, this code is just loading a set of static URLS.
+   * Making it dynamic would just require requesting distinct URLs from the server
+   */
+  function loadURLList(multiOptionTarget) {
+
+    urlList = ['http://www.cs.manchester.ac.uk/',
+      'http://www.cs.manchester.ac.uk/study/undergraduate/visit-us/',
+      'http://www.cs.manchester.ac.uk/study/postgraduate-research/']
+
+    urlList.forEach((urlItem) => {
+      $(multiOptionTarget).append('<option>' + urlItem + '</option>');
+    });
+    $(multiOptionTarget).trigger('chosen:updated');
+  }
+
+  /**
+   * Given a nodeObject with a list of 
+   * nodeTypes and nodeIDs
+   */
+  queryCatalogLeftMenuObject.fillTemplateEventInterface = function (nodeList) {
+    console.log(nodeList);
+    // Selection of template patterns
+
+    var patternTemplateEvents = $("#patternTemplateEvents");
+    patternTemplateEvents.empty();
+
+    //retrieve list of all available events
+    const eventList = nodeList.events;
+
+    eventList.forEach((eventObj) => {
+      let patternTemplateEventObj = $("<label>", { class: "btn btn-primary" });
+      patternTemplateEventObj.text(eventObj);
+      patternTemplateEventObj.append(
+        $("<input>", {
+          type: 'checkbox',
+          name: "options",
+          value: eventObj,
+          //autocomplete: "off"
+        })
+      );
+      patternTemplateEvents.append(patternTemplateEventObj);
+    });
+
+
+    var patternTemplateNodeTypes = $("#patternTemplateNodeTypes");
+    patternTemplateNodeTypes.empty();
+    //retrieve list of all available node types
+    const nodeTypeList = nodeList.nodeTypes;
+
+    nodeTypeList.forEach((nodeTypeObj) => {
+      let patternTemplateNodeTypeObj = $("<label>", { class: "btn btn-primary" });
+      patternTemplateNodeTypeObj.text(nodeTypeObj);
+      patternTemplateNodeTypeObj.append(
+        $("<input>", {
+          type: 'checkbox',
+          name: "options",
+          value: nodeTypeObj,
+          //autocomplete: "off"
+        })
+      );
+      patternTemplateNodeTypes.append(patternTemplateNodeTypeObj);
+    });
+
+
+    var patternTemplateNodeIds = $("#patternTemplateNodeIds");
+    patternTemplateNodeIds.empty();
+
+    //retrieve list of all available node IDs
+    const nodeIDList = nodeList.nodeIDs;
+
+    nodeIDList.forEach((nodeIDObj) => {
+      patternTemplateNodeIds.append($("<li>").text(nodeIDObj));
+    });
+  }
+
 
   /**
    * Activates the selection step of a result to be added to the pattern input pool
@@ -634,8 +734,50 @@ function createQueryCatalogLeftMenuFunctions() {
   /**
    * To be triggered when the user clicks on the "run" option
    */
-  queryCatalogLeftMenuObject.patternRunAlgorithm = function () {
-    //As a first step, create the sequence object
+  function patternRunAlgorithm() {
+
+    let urlList = $("#urlMultiSelector").val();
+
+
+    let resultTitleList = [];
+
+    // Get all the template events.
+
+    let eventList = [];
+    $('#patternTemplateEvents label.active').each(
+      (index, item) => {
+        eventList.push($(item).text());
+      });
+
+    let nodeNameList = [];
+    $('#patternTemplateNodeTypes label.active').each(
+      (index, item) => {
+        nodeNameList.push($(item).text());
+      });
+
+    $('#patternTemplateNodeIds li').each(
+      (index, item) => {
+        nodeNameList.push($(item).text());
+      });
+
+    // generate the result names combining the name and event
+    // If there are no events selected, no template event will be added
+    // nodeType_event && nodeId_event
+    nodeNameList.forEach((idItem) => {
+      eventList.forEach((eventItem) => {
+        resultTitleList.push(`${eventItem}_${idItem}`)
+      });
+    });
+
+    // Get all the results from the input selection list
+    $("#patternInputList li").each((index, item) => {
+      resultTitleList.push($(item).text());
+    });
+
+    if (resultTitleList.length !== 0 && urlList.length !== 0)
+      queryCatalogConnection.requestPreparePatternDataset(resultTitleList, urlList);
+    else
+      notifyUser("No inputs or URLs were selected for pattern mining");
   }
 
   return queryCatalogLeftMenuObject;

@@ -1,8 +1,7 @@
 
-//////We need to load the constants file
-var constants;
-var mongoLog;
-
+// ////We need to load the constants file
+let constants;
+let mongoLog;
 
 
 function setConstants(mapReduceConstants, mongoLogConstants) {
@@ -15,27 +14,27 @@ function requestDBname(callback) {
 }
 
 
-
 /**
  * Returns the list of all collections in the database, with their count
  * @param {callback} callback 
  */
 function requestDBCollections(callback) {
-  var collectionList = [];
-  constants.connectAndValidateNodeJs(function (err, db) {
-    db.listCollections().toArray(function (err, collectionInDBList) {
-
-      collectionInDBList.forEach(function (collectionInDBObject) {
-        var collObjectTemp = {};
-        //console.log(collectionInDBObject);
+  const collectionList = [];
+  constants.connectAndValidateNodeJs((err, db) => {
+    db.listCollections().toArray((err, collectionInDBList) => {
+      collectionInDBList.forEach((collectionInDBObject) => {
+        const collObjectTemp = {};
+        // console.log(collectionInDBObject);
         collObjectTemp.name = collectionInDBObject.name;
-        db.collection(collectionInDBObject.name).count(function (err, count) {
-          collObjectTemp.count = count;
-          collectionList.push(collObjectTemp);
-          //check if all collections have been processed
-          if (collectionList.length >= collectionInDBList.length)
-            callback(null, collectionList);
-        });
+        db.collection(collectionInDBObject.name).count({ 'value.xmlQueryCounter': { $ne: 0 } },
+          (err, count) => {
+            collObjectTemp.count = count;
+            collectionList.push(collObjectTemp);
+            // check if all collections have been processed
+            if (collectionList.length >= collectionInDBList.length) {
+              callback(null, collectionList);
+            }
+          });
       });
     });
   });
@@ -46,15 +45,15 @@ function requestDBCollections(callback) {
  * @param {callback} callback 
  */
 function requestIndexes(callback) {
-  var indexStringList = [];
-  constants.connectAndValidateNodeJs(function (err, db) {
-    db.collection(constants.eventCollection).indexes(function (err, indexList) {
-      if (err) return console.error("requestIndexes(): Error retrieving the indexes", err);
-      console.log(indexList.length + " indexes retrieved");
+  const indexStringList = [];
+  constants.connectAndValidateNodeJs((err, db) => {
+    db.collection(constants.eventCollection).indexes((err, indexList) => {
+      if (err) return console.error('requestIndexes(): Error retrieving the indexes', err);
+      console.log(`${indexList.length} indexes retrieved`);
 
-      indexList.forEach(function (indexObject) {
-        /*console.log("Index retrieved:");
-        console.log(indexObject);*/
+      indexList.forEach((indexObject) => {
+        /* console.log("Index retrieved:");
+        console.log(indexObject); */
         indexStringList.push(JSON.stringify(indexObject));
       });
       callback(null, indexStringList);
@@ -67,23 +66,22 @@ function requestIndexes(callback) {
  * @param {callback} callback 
  */
 function requestEventCountList(callback) {
-  //each element in this list will contain a name and a count
-  var eventObjectList = []
-  constants.connectAndValidateNodeJs(function (err, db) {
-    db.collection(constants.eventCollection).distinct('event', function (err, eventsList) {
-      eventsList.forEach(function (eventName) {
-        var eventObject = {};
+  // each element in this list will contain a name and a count
+  const eventObjectList = [];
+  constants.connectAndValidateNodeJs((err, db) => {
+    db.collection(constants.eventCollection).distinct('event', (err, eventsList) => {
+      eventsList.forEach((eventName) => {
+        const eventObject = {};
         eventObject.name = eventName;
 
-        db.collection(constants.eventCollection).count({ 'event': eventName },
-          function (err, eventCount) {
-            console.log("Event " + eventName + " was found " + eventCount + " times")
+        db.collection(constants.eventCollection).count({ event: eventName },
+          (err, eventCount) => {
+            console.log(`Event ${eventName} was found ${eventCount} times`);
             eventObject.count = eventCount;
             eventObjectList.push(eventObject);
 
-            //if all events have been processed, callback
-            if (eventObjectList.length >= eventsList.length)
-              callback(null, eventObjectList);
+            // if all events have been processed, callback
+            if (eventObjectList.length >= eventsList.length) { callback(null, eventObjectList); }
           });
       });
     });
@@ -96,19 +94,19 @@ function requestEventCountList(callback) {
  * @param {callback} callback 
  */
 function requestUserListWithEvents(callback) {
-  var userEventsList = [];
-  requestUsers(function (err, userList) {
-    userList.forEach(function (userId) {
-      //for each user
-      var userEventObject = {};
+  const userEventsList = [];
+  requestUsers((err, userList) => {
+    userList.forEach((userId) => {
+      // for each user
+      const userEventObject = {};
       userEventObject.name = userId;
       userEventObject.eventList = [];
 
-      requestEventListForUser(userId, function (err, eventList) {
-        eventList.forEach(function (eventName) {
-          //for each event from this user
+      requestEventListForUser(userId, (err, eventList) => {
+        eventList.forEach((eventName) => {
+          // for each event from this user
           requestEventCountForEventAndUser(eventName, userId,
-            function (err, eventObject) {
+            (err, eventObject) => {
               userEventObject.eventList.push(eventObject);
 
               /*console.log("Event " + eventObject.name + " was found " + eventObject.count
@@ -121,7 +119,7 @@ function requestUserListWithEvents(callback) {
                 //if finished, also check if ALL users have been processed, and callback
                 if (userEventsList.length >= userList.length) {
                   callback(null, userEventsList);
-                  return;
+
                 }
                 /*else
                   console.log((userList.length - userEventsList.length) + " users to go");*/
@@ -131,7 +129,6 @@ function requestUserListWithEvents(callback) {
       });
     });
   });
-
 }
 
 /**
@@ -142,29 +139,29 @@ function requestUsers(callback) {
   constants.connectAndValidateNodeJs((err, db) => {
     db.collection(constants.eventCollection).distinct('sid',
       (err, userList) => {
-        if (err) return console.error("requestUsers()", err);
+        if (err) return console.error('requestUsers()', err);
         callback(null, userList);
       });
   });
 }
 
 function requestEventListForUser(userId, callback) {
-  constants.connectAndValidateNodeJs(function (err, db) {
-    db.collection(constants.eventCollection).distinct('event', { 'sid': userId },
-      function (err, eventList) {
-        if (err) return console.error("requestEventListForUser()", err);
+  constants.connectAndValidateNodeJs((err, db) => {
+    db.collection(constants.eventCollection).distinct('event', { sid: userId },
+      (err, eventList) => {
+        if (err) return console.error('requestEventListForUser()', err);
         callback(null, eventList);
       });
   });
 }
 
 function requestEventCountForEventAndUser(eventName, userId, callback) {
-  constants.connectAndValidateNodeJs(function (err, db) {
-    var eventObject = {};
+  constants.connectAndValidateNodeJs((err, db) => {
+    const eventObject = {};
     eventObject.name = eventName;
 
-    db.collection(constants.eventCollection).count({ 'event': eventName, 'sid': userId },
-      function (err, eventCount) {
+    db.collection(constants.eventCollection).count({ event: eventName, sid: userId },
+      (err, eventCount) => {
         eventObject.count = eventCount;
         callback(null, eventObject);
       });
@@ -177,48 +174,54 @@ function requestEventCountForEventAndUser(eventName, userId, callback) {
  * associated with them.
  * constants = require("./mongoDAO/MapReduceConstantsNode.js");
  * 
- * createNodeCollection(function(err){console.log("FINISHED")})
+ * createNodeCollection(null, function(err){console.log("FINISHED")})
+ * createNodeCollection('http://www.cs.manchester.ac.uk/', function(err){console.log("FINISHED")})
  * @param {*} callback 
  */
-function createNodeCollection(callback) {
-  constants.connectAndValidateNodeJs(function (err, db) {
+function createNodeCollection(urlOpt, callback) {
+  constants.connectAndValidateNodeJs((err, db) => {
     console.log(`Starting createNodeCollection() execution at ${new Date().toUTCString()}`);
 
     // nodeIndex is a hash function that uniquely represents a node and serves as a direct index to it
-    db.collection(constants.nodeListCollection).createIndex({ "index": 1 }, { unique: true });
-    db.collection(constants.nodeListCollection).createIndex({ "generalCount": 1 });
+    db.collection(constants.nodeListCollection).createIndex({ index: 1 }, { unique: true });
+    db.collection(constants.nodeListCollection).createIndex({ generalCount: 1 });
 
     // Before creating the list, remove any existing node Collection
-    db.collection(constants.nodeListCollection).drop(function () {
-      console.log(`collection deleted`);
+    db.collection(constants.nodeListCollection).drop(() => {
+      console.log('collection deleted');
       // Look for ALL events that have a node object.
-      //db.collection(constants.eventCollection).find({ sid: "w62zkMya3kBE", "nodeInfo": { $exists: true } })
-      db.collection(constants.eventCollection).find({ "nodeInfo": { $exists: true } })
-        .forEach(function (eventItem) {
+      // db.collection(constants.eventCollection).find({ sid: "w62zkMya3kBE", "nodeInfo": { $exists: true } })
+
+      const eventSearchOpt = { nodeInfo: { $exists: true } };
+
+      if (urlOpt) eventSearchOpt.url = urlOpt;
+
+      db.collection(constants.eventCollection).find(eventSearchOpt)
+        .forEach((eventItem) => {
           // First generate the index
           // console.log(`creating index for ${JSON.stringify(eventItem.nodeInfo)}`);
-          let nodeIndex = createHash(JSON.stringify(eventItem.nodeInfo));
+          const nodeIndex = createHash(JSON.stringify(eventItem.nodeInfo));
           // Then upsert the corresponding event in the nodeList
           // if it exists, increase the count for the corresponding event name
-          let incObject = {};
-          incObject['eventCount.' + eventItem.event] = 1;
-          incObject['generalCount'] = 1;
+          const incObject = {};
+          incObject[`eventCount.${eventItem.event}`] = 1;
+          incObject.generalCount = 1;
 
           db.collection(constants.nodeListCollection).update({ index: nodeIndex },
             {
               $set: {
-                nodeInfo: eventItem.nodeInfo
+                nodeInfo: eventItem.nodeInfo,
               },
-              $inc: incObject
+              $inc: incObject,
             },
             {
-              upsert: true
+              upsert: true,
             },
-            function (err) {
+            (err) => {
               // The upsert will fail if there is a race condition.
               // If it happens, the recommendation is just retrying.
               if (err) {
-                console.log("An error occurred during an update");
+                console.log('An error occurred during an update');
                 // from https://stackoverflow.com/questions/37295648/mongoose-duplicate-key-error-with-upsert
                 if (err.code === 11000) {
                   // Another upsert occurred during the upsert, try again. You could omit the
@@ -226,31 +229,29 @@ function createNodeCollection(callback) {
                   db.collection(constants.nodeListCollection).update({ index: nodeIndex },
                     {
                       $set: {
-                        nodeInfo: eventItem.nodeInfo
+                        nodeInfo: eventItem.nodeInfo,
                       },
-                      $inc: incObject
+                      $inc: incObject,
                     },
                     {
-                      upsert: true
+                      upsert: true,
                     },
-                    function (err) {
+                    (err) => {
                       if (err) {
                         console.trace(err);
                       }
                     });
-                }
-                else {
+                } else {
                   console.trace(err);
                 }
               }
             });
         },
-        function (err) {
+        (err) => {
           if (err) {
-            console.log("An error occurred during the process of the events with nodeInfo");
+            console.log('An error occurred during the process of the events with nodeInfo');
             callback(err);
-          }
-          else {
+          } else {
             console.log(`createNodeCollection() finished successfully at ${new Date().toUTCString()}`);
             callback(null);
           }
@@ -259,13 +260,13 @@ function createNodeCollection(callback) {
   });
 }
 
-var crypto = require('crypto');
+const crypto = require('crypto');
 /**
  * Takes a string as input and returns a hash
  * @param {String} data to be converted to hash
  */
 function createHash(data) {
-  return crypto.createHash("sha256").update(data).digest("base64");
+  return crypto.createHash('sha256').update(data).digest('base64');
 }
 
 module.exports.setConstants = setConstants;

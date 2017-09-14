@@ -1,48 +1,50 @@
-//Version
-//LOG 2017-03-23 10:42:05
+// Version
+// LOG 2017-03-23 10:42:05
 
-///Same as MapReduceConstants, but I changed it so it can be used with Node JS http://stackoverflow.com/questions/5625569/include-external-js-file-in-node-js-app
+// /Same as MapReduceConstants, but I changed it so it can be used with Node JS http://stackoverflow.com/questions/5625569/include-external-js-file-in-node-js-app
 
-///Module exports to act as interface can be found at the end, after all variables and functions are defined
+// Module exports to act as interface can be found at the end,
+// after all variables and functions are defined
 const mongodb = require('mongodb');
 const async = require('async');
 
 
-var mongoClient = mongodb.MongoClient
-  , Server = mongodb.Server;
+const mongoClient = mongodb.MongoClient;
+const Server = mongodb.Server;
 
-//This tag can be found in the "msg" field in the current ops command of MapReduce commands
-const mapReduceTag = "m/r";
-const xmlQueryResults = "xmlQueryResults";
-const xmlQueryCatalog = "xmlQueryCatalog";
+// This tag can be found in the "msg" field in the current ops command of MapReduce commands
+const mapReduceTag = 'm/r';
+const xmlQueryResults = 'xmlQueryResults';
+const xmlQueryCatalog = 'xmlQueryCatalog';
 
-const mongoLogCollection = "log";
-const userProfileCollection = "userProfiles";
+const mongoLogCollection = 'log';
+const userProfileCollection = 'userProfiles';
 
-//This prefix will be added to all queries
-const queryCollectionPrefix = "xmlQuery_"
+// This prefix will be added to all queries
+const queryCollectionPrefix = 'xmlQuery_';
 
-///MongoDB connection info
-var dbAccessData = require("./dbAccessData");
+// /MongoDB connection info
+const dbAccessData = require('./dbAccessData');
+
 const mongoPath = dbAccessData.mongoPath;
 const mongoAuthenticateDB = dbAccessData.mongoAuthenticateDB;
 const mongoQueryDB = dbAccessData.mongoQueryDB;
 const mongoUser = dbAccessData.mongoUser;
 const mongoPass = dbAccessData.mongoPass;
 
-//Depending on the implementation, we might want to either use fields created after processing the data (urlSessionCounter, sdSessionCounter), or client created fields(episodecount)
-const episodeField = "episodecount"
+// Depending on the implementation, we might want to either use fields created after processing the data (urlSessionCounter, sdSessionCounter), or client created fields(episodecount)
+const episodeField = 'episodecount';
 
-const mongoTimeout = 0;//0
+const mongoTimeout = 0;// 0
 
-const userCollection = "activeUsers";
-const eventCollection = "events";
-const nodeListCollection = "nodeList";
+const userCollection = 'activeUsers';
+const eventCollection = 'events';
+const nodeListCollection = 'nodeList';
 
-//web site to be analysed, determined by its "sd" value. 10002 is kupb, 10006 is CS
-const websiteId = "10006";
+// web site to be analysed, determined by its "sd" value. 10002 is kupb, 10006 is CS
+const websiteId = '10006';
 
-var globalDbConnection = null;
+let globalDbConnection = null;
 
 
 /** Connects to the database, authenticates the connection against the correspondent
@@ -52,8 +54,8 @@ var globalDbConnection = null;
 function connectAndValidate() {
   connect(mongoPath);
 
-  if (mongoUser !== "" && mongoUser !== "DBUSERNAME") {
-    print("Authentication is required");
+  if (mongoUser !== '' && mongoUser !== 'DBUSERNAME') {
+    print('Authentication is required');
     db = db.getSiblingDB(mongoAuthenticateDB);
     db.auth(mongoUser, mongoPass);
     db = db.getSiblingDB(mongoQueryDB);
@@ -61,7 +63,7 @@ function connectAndValidate() {
   else {
     db = db.getSiblingDB(mongoQueryDB);
   }
-  console.log("connection secured");
+  console.log('connection secured');
   return db;
 }
 
@@ -70,8 +72,8 @@ function connectAndValidate() {
  * If a connection already exists, return it.
  */
 function connectAndValidateNodeJs(callback) {
-  //var mongoclient = new MongoClient(new Server(mongoPath), {native_parser: true});
-  //globalDbConnection=null;
+  // var mongoclient = new MongoClient(new Server(mongoPath), {native_parser: true});
+  // globalDbConnection=null;
   if (globalDbConnection && globalDbConnection.serverConfig.isConnected()) {
     callback(null, globalDbConnection);
   }
@@ -81,35 +83,36 @@ function connectAndValidateNodeJs(callback) {
 }
 
 function createNewConnection(callback) {
-  console.log("connectAndValidateNodeJs(): CREATING a new connection");
+  console.log('connectAndValidateNodeJs(): CREATING a new connection');
 
   mongoConnectionPath = mongoPath;
-  //For authentication we add the parameter to the mongoPath
-  //From http://mongodb.github.io/node-mongodb-native/2.0/tutorials/connecting/
-  //Authentication > Indirectly Against Another Database
-  if (mongoUser !== "" && mongoUser !== "DBUSERNAME")
-    mongoConnectionPath = mongoUser + ":" + mongoPass + "@" + mongoPath
-      + "?authSource=" + mongoAuthenticateDB;
+  // For authentication we add the parameter to the mongoPath
+  // From http://mongodb.github.io/node-mongodb-native/2.0/tutorials/connecting/
+  // Authentication > Indirectly Against Another Database
+  if (mongoUser !== '' && mongoUser !== 'DBUSERNAME')
+  { mongoConnectionPath = `${mongoUser  }:${  mongoPass  }@${  mongoPath
+       }?authSource=${  mongoAuthenticateDB}`;
+ }
 
-  var options = {
+  const options = {
     server: {
       socketOptions: {
         keepAlive: mongoTimeout,
         connectTimeoutMS: mongoTimeout,
-        socketTimeoutMS: mongoTimeout
-      }
+        socketTimeoutMS: mongoTimeout,
+      },
     },
     replset: {
       socketOptions: {
         keepAlive: mongoTimeout,
         connectTimeoutMS: mongoTimeout,
-        socketTimeoutMS: mongoTimeout
-      }
-    }
+        socketTimeoutMS: mongoTimeout,
+      },
+    },
   };
 
   // Open the connection to the server
-  mongoClient.connect("mongodb://" + mongoConnectionPath, options, function (err, dbConnection) {
+  mongoClient.connect(`mongodb://${  mongoConnectionPath}`, options, (err, dbConnection) => {
     if (err) { callback(err, null); }
     globalDbConnection = dbConnection;
     callback(err, dbConnection);
@@ -128,19 +131,18 @@ function closeConnection() {
 }
 
 function getCurrentConnectionOptions() {
-  return ("mongoTimeout = " + mongoTimeout);
+  return (`mongoTimeout = ${  mongoTimeout}`);
 }
-
 
 
 /** Completes single-digit numbers by a "0"-prefix
  * This is a special case for milliseconds, in which we will add up to two zeros 
  * */
 function completeDateValsMilliseconds(dateVal) {
-  var dateVal = "" + dateVal;
-  if (dateVal.length < 2) return "00" + dateVal;
-  if (dateVal.length < 3) return "0" + dateVal;
-  else return dateVal;
+  var dateVal = '' + dateVal;
+  if (dateVal.length < 2) return '00' + dateVal;
+  if (dateVal.length < 3) return '0' + dateVal;
+  return dateVal;
 }
 
 /**
@@ -149,25 +151,25 @@ function completeDateValsMilliseconds(dateVal) {
  * To be run only once!! never for each connection request
  */
 function initialiseIndexes(callback) {
-  connectAndValidateNodeJs(function (err, db) {
-    if (err) return console.error("initialiseIndexes() ERROR connecting to DB" + err);
+  connectAndValidateNodeJs((err, db) => {
+    if (err) return console.error('initialiseIndexes() ERROR connecting to DB' + err);
 
     indexObjectList = [
-      { "sid": 1 },
-      { "sd": 1 },
-      { "event": 1 },
-      { "timestamp": 1 },
-      { "timestampms": 1 },
-      { "url": 1 },
-      { "sid": 1, "url": 1 },
-      { "sid": 1, "sd": 1 },
-      { "sid": 1, "episodecount": 1 },
-      { "sid": 1, "url": 1, "episodecount": 1 },
+      { sid: 1 },
+      { 'sd': 1 },
+      { event: 1 },
+      { timestamp: 1 },
+      { timestampms: 1 },
+      { url: 1 },
+      { 'sid': 1, 'url': 1 },
+      { sid: 1, sd: 1 },
+      { sid: 1, 'episodecount': 1 },
+      { 'sid': 1, 'url': 1, episodecount: 1 },
     ];
 
-    let uniqueIndex = { "sid": 1, "sd": 1, "sessionstartms": 1, "event": 1, "timestampms": 1 };
+    const uniqueIndex = { sid: 1, sd: 1, sessionstartms: 1, 'event': 1, timestampms: 1 };
 
-    async.each(indexObjectList, function (indexObject, callback) {
+    async.each(indexObjectList, (indexObject, callback) => {
       db.collection(eventCollection).createIndex(indexObject,
         function (err) {
           if (err) {
@@ -181,7 +183,7 @@ function initialiseIndexes(callback) {
           }
         }
       );
-    }, function (err) {
+    }, (err) => {
       if (err) {
         console.log('An index could not be created');
       } else {
@@ -205,73 +207,73 @@ function initialiseIndexes(callback) {
   });
 }
 
-/////////////////////////////////////////////START OF CONSTANTS/////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////START OF CONSTANTS/////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const scopeObject = {};
 
-//list of banned IP addresses
-//const bannedIPlist = [ { "ip" : "130.88.193.26"} , { "ip" : "IP1"} , { "ip" : "IP2"}];
-const bannedIPlist = ["130.88.193.26", "IP1", "IP2"];
-//the following query tests that the sid related with the ip 130.88.193.26 are filtered (it should be empty).
-//db.map_reduce_example.find({"_id.sid":{$in:["8hgYRPR2x1Jz", "7O25l3TPWVkp", "1l8yDX2ehiEv", "ZrZ2OrGb6fAY", "qptygSdE0H1z", "uAWrwKFf00rY", "5ZGlnqS1CPAE", "EVJZCfwAXF7j", "01v2m0HonZ3r", "pSaMH85B0Adz", "dzJnQXxQBKJT", "Qcs4OFkpPIbB", "x8UVE8L4598v", "4YWnL6iA0UpF"]}});
+// list of banned IP addresses
+// const bannedIPlist = [ { "ip" : "130.88.193.26"} , { "ip" : "IP1"} , { "ip" : "IP2"}];
+const bannedIPlist = ['130.88.193.26', 'IP1', 'IP2'];
+// the following query tests that the sid related with the ip 130.88.193.26 are filtered (it should be empty).
+// db.map_reduce_example.find({"_id.sid":{$in:["8hgYRPR2x1Jz", "7O25l3TPWVkp", "1l8yDX2ehiEv", "ZrZ2OrGb6fAY", "qptygSdE0H1z", "uAWrwKFf00rY", "5ZGlnqS1CPAE", "EVJZCfwAXF7j", "01v2m0HonZ3r", "pSaMH85B0Adz", "dzJnQXxQBKJT", "Qcs4OFkpPIbB", "x8UVE8L4598v", "4YWnL6iA0UpF"]}});
 
-scopeObject["bannedIPlist"] = bannedIPlist;
-
-
-//These events should be ignored when calculating active times.
-const incorrectActTimeEvents = ["mobileGyroscopeEvent", "mouseOverEvent", "resizeEvent"]
-scopeObject["incorrectActTimeEvents"] = incorrectActTimeEvents;
-
-///////////List of events
-const loadEvent = "load";
-scopeObject["loadEvent"] = loadEvent;
-
-const mouseWheelEvent = "mousewheel";
-scopeObject["mouseWheelEvent"] = mouseWheelEvent;
-
-const mouseDownEvent = "mousedown";
-scopeObject["mouseDownEvent"] = mouseDownEvent;
-
-const mouseUpEvent = "mouseup";
-scopeObject["mouseUpEvent"] = mouseUpEvent;
-
-const mouseOverEvent = "mouseover";
-scopeObject["mouseOverEvent"] = mouseOverEvent;
-
-const mouseOutEvent = "mouseout";
-scopeObject["mouseOutEvent"] = mouseOutEvent;
-
-const mouseMoveEvent = "mousemove";
-scopeObject["mouseMoveEvent"] = mouseMoveEvent;
-
-const dblclickEvent = "dblclick";
-scopeObject["dblclickEvent"] = dblclickEvent;
-
-const mobileGyroscopeEvent = "mobileGyroscope";
-scopeObject["mobileGyroscope"] = mobileGyroscopeEvent;
-
-const scrollEvent = "scroll";
-scopeObject["scrollEvent"] = scrollEvent;
-
-const resizeEvent = "resize";
-scopeObject["resize"] = resizeEvent;
+scopeObject.bannedIPlist = bannedIPlist;
 
 
-//////Session timeout
-const sessionTimeout = 40 * 60 * 1000;//40 mintues
-scopeObject["sessionTimeout"] = sessionTimeout;
-scopeObject["episodeField"] = episodeField;
+// These events should be ignored when calculating active times.
+const incorrectActTimeEvents = ['mobileGyroscopeEvent', 'mouseOverEvent', 'resizeEvent'];
+scopeObject.incorrectActTimeEvents = incorrectActTimeEvents;
+
+// /////////List of events
+const loadEvent = 'load';
+scopeObject.loadEvent = loadEvent;
+
+const mouseWheelEvent = 'mousewheel';
+scopeObject.mouseWheelEvent = mouseWheelEvent;
+
+const mouseDownEvent = 'mousedown';
+scopeObject.mouseDownEvent = mouseDownEvent;
+
+const mouseUpEvent = 'mouseup';
+scopeObject.mouseUpEvent = mouseUpEvent;
+
+const mouseOverEvent = 'mouseover';
+scopeObject.mouseOverEvent = mouseOverEvent;
+
+const mouseOutEvent = 'mouseout';
+scopeObject.mouseOutEvent = mouseOutEvent;
+
+const mouseMoveEvent = 'mousemove';
+scopeObject.mouseMoveEvent = mouseMoveEvent;
+
+const dblclickEvent = 'dblclick';
+scopeObject.dblclickEvent = dblclickEvent;
+
+const mobileGyroscopeEvent = 'mobileGyroscope';
+scopeObject.mobileGyroscope = mobileGyroscopeEvent;
+
+const scrollEvent = 'scroll';
+scopeObject.scrollEvent = scrollEvent;
+
+const resizeEvent = 'resize';
+scopeObject.resize = resizeEvent;
 
 
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////END OF CONSTANTS/////////////////////////////////////////////////
+// ////Session timeout
+const sessionTimeout = 40 * 60 * 1000;// 40 mintues
+scopeObject.sessionTimeout = sessionTimeout;
+scopeObject.episodeField = episodeField;
 
 
 
-/////////////////////////////////////////////START OF CONSTANTS/////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////END OF CONSTANTS/////////////////////////////////////////////////
+
+
+
+// ///////////////////////////////////////////START OF CONSTANTS/////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
  * Parse a date in "yyyy-mm-dd,HH:mm:ss:SSS" format, and return the ms.
@@ -280,18 +282,18 @@ scopeObject["episodeField"] = episodeField;
  * 2013-07-05,09:25:53:970
  */
 function parseDateToMs2(input) {
-  var parts = input.split(',');
+  const parts = input.split(',');
 
-  var date = parts[0].split('-');
-  /*var year = date[0];
+  const date = parts[0].split('-');
+  /* var year = date[0];
   var month = date[1];
-  var day = date[2];*/
+  var day = date[2]; */
 
-  var time = parts[1].split(':');
-  /*var hour = time[0];
+  const time = parts[1].split(':');
+  /* var hour = time[0];
   var minute = time[1];
   var secs = time[2];
-  var millisecs = time[3];*/
+  var millisecs = time[3]; */
   // new Date(year, month [, day [, hours[, minutes[, seconds[, ms]]]]])
   return new Date(date[0], date[1] - 1, date[2], time[0], time[1], time[2], time[3]).getTime(); // Note: months are 0-based
 }
@@ -300,30 +302,30 @@ function parseDateToMs2(input) {
  * Returns current date in a readable format
  */
 function datestamp() {
-  var currentDate = new Date();
-  return currentDate.getFullYear() + "-" + completeDateVals(currentDate.getMonth() + 1) + "-"
-    + completeDateVals(currentDate.getDate()) + "," + completeDateVals(currentDate.getHours())
-    + ":" + completeDateVals(currentDate.getMinutes())
-    + ":" + completeDateVals(currentDate.getSeconds())
-    + ":" + completeDateValsMilliseconds(currentDate.getMilliseconds());
+  const currentDate = new Date();
+  return `${currentDate.getFullYear() }-${ completeDateVals(currentDate.getMonth() + 1) }-${
+    completeDateVals(currentDate.getDate()) },${completeDateVals(currentDate.getHours())
+  }:${completeDateVals(currentDate.getMinutes())
+  }:${ completeDateVals(currentDate.getSeconds())
+  }:${ completeDateValsMilliseconds(currentDate.getMilliseconds())}`;
 }
 
 /** Completes single-digit numbers by a "0"-prefix
  *  */
 function completeDateVals(dateVal) {
-  var dateVal = "" + dateVal;
-  if (dateVal.length < 2) return "0" + dateVal;
-  else return dateVal;
+  var dateVal = '' + dateVal;
+  if (dateVal.length < 2) return '0' + dateVal;
+  return dateVal;
 }
 
 /** Completes single-digit numbers by a "0"-prefix
  * This is a special case for milliseconds, in which we will add up to two zeros 
  * */
 function completeDateValsMilliseconds(dateVal) {
-  var dateVal = "" + dateVal;
-  if (dateVal.length < 2) return "00" + dateVal;
-  if (dateVal.length < 3) return "0" + dateVal;
-  else return dateVal;
+  var dateVal = '' + dateVal;
+  if (dateVal.length < 2) return '00' + dateVal;
+  if (dateVal.length < 3) return '0' + dateVal;
+  return dateVal;
 }
 
 /**
@@ -331,12 +333,12 @@ function completeDateValsMilliseconds(dateVal) {
  * @param {epoch date} datems 
  */
 function datestampToReadable(datems) {
-  var currentDate = new Date(datems);
-  return currentDate.getFullYear() + "-" + completeDateVals(currentDate.getMonth() + 1) + "-"
-    + completeDateVals(currentDate.getDate()) + "," + completeDateVals(currentDate.getHours())
-    + ":" + completeDateVals(currentDate.getMinutes())
-    + ":" + completeDateVals(currentDate.getSeconds())
-    + ":" + completeDateValsMilliseconds(currentDate.getMilliseconds());
+  const currentDate = new Date(datems);
+  return `${currentDate.getFullYear() }-${completeDateVals(currentDate.getMonth() + 1)}-${
+    completeDateVals(currentDate.getDate()) },${ completeDateVals(currentDate.getHours())
+  }:${completeDateVals(currentDate.getMinutes())
+  }:${completeDateVals(currentDate.getSeconds())
+  }:${completeDateValsMilliseconds(currentDate.getMilliseconds())}`;
 }
 
 
@@ -345,32 +347,33 @@ function datestampToReadable(datems) {
 */
 function compareEventTS(objectA, objectB) {
 
-  var objectATime = Number(objectA.timestampms);
-  var objectBTime = Number(objectB.timestampms);
+  const objectATime = Number(objectA.timestampms);
+  const objectBTime = Number(objectB.timestampms);
 
   if (objectATime < objectBTime) {
-    //timeDifference += "##" + objectATime+ "is SMALLER than " + objectBTime;
+    // timeDifference += "##" + objectATime+ "is SMALLER than " + objectBTime;
     return -1;
   }
   if (objectATime > objectBTime) {
-    //timeDifference += "##" + objectATime+ "is BIGGER than " + objectBTime;
+    // timeDifference += "##" + objectATime+ "is BIGGER than " + objectBTime;
     return 1;
   }
-  //timeDifference += "##" + objectATime+ "is EQUALS to " + objectBTime;
+  // timeDifference += "##" + objectATime+ "is EQUALS to " + objectBTime;
   return 0;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////END OF CONSTANTS/////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////END OF CONSTANTS/////////////////////////////////////////////////
 
 
-//////Modules
+// ////Modules
 module.exports.mongodb = mongodb;
 module.exports.mapReduceTag = mapReduceTag;
 module.exports.xmlQueryResults = xmlQueryResults;
 module.exports.xmlQueryCatalog = xmlQueryCatalog;
 
 module.exports.mongoLogCollection = mongoLogCollection;
+module.exports.queryCollectionPrefix = queryCollectionPrefix;
 module.exports.userProfileCollection = userProfileCollection;
 module.exports.mongoQueryDB = mongoQueryDB;
 module.exports.connectAndValidateNodeJs = connectAndValidateNodeJs;

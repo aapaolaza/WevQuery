@@ -5,6 +5,9 @@ logs
 # Pattern mining results
 patternMining/patternFiles
 
+# temp folder
+temp
+
 *.log
 npm-debug.log*
 
