@@ -82,9 +82,9 @@ function createqueryCatalogConnectionFunctions() {
   /**
    * Request the preparation of a pattern Object
    */
-  queryCatalogConnectionObject.requestPreparePatternDataset = function (resultTitleList, urlList) {
-    console.log(`requesting dataset preparation for the following inputs: ${resultTitleList}`);
-    socket.emit('serverRequestPreparePatternDataset', { resultTitleList, urlList });
+  queryCatalogConnectionObject.requestPreparePatternDataset = function (patternOptions) {
+    console.log(`requesting dataset preparation for the following inputs: ${patternOptions.resultTitleList}`);
+    socket.emit('serverRequestPreparePatternDataset', patternOptions);
   };
 
   queryCatalogConnectionObject.requestTemplateEventInfo = function () {

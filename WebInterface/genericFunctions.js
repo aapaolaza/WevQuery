@@ -77,17 +77,22 @@ function createGenericFunctions() {
      * Set of tabs appearing to the right. I will use them for notifications and messages.
      * For example, reminders for taking part in WevQuery's evaluation will appear here.
      */
-    var $navTabListRight = $('<ul>', { class: 'nav navbar-nav navbar-right' });
+    const $navTabListRight = $('<ul>', { class: 'nav navbar-nav navbar-right' });
     $navigationTabBar.append($navTabListRight);
 
-    //List of tabs for the right
+    // At the moment we don't need the feedback options
+    /** They will be added back in the final version 
+    // List of tabs for the right
     var $queryCreationReminder = $('<li>');
-    $queryCreationReminder.append($('<a>', { href: './queryCreation.html' }).text('Creating a new Query? Click here'));
+    $queryCreationReminder.append($('<a>', { href: './queryCreation.html' })
+      .text('Creating a new Query? Click here'));
     $navTabListRight.append($queryCreationReminder);
 
-    //Additional buttons to set to the right
-    var $loginNavButton = $('<button>', { class: 'btn navbar-btn navbar-right' }).text('Login/Logout');
+    // Additional buttons to set to the right
+    var $loginNavButton = $('<button>', { class: 'btn navbar-btn navbar-right' })
+      .text('Login/Logout');
     $navTabListRight.append($loginNavButton);
+    */
 
     $('body').prepend($rootNavBar);
   };
@@ -97,21 +102,18 @@ function createGenericFunctions() {
    * where the appropriate results will be stored
    */
   genericFunctionsObject.fillResultTabs = function () {
-    var resultTabList = genericFunctions.getActiveResultList();
+    const resultTabList = genericFunctions.getActiveResultList();
 
-    /*TEST */
-    resultTabList = resultTabList.concat(['eics_case1_10s', 'Q1']);
-
-    resultTabList.forEach(function (resultName) {
-      var $genericResultTab = $('<li>', { class: 'analysis closeable ' + resultName });
-      //The order in which these elements are added is relevant!! the closeResults must go first
+    resultTabList.forEach((resultName) => {
+      const $genericResultTab = $('<li>', { class: 'analysis closeable ' + resultName });
+      // The order in which these elements are added is relevant!! the closeResults must go first
       $genericResultTab.append($('<span>', { class: 'glyphicon glyphicon-remove closeResults' })
-        .click(function (event) {
-          //When "closeResults" is clicked the tab is deleted from the list
+        .click(() => {
+          // When "closeResults" is clicked the tab is deleted from the list
           $('ul#tabPages li.' + resultName).remove();
           genericFunctions.removeActiveResult(resultName);
-        })
-      );
+        }));
+
       $genericResultTab.append($('<a>', { href: './analysis.html?' + resultName })
         .text(resultName));
 
@@ -127,16 +129,17 @@ function createGenericFunctions() {
     const patternTabList = genericFunctions.getPatternResultList();
 
     Object.keys(patternTabList).forEach((patternName) => {
-      const $genericPatternTab = $('<li>', { class: `pattern closeable ${patternName}` });
+      const $genericPatternTab = $('<li>', { class: `pattern closeable ${patternName}` })
+        .mousedown((event) => {
+          if (event.which === 2) genericFunctions.patternRemoveResult(patternName);
+        });
 
       // The order in which these elements are added is relevant!! the closeResults must go first
       $genericPatternTab.append($('<span>', { class: 'glyphicon glyphicon-remove closeResults' })
         .click(() => {
           // When "closeResults" is clicked the tab is deleted from the list
-          $(`ul#tabPages li.${patternName}`).remove();
-          genericFunctions.removePatternResult(patternName);
-        })
-      );
+          genericFunctions.patternRemoveResult(patternName);
+        }));
 
       $genericPatternTab.append($('<a>', { href: `./patternView.html?${patternName}` })
         .text(patternName));
@@ -144,6 +147,10 @@ function createGenericFunctions() {
       $('ul#tabPages').append($genericPatternTab);
     });
   };
+
+  function patternCloseTab(patternName) {
+    patternRemoveResult(patternName);
+  }
 
   /**
    * Once the tab header has been built, it updates the currently active tab
@@ -211,11 +218,11 @@ function createGenericFunctions() {
   * Helper function to retrieve the active results
   */
   genericFunctionsObject.getActiveResultList = function () {
-    var resultListCookie = genericFunctions.getCookie(genericFunctions.resultTabCookie);
-    if (resultListCookie == '')
-      return [];
+    const resultList = localStorage[genericFunctions.resultTabCookie];
+    if (resultList)
+      return (JSON.parse(resultList));
     else
-      return (JSON.parse(resultListCookie));
+      return [];
   };
 
   /**
@@ -227,8 +234,7 @@ function createGenericFunctions() {
     if (resultTabList.indexOf(resultTitle) == -1)
       resultTabList.push(resultTitle);
 
-    genericFunctions.setCookie(genericFunctions.resultTabCookie,
-      JSON.stringify(resultTabList));
+    localStorage[genericFunctions.resultTabCookie] = JSON.stringify(resultTabList);
   };
 
   /**
@@ -238,8 +244,7 @@ function createGenericFunctions() {
     var resultTabList = genericFunctions.getActiveResultList();
     resultTabList.splice(resultTitle, 1);
 
-    genericFunctions.setCookie(genericFunctions.resultTabCookie,
-      JSON.stringify(resultTabList));
+    localStorage[genericFunctions.resultTabCookie] = JSON.stringify(resultTabList);
   };
 
 
@@ -247,11 +252,11 @@ function createGenericFunctions() {
   * Helper function to retrieve the active results
   */
   genericFunctionsObject.getPatternResultList = function () {
-    let patternresultListCookie = genericFunctions.getCookie(genericFunctions.patternTabCookie);
-    if (patternresultListCookie == '')
-      return {};
-    else
+    let patternresultListCookie = localStorage[genericFunctions.patternTabCookie];
+    if (patternresultListCookie)
       return (JSON.parse(patternresultListCookie));
+    else
+      return {};
   };
 
   /**
@@ -261,51 +266,23 @@ function createGenericFunctions() {
   genericFunctionsObject.addPatternResult = function (patternData) {
     console.log(`addPatternResult() adding ${patternData.title} to the tab list`);
     const patternTabList = genericFunctions.getPatternResultList();
+    console.log(patternData);
 
     if (Object.keys(patternTabList).indexOf(patternData.title) === -1) {
       patternTabList[patternData.title] = patternData.results;
     }
 
-    genericFunctions.setCookie(genericFunctions.patternTabCookie,
-      JSON.stringify(patternTabList));
+    localStorage[genericFunctions.patternTabCookie] = JSON.stringify(patternTabList);
   };
 
-  genericFunctionsObject.removePatternResult = function (patternTitle) {
+  genericFunctionsObject.patternRemoveResult = function (patternTitle) {
+
+    $(`ul#tabPages li.${patternTitle}`).remove();
+
     let patternTabList = genericFunctions.getPatternResultList();
     delete patternTabList[patternTitle];
 
-    genericFunctions.setCookie(genericFunctions.patternTabCookie,
-      JSON.stringify(patternTabList));
-  };
-
-  /**
-   * Cookie setting helper
-   */
-  genericFunctionsObject.setCookie = function (cname, cvalue, exdays) {
-    var d = new Date();
-    d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
-    var expires = 'expires=' + d.toUTCString();
-    document.cookie = cname + '=' + cvalue + ';' + expires + ';path=/';
-  };
-
-
-  /**
-   * Cookie getting helper
-   */
-  genericFunctionsObject.getCookie = function (cname) {
-    var name = cname + '=';
-    var decodedCookie = decodeURIComponent(document.cookie);
-    var ca = decodedCookie.split(';');
-    for (var i = 0; i < ca.length; i++) {
-      var c = ca[i];
-      while (c.charAt(0) == ' ') {
-        c = c.substring(1);
-      }
-      if (c.indexOf(name) == 0) {
-        return c.substring(name.length, c.length);
-      }
-    }
-    return '';
+    localStorage[genericFunctions.patternTabCookie] = JSON.stringify(patternTabList);
   };
 
   /**

@@ -7,6 +7,10 @@ const queryCatalogLeftMenu = createQueryCatalogLeftMenuFunctions();
 
 function createQueryCatalogLeftMenuFunctions() {
 
+  const patternDefaultMinLength = 2;
+  const patternDefaultMinSupport = 2;
+  const patternDefaultMinConf = 2;
+
   const queryCatalogLeftMenuObject = {};
 
   queryCatalogLeftMenuObject.leftMenuInitialise = function () {
@@ -458,7 +462,7 @@ function createQueryCatalogLeftMenuFunctions() {
    * Edit Catalog item. Stores the selected queryData in a cookie, and opens the query creation window
    */
   queryCatalogLeftMenuObject.editQueryCatalog = function (queryData) {
-    genericFunctions.setCookie("queryXMLData", queryData, 1);
+    localStorage["queryXMLData"] = queryData;
 
     window.location.replace("./queryCreation.html");
   }
@@ -504,7 +508,20 @@ function createQueryCatalogLeftMenuFunctions() {
     });
 
     //When an algorithm type is selected, update the corresponding options
-    $("input[name='algoType']").on("change", queryCatalogLeftMenu.fillPatternAlgorithmOptions);
+    $("input[name='algoType']").on("change", showPatternAlgorithmOptions);
+
+    // Set the default values for all parameters
+    $("#patternAlgoOptions #patternMinLengthOptionInput input").val(patternDefaultMinLength);
+    $("#patternAlgoOptions #patternMinLengthOptionInput span.description")
+      .text(`Minimum length threshold (def:${patternDefaultMinLength})`);
+
+    $("#patternAlgoOptions #patternMinSupportOptionInput input").val(patternDefaultMinSupport);
+    $("#patternAlgoOptions #patternMinSupportOptionInput span.description")
+      .text(`Minimum support threshold (def:${patternDefaultMinSupport})`);
+
+    $("#patternAlgoOptions #patternMinConfidenceOptionInput input").val(patternDefaultMinConf);
+    $("#patternAlgoOptions #patternMinConfidenceOptionInput span.description")
+      .text(`Minimum confidence threshold (def:${patternDefaultMinConf})`);
 
     //Functions for buttons at the bottom
 
@@ -682,24 +699,25 @@ function createQueryCatalogLeftMenuFunctions() {
    * Defaults will be loaded, so the user do not need to change them.
    * A default algorithm will also be selected
    */
-  queryCatalogLeftMenuObject.fillPatternAlgorithmOptions = function () {
+  function showPatternAlgorithmOptions() {
     //First hide all the options, we will disclose them if necessary
     $("#patternAlgoOptions .input-group").hide();
 
     //get the corresponding algorithm type
     switch ($("input[name='algoType']:checked").val()) {
       case "freqItemSet":
+        $("#patternAlgoOptions #patternMinLengthOptionInput").show();
         $("#patternAlgoOptions #patternMinSupportOptionInput").show();
 
         break;
       case "assocRule":
-        console.log("Association Rule Mining");
+        $("#patternAlgoOptions #patternMinLengthOptionInput").show();
         $("#patternAlgoOptions #patternMinSupportOptionInput").show();
         $("#patternAlgoOptions #patternMinConfidenceOptionInput").show();
 
         break;
       case "seqPattern":
-        console.log("Sequential Pattern Mining");
+        $("#patternAlgoOptions #patternMinLengthOptionInput").show();
         $("#patternAlgoOptions #patternMinSupportOptionInput").show();
 
         break;
@@ -774,10 +792,15 @@ function createQueryCatalogLeftMenuFunctions() {
       resultTitleList.push($(item).text());
     });
 
-    if (resultTitleList.length !== 0 && urlList.length !== 0)
-      queryCatalogConnection.requestPreparePatternDataset(resultTitleList, urlList);
+    const minLength = $("#patternAlgoOptions #patternMinLengthOptionInput input").val();
+    const minSupport = $("#patternAlgoOptions #patternMinSupportOptionInput input").val();
+    const minConf = $("#patternAlgoOptions #patternMinConfidenceOptionInput input").val();
+
+    if (resultTitleList.length !== 0 && urlList &&
+      minLength !== "" && minSupport !== "" && minConf !== "")
+      queryCatalogConnection.requestPreparePatternDataset({resultTitleList, urlList, minLength, minSupport, minConf});
     else
-      notifyUser("No inputs or URLs were selected for pattern mining");
+      notifyUser("Inputs, URLs or additional options are missing");
   }
 
   return queryCatalogLeftMenuObject;

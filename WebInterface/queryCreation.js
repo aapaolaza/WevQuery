@@ -1,4 +1,4 @@
-var xmlSchemaPath = '../schema.xsd'
+let xmlSchemaPath = '../schema.xsd';
 
 /**
  * Called when the page is loaded. Runs all the initialisation functions
@@ -8,12 +8,13 @@ function initialiseInterface() {
 
   genericFunctions.initTabHeader();
 
-  if (genericFunctions.getCookie("queryXMLData") !== "")
-    importXML(genericFunctions.getCookie("queryXMLData"));
+  if (localStorage['queryXMLData']) {
+    importXML(localStorage["queryXMLData"]);
+  }
 
-  $(window).unload(function () {
+  $(window).unload(() => {
     //Before moving away, store the state of the query into the cookie
-    genericFunctions.setCookie("queryXMLData", exportXML(), 1);
+    localStorage["queryXMLData"] = exportXML();
     window.location.replace("./analysis.html");
   });
 }
@@ -24,8 +25,8 @@ function initialiseInterface() {
  * and loads a series of event values.
  */
 function loadEventNames(multiOptionTarget) {
-  console.log("loading event names");
-  $.get(xmlSchemaPath, function (eventSeqTemplate) {
+  console.log('loading event names');
+  $.get(xmlSchemaPath, (eventSeqTemplate) => {
     console.log("xml schema loaded" + eventSeqTemplate);
     /*The usual jquery selectors work for xml, but I was having problems with xml schema.
     Instead, I will use Xpath: http://api.jquery.com/category/selectors/#XPath_Selectors*/
@@ -46,8 +47,8 @@ function loadEventNames(multiOptionTarget) {
  * and loads them into the given node.
  */
 function loadContextTypes(selectElement) {
-  console.log("loading event names");
-  $.get(xmlSchemaPath, function (eventSeqTemplate) {
+  console.log('loading event names');
+  $.get(xmlSchemaPath, (eventSeqTemplate) => {
     console.log("xml schema loaded");
     result = eventSeqTemplate.evaluate("/*[local-name()='schema']/*[@name='contextType']/*[local-name()='restriction']/*[local-name()='enumeration']/@value",
       eventSeqTemplate, null, 0, null);
@@ -67,8 +68,8 @@ function loadContextTypes(selectElement) {
  * IS NOT FINISHED!! We would still need to query the context of the page to retrieve all possible values for the various context types.
  */
 function loadContextValues(selectElement) {
-  console.log("loading event names");
-  $.get(xmlSchemaPath, function (eventSeqTemplate) {
+  console.log('loading event names');
+  $.get(xmlSchemaPath, (eventSeqTemplate) => {
     console.log("xml schema loaded");
     result = eventSeqTemplate.evaluate("/*[local-name()='schema']/*[@name='contextType']/*[local-name()='restriction']/*[local-name()='enumeration']/@value",
       eventSeqTemplate, null, 0, null);
@@ -83,40 +84,40 @@ function loadContextValues(selectElement) {
  * This function receives the *eventContextTable* element as a parameter
  */
 function addContext(eventContextTable) {
-  console.log("Adding new context option");
+  console.log('Adding new context option');
 
-  //1. get the values from the last row and reset the options, for possible new input
-  var contextType = $("#eventTemplateContextType").find(":selected").text();
-  var contextvalue = $("#eventTemplateContextValue").val();
+  // 1. get the values from the last row and reset the options, for possible new input
+  let contextType = $('#eventTemplateContextType').find(':selected').text();
+  let contextvalue = $('#eventTemplateContextValue').val();
 
-  //2. Check if input is correct, if not, break
-  if ($("#eventTemplateContextType").find(":disabled").text().indexOf(contextType) !== -1) {
-    $("#eventTemplateContextType").fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200);
+  // 2. Check if input is correct, if not, break
+  if ($('#eventTemplateContextType').find(':disabled').text().indexOf(contextType) !== -1) {
+    $('#eventTemplateContextType').fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200);
     return (false);
   }
-  if (contextvalue === "") {
-    $("#eventTemplateContextValue").placeholder = 'Content cannot be empty';
+  if (contextvalue === '') {
+    $('#eventTemplateContextValue').placeholder = 'Content cannot be empty';
     // Change background
-    $("#eventTemplateContextValue").css('background-color', '#FF6347');
+    $('#eventTemplateContextValue').css('background-color', '#FF6347');
     // Wait 1 seconds, then remove the css attribute
-    setTimeout(function () {
+    setTimeout(() => {
       $("#eventTemplateContextValue").css('background-color', '');
     }, 500);
     return (false);
   }
 
-  //3. reset options for reuse
-  $("#eventTemplateContextType")[0].selectedIndex = 0;
-  $("#eventTemplateContextValue").val('');
+  // 3. reset options for reuse
+  $('#eventTemplateContextType')[0].selectedIndex = 0;
+  $('#eventTemplateContextValue').val('');
 
   // 4. Add them as a new row before the last one.
-  $(eventContextTable).find('tr:last').prev().after("<tr> <td class='contextType'>" + contextType + "</td> <td class='contextValue'>" + contextvalue
-    + "</td> <td><span class='removeContext glyphicon glyphicon-minus' aria-hidden='true'></span></td> </tr>");
+  $(eventContextTable).find('tr:last').prev().after(`<tr> <td class='contextType'>${contextType}</td> <td class='contextValue'>${contextvalue
+    }</td> <td><span class='removeContext glyphicon glyphicon-minus' aria-hidden='true'></span></td> </tr>`);
 
-  //5. add the corresponding listener, so each row can be deleted:
-  $(".removeContext").click(function () {
-    console.log("removing context option");
-    this.closest("tr").remove();
+  // 5. add the corresponding listener, so each row can be deleted:
+  $('.removeContext').click(function () {
+    console.log('removing context option');
+    this.closest('tr').remove();
   });
 }
 
@@ -159,9 +160,9 @@ function addEventTemplate() {
     updateTips("The occurrence is required, and must be a number", $("#eventTemplateDialog"));
     $("input[name='occurrenceValue']#eventMultiSelector", "#eventTemplateForm").addClass("ui-state-error");
     return false;
-  } else {
-    $("input[name='occurrenceValue']#eventMultiSelector", "#eventTemplateForm").removeClass("ui-state-error");
   }
+  $("input[name='occurrenceValue']#eventMultiSelector", "#eventTemplateForm").removeClass("ui-state-error");
+
 
   //no need to check the context, as it can be empty
 
@@ -207,10 +208,10 @@ function addEventTemplate() {
  * The container is necessary to differentiate between the event and temporal creation dialogs
  */
 function updateTips(text, container) {
-  $(".validateTips", container)
+  $('.validateTips', container)
     .text(text)
-    .addClass("ui-state-highlight");
-  setTimeout(function () {
+    .addClass('ui-state-highlight');
+  setTimeout(() => {
     $(".validateTips", container).removeClass("ui-state-highlight", 1500);
   }, 500);
 }
@@ -220,26 +221,24 @@ function updateTips(text, container) {
  * Will set a unique ID for that event. Possibly some additional tasks as well.
  */
 function addEventToOrderedList(eventTemplateObject) {
-  //To determine the ID, get the full list of generated IDs
+  // To determine the ID, get the full list of generated IDs
   // and check the biggest one. I will use .match(/\d+/) to extract the number from the ID
-  //This is more reliable than keeping a constant, counting the number of issued IDs
-  var idNumberList = $(".eventTemplate", "#eventOrderArea").map(function () {
-    //there will always be one element without ID, the one being inserted
-    if ($(this)[0].hasAttribute("id"))
-      return $(this).attr("id").match(/\d+/);
+  // This is more reliable than keeping a constant, counting the number of issued IDs
+  let idNumberList = $('.eventTemplate', '#eventOrderArea').map(function () {
+    // there will always be one element without ID, the one being inserted
+    if ($(this)[0].hasAttribute('id')) { return $(this).attr("id").match(/\d+/); }
   });
 
-  //The max function cannot be directly applied to an array, the apply function transforms the array into a list of parameters
-  var newNumId = 1;
-  if (idNumberList.length != 0)
-    newNumId = Math.max.apply(Math, idNumberList) + 1;
+  // The max function cannot be directly applied to an array, the apply function transforms the array into a list of parameters
+  let newNumId = 1;
+  if (idNumberList.length != 0) { newNumId = Math.max.apply(Math, idNumberList) + 1; }
 
-  $(eventTemplateObject).attr("id", "event" + newNumId);
-  $(".eventTitle", eventTemplateObject).text("Event " + newNumId);
+  $(eventTemplateObject).attr('id', 'event' + newNumId);
+  $('.eventTitle', eventTemplateObject).text('Event ' + newNumId);
 
-  //remove the paletteArea class
-  $(eventTemplateObject).removeClass("eventTemplatePalette");
-  console.log("Setting new id to " + newNumId);
+  // remove the paletteArea class
+  $(eventTemplateObject).removeClass('eventTemplatePalette');
+  console.log('Setting new id to ' + newNumId);
 }
 
 /**
@@ -286,9 +285,9 @@ function addTemporalConstraint() {
     updateTips("Select the relation between the events", "#temporalCostraintDialog");
     $("input[name='unitRadio']", "#temporalCostraintDialog").addClass("ui-state-error");
     return false;
-  } else {
-    $("input[name='unitRadio']", "#temporalCostraintDialog").removeClass("ui-state-error");
   }
+  $("input[name='unitRadio']", "#temporalCostraintDialog").removeClass("ui-state-error");
+
 
   //Finally, create the div element for the temporal constraint, and append it to the temporal area
   var newTempConstObject = $("#newTempConstTemplate").clone();
@@ -317,73 +316,81 @@ function addTemporalConstraint() {
 
 function exportXML() {
 
-  xmlDoc = document.implementation.createDocument(null, "eql");
-  rootNode = xmlDoc.getElementsByTagName("eql")[0];
+  xmlDoc = document.implementation.createDocument(null, 'eql');
+  rootNode = xmlDoc.getElementsByTagName('eql')[0];
 
-  //Add xml properties, so it links it back to the xsd
-  //rootNode.setAttribute("xmlns","moving-project.eu/userlogqal");
-  //rootNode.setAttribute("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance");
-  //rootNode.setAttribute("xsi:schemaLocation","moving-project.eu/userlogqal eventseq.xsd");
+  // Add xml properties, so it links it back to the xsd
+  // rootNode.setAttribute("xmlns","moving-project.eu/userlogqal");
+  // rootNode.setAttribute("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance");
+  // rootNode.setAttribute("xsi:schemaLocation","moving-project.eu/userlogqal eventseq.xsd");
 
-  var newEventTemplateNode, newEventListNode, newTempConstListNode, newTempConstNode;
-  //all info to be retrieved from the event
-  var eventList, minOccurrence, maxOccurrence, contextListType, contextListValue, newContextNode;
-  //variables for the temp constraint
-  var eventRefNode;
-  //necessary variable to establish order
-  var previousNode = "null";
-  $(".eventTemplate", "#eventOrderArea").each(function () {
-    //parse each event's' data into the event node
-    newEventTemplateNode = xmlDoc.createElement("event");
-    newEventTemplateNode.setAttribute("id", $(this).attr("id"));
-    newEventTemplateNode.setAttribute("pre", previousNode);
-    previousNode = $(this).attr("id");
-    newEventTemplateNode.setAttribute("occurrences", $(".occurrenceValue", this).text());
+  let newEventTemplateNode,
+    newEventListNode,
+    newTempConstListNode,
+    newTempConstNode;
+  // all info to be retrieved from the event
+  let eventList,
+    minOccurrence,
+    maxOccurrence,
+    contextListType,
+    contextListValue,
+    newContextNode;
+  // variables for the temp constraint
+  let eventRefNode;
+  // necessary variable to establish order
+  let previousNode = 'null';
+  $('.eventTemplate', '#eventOrderArea').each(function () {
+    // parse each event's' data into the event node
+    newEventTemplateNode = xmlDoc.createElement('event');
+    newEventTemplateNode.setAttribute('id', $(this).attr('id'));
+    newEventTemplateNode.setAttribute('pre', previousNode);
+    previousNode = $(this).attr('id');
+    newEventTemplateNode.setAttribute('occurrences', $('.occurrenceValue', this).text());
 
-    newEventTemplateNode.setAttribute("matchCriteria", $(".eventMatchIndicator", this).attr("matchCriteria"));
+    newEventTemplateNode.setAttribute('matchCriteria', $('.eventMatchIndicator', this).attr('matchCriteria'));
 
-    //For each event in the event list, create a node
-    //Remember!!! there is a space after each comma
-    eventList = $(".eventList", this).text().split(", ");
+    // For each event in the event list, create a node
+    // Remember!!! there is a space after each comma
+    eventList = $('.eventList', this).text().split(', ');
 
     $(eventList).each(function () {
-      newEventListNode = xmlDoc.createElement("eventList");
+      newEventListNode = xmlDoc.createElement('eventList');
       newEventListNode.appendChild(xmlDoc.createTextNode(this));
       newEventTemplateNode.appendChild(newEventListNode);
     });
 
-    //For each context object create a node
-    contextListType = $(".contextType", this);
-    contextListValue = $(".contextValue", this);
+    // For each context object create a node
+    contextListType = $('.contextType', this);
+    contextListValue = $('.contextValue', this);
 
-    $(contextListType).each(function (index) {
+    $(contextListType).each((index) => {
       newContextNode = xmlDoc.createElement("context");
       newContextNode.setAttribute("type", $(contextListType[index]).text());
       newContextNode.setAttribute("value", $(contextListValue[index]).text());
       newEventTemplateNode.appendChild(newContextNode);
     });
 
-    //append it to the rootElement
+    // append it to the rootElement
     rootNode.appendChild(newEventTemplateNode);
   });
 
-  newTempConstListNode = xmlDoc.createElement("temporalconstraintList");
-  //For each temporal constraint
-  $(".tempConstraintObject", "#tempConstraintsArea").each(function () {
-    newTempConstNode = xmlDoc.createElement("temporalconstraint");
-    newTempConstNode.setAttribute("type", $(this).attr("type"));
-    newTempConstNode.setAttribute("value", $(this).attr("value"));
+  newTempConstListNode = xmlDoc.createElement('temporalconstraintList');
+  // For each temporal constraint
+  $('.tempConstraintObject', '#tempConstraintsArea').each(function () {
+    newTempConstNode = xmlDoc.createElement('temporalconstraint');
+    newTempConstNode.setAttribute('type', $(this).attr('type'));
+    newTempConstNode.setAttribute('value', $(this).attr('value'));
 
-    //the unit needs to be stored using the corresponding code
-    newTempConstNode.setAttribute("unit", $(this).attr("unit"));
+    // the unit needs to be stored using the corresponding code
+    newTempConstNode.setAttribute('unit', $(this).attr('unit'));
 
-    //There can only be 2 event references.
-    eventRefNode = xmlDoc.createElement("eventref");
-    eventRefNode.setAttribute("id", $(this).attr("start"));
+    // There can only be 2 event references.
+    eventRefNode = xmlDoc.createElement('eventref');
+    eventRefNode.setAttribute('id', $(this).attr('start'));
     newTempConstNode.appendChild(eventRefNode);
 
-    eventRefNode = xmlDoc.createElement("eventref");
-    eventRefNode.setAttribute("id", $(this).attr("end"));
+    eventRefNode = xmlDoc.createElement('eventref');
+    eventRefNode.setAttribute('id', $(this).attr('end'));
     newTempConstNode.appendChild(eventRefNode);
 
     newTempConstListNode.append(newTempConstNode);
@@ -391,8 +398,8 @@ function exportXML() {
   rootNode.appendChild(newTempConstListNode);
   console.log(xmlDoc);
 
-  //validate the xml against the schema
-  var xmlString = (new XMLSerializer()).serializeToString(xmlDoc);
+  // validate the xml against the schema
+  let xmlString = (new XMLSerializer()).serializeToString(xmlDoc);
   console.log(xmlString);
   return (xmlString);
 }
@@ -404,90 +411,88 @@ function exportXML() {
 function importXML(xmlString) {
 
   parser = new DOMParser();
-  xmlDoc = parser.parseFromString(xmlString, "text/xml");
+  xmlDoc = parser.parseFromString(xmlString, 'text/xml');
 
-  rootNode = xmlDoc.getElementsByTagName("eql")[0];
+  rootNode = xmlDoc.getElementsByTagName('eql')[0];
 
-  var eventPre = "null";
+  let eventPre = 'null';
 
-  //the events will be popped out in order
-  while ($(xmlDoc).find("event").length > 0) {
-    var xmlEventObject = $(xmlDoc).find("event[pre='" + eventPre + "']");
+  // the events will be popped out in order
+  while ($(xmlDoc).find('event').length > 0) {
+    let xmlEventObject = $(xmlDoc).find(`event[pre='${eventPre}']`);
 
-    var newEventObject = $("#newEventTemplate").clone();
-    newEventObject.removeAttr("id");
+    var newEventObject = $('#newEventTemplate').clone();
+    newEventObject.removeAttr('id');
 
-    var eventList = "";
-    xmlEventObject.find("eventList").each(function (index, obj) {
-      if (index == 0)
-        eventList += $(this).text();
-      else
-        eventList += ", " + $(this).text();
+    var eventList = '';
+    xmlEventObject.find('eventList').each(function (index, obj) {
+      if (index == 0) { eventList += $(this).text(); }
+      else { eventList += ", " + $(this).text(); }
     });
-    $(".eventList", newEventObject).text(eventList);
+    $('.eventList', newEventObject).text(eventList);
 
 
-    //Is the event matching or avoiding? We also check the "not exist" situation to comply with old XMLs
-    if (xmlEventObject.attr("matchCriteria") == "true"
-      || (xmlEventObject.attr("matchCriteria") == undefined)) {
-      $(".eventMatchIndicator", newEventObject).removeClass("glyphicon glyphicon-remove").addClass("glyphicon glyphicon-ok")
-      $(".eventMatchIndicator", newEventObject)[0].setAttribute("matchCriteria", true);
+    // Is the event matching or avoiding? We also check the "not exist" situation to comply with old XMLs
+    if (xmlEventObject.attr('matchCriteria') == 'true'
+      || (xmlEventObject.attr('matchCriteria') == undefined)) {
+      $('.eventMatchIndicator', newEventObject).removeClass('glyphicon glyphicon-remove').addClass('glyphicon glyphicon-ok');
+      $('.eventMatchIndicator', newEventObject)[0].setAttribute('matchCriteria', true);
     }
     else {
-      $(".eventMatchIndicator", newEventObject).removeClass("glyphicon glyphicon-ok").addClass("glyphicon glyphicon-remove")
-      $(".eventMatchIndicator", newEventObject)[0].setAttribute("matchCriteria", false);
+      $('.eventMatchIndicator', newEventObject).removeClass('glyphicon glyphicon-ok').addClass('glyphicon glyphicon-remove');
+      $('.eventMatchIndicator', newEventObject)[0].setAttribute('matchCriteria', false);
     }
 
-    $(".occurrenceValue", newEventObject).text(xmlEventObject.attr("occurrences"));
+    $('.occurrenceValue', newEventObject).text(xmlEventObject.attr('occurrences'));
 
     var contextList = [];
 
-    xmlEventObject.find("context").each(function (index, obj) {
-      var tempContextObject = {};
-      tempContextObject.type = $(this).attr("type");
-      tempContextObject.value = $(this).attr("value");
+    xmlEventObject.find('context').each(function (index, obj) {
+      let tempContextObject = {};
+      tempContextObject.type = $(this).attr('type');
+      tempContextObject.value = $(this).attr('value');
       contextList.push(tempContextObject);
     });
     if (contextList.length > 0) {
-      $(".contextHeader", newEventObject).text("Context");
-      $(".contextTable", newEventObject).append("<tr> <th>name</th> <th>value</th> </tr>");
-      contextList.forEach(function (contextItem, index) {
+      $('.contextHeader', newEventObject).text('Context');
+      $('.contextTable', newEventObject).append('<tr> <th>name</th> <th>value</th> </tr>');
+      contextList.forEach((contextItem, index) => {
         $(".contextTable tr:last", newEventObject).after(
           "<tr> <td class='contextType'>" + contextItem.type + "</td> <td class='contextValue'>" + contextItem.value
           + "</td> </tr>");
       });
     }
 
-    $("#eventPaletteArea").append(newEventObject);
+    $('#eventPaletteArea').append(newEventObject);
     newEventObject.show();
 
-    //At this point some modifications need to be done, to make the event fit the ordered area
-    var newOrderedEventObject = newEventObject.clone();
-    newOrderedEventObject.attr("id", xmlEventObject.attr("id"));
-    $(".eventTitle", newOrderedEventObject).text(xmlEventObject.attr("id"));
-    newOrderedEventObject.removeClass("eventTemplatePalette");
-    $("#eventOrderArea").append(newOrderedEventObject);
+    // At this point some modifications need to be done, to make the event fit the ordered area
+    let newOrderedEventObject = newEventObject.clone();
+    newOrderedEventObject.attr('id', xmlEventObject.attr('id'));
+    $('.eventTitle', newOrderedEventObject).text(xmlEventObject.attr('id'));
+    newOrderedEventObject.removeClass('eventTemplatePalette');
+    $('#eventOrderArea').append(newOrderedEventObject);
     newOrderedEventObject.show();
 
-    //next event to be popped is the one following current ID
-    eventPre = xmlEventObject.attr("id");
-    $(xmlDoc).find("event[id='" + eventPre + "']").remove();
+    // next event to be popped is the one following current ID
+    eventPre = xmlEventObject.attr('id');
+    $(xmlDoc).find(`event[id='${eventPre}']`).remove();
 
   }
 
 
-  $(xmlDoc).find("temporalconstraint").each(function () {
-    var newTempConstObject = $("#newTempConstTemplate").clone();
-    newTempConstObject.removeAttr("id");
-    newTempConstObject.attr("start", $(this).find("eventref").eq(0).attr("id"));
-    newTempConstObject.attr("end", $(this).find("eventref").eq(1).attr("id"));
-    newTempConstObject.attr("type", $(this).attr("type"));
-    newTempConstObject.attr("value", $(this).attr("value"));
-    newTempConstObject.attr("unit", $(this).attr("unit"));
-    //we make it resizable
+  $(xmlDoc).find('temporalconstraint').each(function () {
+    let newTempConstObject = $('#newTempConstTemplate').clone();
+    newTempConstObject.removeAttr('id');
+    newTempConstObject.attr('start', $(this).find('eventref').eq(0).attr('id'));
+    newTempConstObject.attr('end', $(this).find('eventref').eq(1).attr('id'));
+    newTempConstObject.attr('type', $(this).attr('type'));
+    newTempConstObject.attr('value', $(this).attr('value'));
+    newTempConstObject.attr('unit', $(this).attr('unit'));
+    // we make it resizable
     newTempConstObject.resizable(resizableTemplate);
 
-    $("#tempConstraintsArea").append(newTempConstObject);
+    $('#tempConstraintsArea').append(newTempConstObject);
     newTempConstObject.show();
   });
 
@@ -501,8 +506,8 @@ function importXML(xmlString) {
  * 
  */
 function saveQuery() {
-  requestSaveXmlQuery($("#queryTitle", "#saveQueryDialog").val(),
-    $("#queryDescription", "#saveQueryDialog").val(),
+  requestSaveXmlQuery($('#queryTitle', '#saveQueryDialog').val(),
+    $('#queryDescription', '#saveQueryDialog').val(),
     exportXML());
 }
 
@@ -512,14 +517,13 @@ function saveQuery() {
 
 function showSaveQueryResult(message) {
   if (message) {
-    if ($("#saveQueryDialog").is(':visible')) {
-      updateTips(message, $("#saveQueryDialog"));
+    if ($('#saveQueryDialog').is(':visible')) {
+      updateTips(message, $('#saveQueryDialog'));
     }
-    else
-      genericFunctions.showErrorMessage("Save Query", message);
+    else { genericFunctions.showErrorMessage("Save Query", message); }
   }
   else {
-    $("#saveQueryDialog").dialog("close");
-    notifyUser("Query has been saved", false);
+    $('#saveQueryDialog').dialog('close');
+    notifyUser('Query has been saved', false);
   }
 }
