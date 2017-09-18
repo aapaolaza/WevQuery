@@ -16,7 +16,7 @@ function miningResultsReady(title, filename) {
   fs.readFile(filename, 'utf8', (err, results) => {
     if (err) console.log(`miningResultsReady() problem reading file: ${err}`);
 
-    socketConnection.emit('clientPatternResultsReady', { title, results: results });
+    socketConnection.emit('clientPatternResultsReady', { title, results});
   });
 }
 
@@ -31,7 +31,7 @@ function initialiseSockets(generalMongoDAO, generalSocketGeneric,
 
   socketInstance.on('serverRequestPreparePatternDataset', (data) => {
     console.log(`serverRequestPreparePatternDataset, requesting pattern
-      dataset for the following input ${data.resultTitleList}`);
+      dataset for the following input ${data.resultTitleList} with the following algorithms: ${data.algoTypeList}`);
     patternMiningInterface.createPatternDataset(data,
       (err, patternDataset) => {
         console.log('send clientPreparePatternDatasetProcessed');
@@ -40,7 +40,7 @@ function initialiseSockets(generalMongoDAO, generalSocketGeneric,
           resultTitleList: data.resultTitleList,
           patternDataset,
         });
-      }, miningResultsReady, miningResultsReady);
+      }, miningResultsReady);
   });
 }
 

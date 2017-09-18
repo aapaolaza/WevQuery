@@ -128,11 +128,8 @@ function createGenericFunctions() {
   genericFunctionsObject.fillPatternTabs = function () {
     const patternTabList = genericFunctions.getPatternResultList();
 
-    Object.keys(patternTabList).forEach((patternName) => {
+    patternTabList.forEach((patternName) => {
       const $genericPatternTab = $('<li>', { class: `pattern closeable ${patternName}` })
-        .mousedown((event) => {
-          if (event.which === 2) genericFunctions.patternRemoveResult(patternName);
-        });
 
       // The order in which these elements are added is relevant!! the closeResults must go first
       $genericPatternTab.append($('<span>', { class: 'glyphicon glyphicon-remove closeResults' })
@@ -142,7 +139,10 @@ function createGenericFunctions() {
         }));
 
       $genericPatternTab.append($('<a>', { href: `./patternView.html?${patternName}` })
-        .text(patternName));
+        .text(patternName))
+        .mousedown((event) => {
+          if (event.which === 2) genericFunctions.patternRemoveResult(patternName);
+        });
 
       $('ul#tabPages').append($genericPatternTab);
     });
@@ -231,7 +231,7 @@ function createGenericFunctions() {
   genericFunctionsObject.addActiveResult = function (resultTitle) {
     var resultTabList = genericFunctions.getActiveResultList();
 
-    if (resultTabList.indexOf(resultTitle) == -1)
+    if (resultTabList.indexOf(resultTitle) === -1)
       resultTabList.push(resultTitle);
 
     localStorage[genericFunctions.resultTabCookie] = JSON.stringify(resultTabList);
@@ -249,14 +249,22 @@ function createGenericFunctions() {
 
 
   /**
-  * Helper function to retrieve the active results
+  * Helper function to retrieve the active pattern results
   */
   genericFunctionsObject.getPatternResultList = function () {
     let patternresultListCookie = localStorage[genericFunctions.patternTabCookie];
     if (patternresultListCookie)
       return (JSON.parse(patternresultListCookie));
     else
-      return {};
+      return [];
+  };
+
+
+  /**
+  * Helper function to retrieve data for a specific pattern
+  */
+  genericFunctionsObject.getPatternData = function (patternTitle) {
+    return (localStorage[patternTitle]);
   };
 
   /**
@@ -268,8 +276,9 @@ function createGenericFunctions() {
     const patternTabList = genericFunctions.getPatternResultList();
     console.log(patternData);
 
-    if (Object.keys(patternTabList).indexOf(patternData.title) === -1) {
-      patternTabList[patternData.title] = patternData.results;
+    if (patternTabList.indexOf(patternData.title) === -1) {
+      patternTabList.push(patternData.title);
+      localStorage[patternData.title] = patternData.results;
     }
 
     localStorage[genericFunctions.patternTabCookie] = JSON.stringify(patternTabList);
@@ -280,9 +289,10 @@ function createGenericFunctions() {
     $(`ul#tabPages li.${patternTitle}`).remove();
 
     let patternTabList = genericFunctions.getPatternResultList();
-    delete patternTabList[patternTitle];
+    patternTabList.splice(patternTabList.indexOf(patternTitle), 1);
 
     localStorage[genericFunctions.patternTabCookie] = JSON.stringify(patternTabList);
+    localStorage.removeItem(patternTitle);
   };
 
   /**

@@ -163,12 +163,12 @@ function createQueryCatalogLeftMenuFunctions() {
 
     $("#editCatalogQuery", "#queryCatalogOptions").click(function () {
       // Add code to load the results to the analysis panel
-      editQueryCatalog($("tr.active", "#queryCatalogList")
+      queryCatalogLeftMenu.editQueryCatalog($("tr.active", "#queryCatalogList")
         .attr("queryData"));
     });
 
     $("#deleteCatalogQuery", "#queryCatalogOptions").click(function () {
-      deleteQueryCatalog(
+      queryCatalogLeftMenu.deleteQueryCatalog(
         $("tr.active", "#queryCatalogList").attr("queryTitle"));
     });
 
@@ -700,31 +700,37 @@ function createQueryCatalogLeftMenuFunctions() {
    * A default algorithm will also be selected
    */
   function showPatternAlgorithmOptions() {
-    //First hide all the options, we will disclose them if necessary
+    // First hide all the options, we will disclose them if necessary
     $("#patternAlgoOptions .input-group").hide();
 
-    //get the corresponding algorithm type
-    switch ($("input[name='algoType']:checked").val()) {
-      case "freqItemSet":
-        $("#patternAlgoOptions #patternMinLengthOptionInput").show();
-        $("#patternAlgoOptions #patternMinSupportOptionInput").show();
+    // Hide the container as well if all options are unchecked
+    if (!$("input[name='algoType']:checked").length)
+      $("#patternAlgoOptions").slideUp();
 
-        break;
-      case "assocRule":
-        $("#patternAlgoOptions #patternMinLengthOptionInput").show();
-        $("#patternAlgoOptions #patternMinSupportOptionInput").show();
-        $("#patternAlgoOptions #patternMinConfidenceOptionInput").show();
+    // process all selected algorithm types
+    $("input[name='algoType']:checked").each((index, inputItem) => {
+      switch ($(inputItem).val()) {
+        case "freqItemSet":
+          $("#patternAlgoOptions #patternMinLengthOptionInput").show();
+          $("#patternAlgoOptions #patternMinSupportOptionInput").show();
 
-        break;
-      case "seqPattern":
-        $("#patternAlgoOptions #patternMinLengthOptionInput").show();
-        $("#patternAlgoOptions #patternMinSupportOptionInput").show();
+          break;
+        case "assocRule":
+          $("#patternAlgoOptions #patternMinLengthOptionInput").show();
+          $("#patternAlgoOptions #patternMinSupportOptionInput").show();
+          $("#patternAlgoOptions #patternMinConfidenceOptionInput").show();
 
-        break;
-      default:
-        console.log("Unknown option selected, probably none?")
-        break;
-    }
+          break;
+        case "seqPattern":
+          $("#patternAlgoOptions #patternMinLengthOptionInput").show();
+          $("#patternAlgoOptions #patternMinSupportOptionInput").show();
+
+          break;
+        default:
+          console.log("Unknown option selected, probably none?")
+          break;
+      }
+    });
     //if it's the first selection, disclose the element
     if (!$("#patternAlgoOptions").is(':visible'))
       $("#patternAlgoOptions").slideDown();
@@ -755,22 +761,18 @@ function createQueryCatalogLeftMenuFunctions() {
   function patternRunAlgorithm() {
 
     let urlList = $("#urlMultiSelector").val();
-
-
-    let resultTitleList = [];
-
     // Get all the template events.
 
     let eventList = [];
-    $('#patternTemplateEvents label.active').each(
+    $('#patternTemplateEvents label.active input').each(
       (index, item) => {
-        eventList.push($(item).text());
+        eventList.push($(item).val());
       });
 
     let nodeNameList = [];
-    $('#patternTemplateNodeTypes label.active').each(
+    $('#patternTemplateNodeTypes label.active input').each(
       (index, item) => {
-        nodeNameList.push($(item).text());
+        nodeNameList.push($(item).val());
       });
 
     $('#patternTemplateNodeIds li').each(
@@ -781,6 +783,7 @@ function createQueryCatalogLeftMenuFunctions() {
     // generate the result names combining the name and event
     // If there are no events selected, no template event will be added
     // nodeType_event && nodeId_event
+    let resultTitleList = [];    
     nodeNameList.forEach((idItem) => {
       eventList.forEach((eventItem) => {
         resultTitleList.push(`${eventItem}_${idItem}`)
@@ -792,13 +795,20 @@ function createQueryCatalogLeftMenuFunctions() {
       resultTitleList.push($(item).text());
     });
 
+    let algoTypeList = [];        
+    // Get all the algorithm types to run
+    $('#patternAlgoTypes label.active input').each(
+      (index, item) => {
+        algoTypeList.push($(item).val());
+      });
+
     const minLength = $("#patternAlgoOptions #patternMinLengthOptionInput input").val();
     const minSupport = $("#patternAlgoOptions #patternMinSupportOptionInput input").val();
     const minConf = $("#patternAlgoOptions #patternMinConfidenceOptionInput input").val();
 
     if (resultTitleList.length !== 0 && urlList &&
-      minLength !== "" && minSupport !== "" && minConf !== "")
-      queryCatalogConnection.requestPreparePatternDataset({resultTitleList, urlList, minLength, minSupport, minConf});
+      minLength !== "" && minSupport !== "" && minConf !== "" && algoTypeList.length!=0)
+      queryCatalogConnection.requestPreparePatternDataset({ resultTitleList, urlList, algoTypeList, minLength, minSupport, minConf });
     else
       notifyUser("Inputs, URLs or additional options are missing");
   }

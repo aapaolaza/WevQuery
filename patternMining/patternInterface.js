@@ -23,10 +23,20 @@ const folderName = 'patternMining';
 const resultsFolderName = 'patternFiles';
 const patternMiningJarFile = 'spmf.jar';
 
-// The support parameter is given as a %
+// The support and conf parameter is given as a %
 const defaultSupport = 2;
-
+const defaultConf = 2;
 const defaultMinLength = 2;
+
+// the separator to be used between sequences is just a space
+// Using it as a variable make it explicit, avoiding accidental deletions
+const seqSeparator = ' ';
+
+// names for the various algorithms
+// they correspond to the values employed for the interface in queryCatalog
+const freqItemSet = 'freqItemSet';
+const seqPattern = 'seqPattern';
+const assocRule = 'assocRule';
 
 
 let mongoDAO;
@@ -107,6 +117,8 @@ function PatternDatasetObject(name, resultList) {
     itemSet: `./${folderName}/${resultsFolderName}/${this.name}Itemset.txt`,
     itemSetOutput: `./${folderName}/${resultsFolderName}/${this.name}ItemsetApriori.txt`,
     itemSetOutputTranslated: `./${folderName}/${resultsFolderName}/${this.name}ItemsetAprioriTranslated.txt`,
+    itemSetRuleOutput: `./${folderName}/${resultsFolderName}/${this.name}ItemsetFPGrowth.txt`,
+    itemSetRuleOutputTranslated: `./${folderName}/${resultsFolderName}/${this.name}ItemsetFPGrowthTranslated.txt`,
     seqSet: `./${folderName}/${resultsFolderName}/${this.name}Seq.txt`,
     seqSetOutput: `./${folderName}/${resultsFolderName}/${this.name}SeqPrefixSpan.txt`,
     seqSetOutputTranslated: `./${folderName}/${resultsFolderName}/${this.name}SeqPrefixSpanTranslated.txt`,
@@ -209,9 +221,12 @@ PatternDatasetObject.prototype.printCounts = function () {
  * Stores relevant information about the provided patternDataset
  * Information such as the eventSet index, and the full list of
  * sequences can be found here
+ * Optionally, an extension can be added to the filename
  */
-PatternDatasetObject.prototype.storePatternDatasetInfo = function () {
-  const filename = `./${folderName}/${resultsFolderName}/${this.name}info.json`;
+PatternDatasetObject.prototype.storePatternDatasetInfo = function (optionalParam) {
+  let filename = `./${folderName}/${resultsFolderName}/${this.name}info`;
+  if (optionalParam) filename += optionalParam;
+  filename += '.json';
   fs.writeFile(filename, JSON.stringify(this, null, 2), 'utf-8');
 };
 
@@ -232,7 +247,7 @@ function sortAndPrintOutput(patternObjectList, outputFile, mainCallback) {
   console.log(`sortAndPrintOutput for output ${outputFile}`);
   const dataOutput = fs.createWriteStream(outputFile, { flags: 'w' });
   async.eachSeries(patternObjectList, (patternObject, asyncCallback) => {
-    dataOutput.write(`${patternObject.stringValue}\n`, asyncCallback);
+    dataOutput.write(`${patternObject.stringValue} \n`, asyncCallback);
   }, (asyncErr) => {
     dataOutput.end();
     mainCallback(asyncErr);
@@ -260,7 +275,7 @@ PatternDatasetObject.prototype.prepareItemsetInput = function (mainCallback) {
       let textLine = '';
       this.patternArray[seqIndex].forEach((eventOcurr) => {
         // For each item, print it out and add a space
-        textLine += `${eventOcurr.eventKey} `;
+        textLine += `${eventOcurr.eventKey}${seqSeparator}`;
       });
       dataOutput.write(`${textLine}\n`, asyncCallback);
     } else {
@@ -302,7 +317,7 @@ PatternDatasetObject.prototype.translateItemsetOutput = function (minLength, cal
         supportValue = parseInt(seqItem, 10);
       } else if (seqItem === '#SUP:') {
         // List of elements finished, the support value comes next
-        stringValue += `:${seqItem}`;
+        stringValue += `:${seqItem}${seqSeparator}`;
         seqProcessed = true;
       } else if (!isNaN(seqItem)) {
         // the only remaining condition is being a number to be used as
@@ -342,27 +357,139 @@ PatternDatasetObject.prototype.itemPatApriori = function (minSupport, callback) 
     });
 };
 
-PatternDatasetObject.prototype.runItemPatternMining = function (minSupport, minLength, runCallback) {
-  const patternDataset = this;
-  async.waterfall([
-    (asyncCallback) => {
-      patternDataset.prepareItemsetInput(asyncCallback);
-    },
-    (asyncCallback) => {
-      let supportVal = defaultSupport;
-      if (!minSupport) supportVal = defaultSupport;
-      patternDataset.itemPatApriori(supportVal, asyncCallback);
-    },
-    (asyncCallback) => {
-      let lengthVal = defaultMinLength;
-      if (!minLength) lengthVal = minLength;
-      patternDataset.translateItemsetOutput(lengthVal, asyncCallback);
-    },
-  ], (err) => {
-    if (err) console.log(`The following error was triggered during runItemPatternMining(): ${err}`);
-    runCallback(`Itemset${patternDataset.name}`, patternDataset.filenames.itemSetOutputTranslated);
+PatternDatasetObject.prototype.runItemPatternMining =
+  function (minSupport, minLength, runCallback) {
+    const patternDataset = this;
+    async.waterfall([
+      (asyncCallback) => {
+        patternDataset.prepareItemsetInput(asyncCallback);
+      },
+      (asyncCallback) => {
+        let supportVal = defaultSupport;
+        if (!minSupport) supportVal = defaultSupport;
+        patternDataset.itemPatApriori(supportVal, asyncCallback);
+      },
+      (asyncCallback) => {
+        let lengthVal = defaultMinLength;
+        if (!minLength) lengthVal = minLength;
+        patternDataset.translateItemsetOutput(lengthVal, asyncCallback);
+      },
+    ], (err) => {
+      if (err) console.log(`The following error was triggered during runItemPatternMining(): ${err}`);
+      runCallback(`Itemset${patternDataset.name}`, patternDataset.filenames.itemSetOutputTranslated);
+    });
+  };
+
+
+/**
+* Runs the frequent sequential pattern mining algorithm
+* called PrefixSpan.
+* Takes inputFile as the input and stores the output of the algorithm in OutputFile
+* @param {String} inputFile 
+* @param {String} outputFile
+* @param {int} minimum support
+*/
+PatternDatasetObject.prototype.itemRuleFPGrowth = function (minSupport, minConf, callback) {
+  console.log(`itemRuleFPGrowth started at ${new Date().toUTCString()}`);
+  const algoName = 'FPGrowth_association_rules';
+  const extraParams = `${minSupport.toString()}% ${minConf.toString()}%`;
+  runSPMF(algoName, this.filenames.itemSet, this.filenames.itemSetRuleOutput, extraParams,
+    (err) => {
+      if (err) console.log(err);
+      console.log(`itemRuleFPGrowth finished at ${new Date().toUTCString()}`);
+      callback();
+    });
+};
+
+
+/**
+ * It translates the output from the itemset mining algorithms
+ * replacing event keys into event names
+ */
+PatternDatasetObject.prototype.translateItemRuleOutput = function (minLength, callback) {
+  const rl = readline.createInterface({ input: fs.createReadStream(this.filenames.itemSetRuleOutput) });
+
+  const patternOutList = [];
+  // For each line in the output, split it by spaces (default separation)
+  rl.on('line', (line) => {
+    // when all the numbers in the seq have been processed
+    // get the support value
+    let seqProcessed = false;
+    // Once the support value has been retrieved, print the rest as it comes
+    let stopInterpret = false;
+
+    let stringValue = '';
+    let supportValue;
+    let itemLength = 0;
+
+    line.split(' ').forEach((seqItem) => {
+      if (seqItem === '') {
+        // some outputs might contain 2 spaces, breaking the parse
+        // In that case, do nothing
+      } else if (seqItem === '==>') {
+        // rule arrow, print as it comes
+        stringValue += seqItem;
+      } else if (stopInterpret) {
+        // Special case for rules. There is a CONFIDENCE result
+        // after teh support. Once the support value has been stored,
+        // just print the rest of the output as it comes
+        stringValue += seqItem;
+      } else if (seqProcessed && !isNaN(seqItem)) {
+        // the seq was processed, retrieve the last number, refering to the support
+        stringValue += seqItem;
+        supportValue = parseInt(seqItem, 10);
+        // All processed, stop interpreting
+        stopInterpret = true;
+      } else if (seqItem === '#SUP:') {
+        // List of elements finished, the support value comes next
+        stringValue += `:${seqItem}${seqSeparator}`;
+        seqProcessed = true;
+      } else if (!isNaN(seqItem)) {
+        // the only remaining condition is being a number to be used as
+        // index for eventset, but still test for number for security
+        // use eventSent to retrieve the event's name
+        stringValue += `[${this.eventSet[parseInt(seqItem, 10)]}]`;
+        itemLength += 1;
+      }
+    });
+    // line finished, add to patternOutList ONLY if the seq length is long enough
+    if (itemLength >= minLength) patternOutList.push({ stringValue, supportValue });
+  });
+
+  // Triggered when input has been consumed
+  rl.on('close', () => {
+    sortAndPrintOutput(patternOutList, this.filenames.itemSetRuleOutputTranslated, callback);
   });
 };
+
+PatternDatasetObject.prototype.runItemRuleMining =
+  function (minSupport, minConf, minLength, runCallback) {
+    const patternDataset = this;
+    async.waterfall([
+      (asyncCallback) => {
+        patternDataset.prepareItemsetInput(asyncCallback);
+      },
+      (asyncCallback) => {
+        let supportVal = defaultSupport;
+        if (!minSupport) supportVal = defaultSupport;
+
+        let confVal = defaultConf;
+        if (!minConf) confVal = defaultConf;
+
+        patternDataset.itemRuleFPGrowth(supportVal, confVal, asyncCallback);
+      },
+      (asyncCallback) => {
+        let lengthVal = defaultMinLength;
+        if (!minLength) lengthVal = minLength;
+        patternDataset.translateItemRuleOutput(lengthVal, asyncCallback);
+      },
+    ], (err) => {
+      if (err) console.log(`The following error was triggered during runItemRuleMining(): ${err}`);
+      runCallback(`ItemRule${patternDataset.name}`, patternDataset.filenames.itemSetRuleOutputTranslated);
+    });
+  };
+
+
 
 /**
  * Given a PatternDataset object, it creates a textfile
@@ -433,7 +560,7 @@ PatternDatasetObject.prototype.translateSequenceOutput = function (minLength, ca
         supportValue = parseInt(seqItem, 10);
       } else if (seqItem === '#SUP:') {
         // List of elements finished, the support value comes next
-        stringValue += `:${seqItem}`;
+        stringValue += `:${seqItem}${seqSeparator}`;
         seqProcessed = true;
       } else if (seqItem === '-1') {
         // the item is an itemset separator
@@ -450,7 +577,7 @@ PatternDatasetObject.prototype.translateSequenceOutput = function (minLength, ca
         else stringValue += ',';
         firstItemInSet = false;
         // use eventSent to retrieve the event's name
-        stringValue += `${this.eventSet[parseInt(seqItem, 10)]}`;
+        stringValue += `${this.eventSet[parseInt(seqItem, 10)]}${seqSeparator}`;
       }
     });
     // line finished, add to patternOutList ONLY if the seq length is long enough
@@ -483,42 +610,43 @@ PatternDatasetObject.prototype.seqPatPrefixSpan = function (minSupport, callback
     });
 };
 
-PatternDatasetObject.prototype.runSequencePatternMining = function (minSupport, minLength, runCallback) {
-  const patternDataset = this;
-  async.waterfall([
-    (asyncCallback) => {
-      patternDataset.prepareSequenceInput(asyncCallback);
-    },
-    (asyncCallback) => {
-      let supportVal = defaultSupport;
-      if (!minSupport) supportVal = defaultSupport;
-      patternDataset.seqPatPrefixSpan(supportVal, asyncCallback);
-    },
-    (asyncCallback) => {
-      let lengthVal = defaultMinLength;
-      if (!minLength) lengthVal = minLength;
-      patternDataset.translateSequenceOutput(lengthVal, asyncCallback);
-    },
-  ], (err) => {
-    if (err) console.log(`The following error was triggered during runSequencePatternMining(): ${err}`);
-    runCallback(`Seq${patternDataset.name}`, patternDataset.filenames.seqSetOutputTranslated);
-  });
-};
+PatternDatasetObject.prototype.runSequencePatternMining =
+  function (minSupport, minLength, runCallback) {
+    const patternDataset = this;
+    async.waterfall([
+      (asyncCallback) => {
+        patternDataset.prepareSequenceInput(asyncCallback);
+      },
+      (asyncCallback) => {
+        let supportVal = defaultSupport;
+        if (!minSupport) supportVal = defaultSupport;
+        patternDataset.seqPatPrefixSpan(supportVal, asyncCallback);
+      },
+      (asyncCallback) => {
+        let lengthVal = defaultMinLength;
+        if (!minLength) lengthVal = minLength;
+        patternDataset.translateSequenceOutput(lengthVal, asyncCallback);
+      },
+    ], (err) => {
+      if (err) console.log(`The following error was triggered during runSequencePatternMining(): ${err}`);
+      runCallback(`Seq${patternDataset.name}`, patternDataset.filenames.seqSetOutputTranslated);
+    });
+  };
 
 /**
  * Given the resultList used as input, it removes all the colliding events.
  * The first inputs have priority.
  * Template events are always atomic, so they will not be computed
  */
-PatternDatasetObject.prototype.computeTemporalClashes = function () {
+PatternDatasetObject.prototype.computeTemporalClashes = function (mainCallback) {
   // For each result input
-  this.resultList.forEach((resultItem) => {
+  async.eachSeries(this.resultList, (resultItem, resultCallback) => {
     // Get the eventKey corresponding to the result
     const targetKey = this.eventSet.indexOf(resultItem);
 
     // For each sequence
     const seqIndexList = Object.keys(this.patternArray);
-    async.eachSeries(seqIndexList, (seqIndex, asyncCallback) => {
+    async.each(seqIndexList, (seqIndex, seqCallback) => {
       // create a pointer to the array to shorten the code
       const seqPointer = this.patternArray[seqIndex];
       // Check each element
@@ -529,7 +657,9 @@ PatternDatasetObject.prototype.computeTemporalClashes = function () {
           // This code will automatically remove the next index as long as its timestamp 
           // is smaller than the target's. No need to update the index, as after deletion
           // it will always point to the next existing item 
-          while (seqPointer[index + 1].timestampms < seqPointer[index].lastTimestampms) {
+          while ((index + 1) < seqPointer.length
+            && seqPointer[index + 1].timestampms < seqPointer[index].lastTimestampms) {
+            console.log(`computeTemporalClashes() ${seqIndex}: deleting ${seqPointer[index + 1].timestampms}`);
             seqPointer.splice([index + 1], 1);
           }
           /* Test code replicating behaviour with an example array
@@ -542,11 +672,16 @@ PatternDatasetObject.prototype.computeTemporalClashes = function () {
           */
         }
       }
-      asyncCallback();
+      seqCallback();
     }, (asyncErr) => {
-      if (asyncErr) console.log(`prepareItemsetInput() ERROR ${asyncErr}`);
-      else console.log(`Finished the prepareItemsetInput of ${this.name}`);
+      if (asyncErr) console.log(`computeTemporalClashes() ERROR ${asyncErr}`);
+      else console.log(`Finished the computeTemporalClashes of ${resultItem}`);
+      resultCallback(asyncErr);
     });
+  }, (err) => {
+    if (err) console.log(`computeTemporalClashes() ERROR ${err}`);
+    else console.log(`Finished the computeTemporalClashes of ${this.name}`);
+    mainCallback(err);
   });
 };
 
@@ -558,14 +693,16 @@ PatternDatasetObject.prototype.computeTemporalClashes = function () {
  * where UserEpisodePair is a hash of the _id object from the results in the database
  */
 function createPatternDataset(patternOptions,
-  callback, itemsetCallback, sequenceCallback) {
-  const patternDataset = new PatternDatasetObject(new Date().getTime(), patternOptions.resultTitleList);
+  callback, patternFinishedCallback) {
+  const patternDataset = new PatternDatasetObject(new Date().getTime(),
+    patternOptions.resultTitleList);
   // It might look like a callback hell, but I am just using nested async.each functions
   // only the lowest level callback will be called from within the algorithm.
   // The rest of callbacks will be called from within callback functions
 
   // Before starting to process all the patterns, I will initialise the eventSet
   // each event is named after the title of its collection
+  // This order is important!!! This is the priority queue for the resolution of temporal clashes
   patternOptions.resultTitleList.forEach((resultTitle) => {
     patternDataset.eventSet.push(resultTitle);
   });
@@ -613,12 +750,26 @@ function createPatternDataset(patternOptions,
     console.log(`There were ${patternDataset.patternArray.length} arrays`);
     callback(null, patternDataset);
     patternDataset.storePatternDatasetInfo();
-    patternDataset.runItemPatternMining(patternOptions.minSupport, patternOptions.minLength, itemsetCallback);
-    patternDataset.runSequencePatternMining(patternOptions.minSupport, patternOptions.minLength, sequenceCallback);
+
+    // temporal clashes might end up being a parameter
+    patternDataset.computeTemporalClashes(() => {
+      patternDataset.storePatternDatasetInfo('TempTrimmed');
+      // Run the algorithms inluded in the options parameter
+      if (patternOptions.algoTypeList.indexOf(freqItemSet) > -1) {
+        patternDataset.runItemPatternMining(patternOptions.minSupport,
+          patternOptions.minLength, patternFinishedCallback);
+      }
+      if (patternOptions.algoTypeList.indexOf(seqPattern) > -1) {
+        patternDataset.runSequencePatternMining(patternOptions.minSupport,
+          patternOptions.minLength, patternFinishedCallback);
+      }
+      if (patternOptions.algoTypeList.indexOf(assocRule) > -1) {
+        patternDataset.runItemRuleMining(patternOptions.minSupport, patternOptions.minConf,
+          patternOptions.minLength, patternFinishedCallback);
+      }
+    });
   });
 }
-
-
 
 module.exports.initialisePatternInterface = initialisePatternInterface;
 module.exports.createPatternDataset = createPatternDataset;

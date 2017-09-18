@@ -167,12 +167,18 @@
 
               <ul id="patternInputList" class="list-group">
               </ul>
+              <p><i> If there is any temporal clash between the selected inputs, <br>larger overlapping events will have priority.</i></p>
+
               <h3>Algorithm type</h3>
-              <form>
-                <input type="radio" name="algoType" value="freqItemSet"> Frequent Itemset mining<br>
-                <input type="radio" name="algoType" value="assocRule"> Association Rule Mining<br>
-                <input type="radio" name="algoType" value="seqPattern"> Sequential Pattern Mining
-              </form>
+              <div id="patternAlgoTypes" class="btn-group-vertical colors" data-toggle="buttons">
+                <label class="btn btn-primary">
+                    <input type="checkbox" name="algoType" value="freqItemSet" autocomplete="off">Frequent Itemset mining</label>
+                <label class="btn btn-primary">
+                    <input type="checkbox" name="algoType" value="assocRule" autocomplete="off">Association Rule Mining</label>
+                <label class="btn btn-primary">
+                    <input type="checkbox" name="algoType" value="seqPattern" autocomplete="off">Sequential Pattern Mining</label>
+              </div>
+
               <div id="patternAlgoOptions" style="display:none">
                 <h3>Additional options</h3>
                 <div id="patternMinLengthOptionInput" class="input-group">

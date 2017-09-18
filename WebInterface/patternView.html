@@ -36,10 +36,10 @@
   <!-- The event creation and interaction logic is stored in a different file -->
   <script src="./genericFunctions.js"></script>
 
-  
+
   <script src="./patternView.js"></script>
   <link href="./patternView.css" rel="stylesheet">
-  
+
 
   <!-- server.js code script start-->
   <!--socket.io import changed so it works in MOVING server, the following file was copied from  
@@ -54,15 +54,20 @@
   <script>
     $(function () {
       patternView.initialiseInterface();
+      $('#patternFilter').draggable();
     });
   </script>
 </head>
 
 <body>
   <div class="container parentContainer">
+
     <div class="row">
       <h2>Pattern view panel</h2>
-      <p id='patternResults'></p>
+      <div id='patternPanel'>
+        <div id="patternFilter" class="btn-group-vertical colors" data-toggle="buttons"></div>
+        <div id='patternResults'></div>
+      </div>
     </div>
   </div>
 </body>

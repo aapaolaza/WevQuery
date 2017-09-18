@@ -43,29 +43,6 @@
             </xs:sequence>
           </xs:complexType>
         </xs:element>
-        <xs:element name='candidateconstraintList' minOccurs='0' maxOccurs='1'>
-          <xs:complexType>
-            <xs:sequence>
-              <xs:element maxOccurs='unbounded' name='candidateconstraint'>
-                <xs:complexType>
-                  <xs:sequence>
-                    <xs:element minOccurs='2' maxOccurs='unbounded' name='operator'>
-                      <xs:complexType>
-                        <xs:attribute name='id' type='xs:string' use='required' />
-                        <xs:attribute name='pre' type='xs:string' use='required'/>
-                        <xs:attribute name='field' type='candidateconstraintField' use='required'/>
-                        <xs:attribute name='operation' type='candidateconstraintOperation' use='optional'/>
-                      </xs:complexType>
-                    </xs:element>
-                  </xs:sequence>
-                  <xs:attribute name='type' type='candidateconstraintType' use='required' />
-                  <xs:attribute name='condition' type='candidateconstraintCondition' use='required' />
-                  <xs:attribute name='value' type='xs:decimal' use='required' />
-                </xs:complexType>
-              </xs:element>
-            </xs:sequence>
-          </xs:complexType>
-        </xs:element>
       </xs:sequence>
     </xs:complexType>
   </xs:element>
@@ -114,31 +91,6 @@
     <xs:restriction base='xs:string'>
       <xs:enumeration value='sec'/>
       <xs:enumeration value='min'/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name='candidateconstraintType'>
-    <xs:restriction base='xs:string'>
-      <xs:enumeration value='add'/>
-      <xs:enumeration value='subtract'/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name='candidateconstraintCondition'>
-    <xs:restriction base='xs:string'>
-      <xs:enumeration value='gt'/>
-      <xs:enumeration value='sm'/>
-      <xs:enumeration value='gte'/>
-      <xs:enumeration value='sme'/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name='candidateconstraintField'>
-    <xs:restriction base='xs:string'>
-      <xs:enumeration value='positiveDelta'/>
-      <xs:enumeration value='negativeDelta'/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name='candidateconstraintOperation'>
-    <xs:restriction base='xs:string'>
-      <xs:enumeration value='abs'/>
     </xs:restriction>
   </xs:simpleType>
 </xs:schema>

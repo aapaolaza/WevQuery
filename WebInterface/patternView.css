@@ -1,3 +1,7 @@
 #patternResults{
   white-space: pre;
 }
+
+#patternFilter{
+  float:right;
+}

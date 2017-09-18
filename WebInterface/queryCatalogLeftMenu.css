@@ -132,6 +132,10 @@ table.tablesorter thead tr .headerSortDown:after{
   overflow: hidden;
   text-overflow: ellipsis;
 }
+#patternTemplateNodeIds{
+  max-height: 100px;
+  overflow-y: auto;
+}
 
 /*Prevents the tab from getting too big when form options are shown*/
 
