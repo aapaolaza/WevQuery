@@ -50,7 +50,7 @@ function createPatternViewFunctions() {
       patternFilterObj.append(
         $('<input>', {
           type: 'checkbox',
-          "checked":"checked",          
+          'checked': 'checked',
           name: 'patternFilter',
           value: filterItemObj,
           // autocomplete: "off"
@@ -58,6 +58,39 @@ function createPatternViewFunctions() {
 
       patternFilter.append(patternFilterObj);
     });
+
+    // initialise pattern shortcuts
+    // the button group needs to be enclosed in a row object so it can be horizontal
+    const patternShortcuts = $('<div>', { class: 'row' })
+      .append($('<div>', { class: 'btn-group colors' }));
+    patternShortcuts.append(
+      $('<button>', {
+        id: 'patternFilterClear',
+        type: 'button',
+        class: 'btn btn-secondary',
+        width: '50%',        
+      }).text('Clear all')
+        .click(() => {
+          $("input[name='patternFilter']").attr('checked', false);
+          $('#patternFilter label ').removeClass('active');
+          updatePatternSelection();
+        })
+    );
+    patternShortcuts.append(
+      $('<button>', {
+        id: 'patternFilterCheckAll',
+        type: 'button',
+        class: 'btn btn-secondary',
+        width: '50%',
+      }).text('Check all')
+        .click(() => {
+          $("input[name='patternFilter']").attr('checked', true);
+          $('#patternFilter label ').addClass('active');
+          updatePatternSelection();
+        })
+    );
+
+    patternFilter.prepend(patternShortcuts);
   }
 
   /**
