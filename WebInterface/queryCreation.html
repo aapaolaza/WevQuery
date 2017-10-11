@@ -220,7 +220,7 @@
         modal: true,//disables all other items in the page
         //Adds two buttons, to either add an Event Template or cancel
         buttons: {
-          "Create an temporal constraint": addTemporalConstraint,
+          "Create a temporal constraint": addTemporalConstraint,
           Cancel: function () {
             tempConstraintDialog.dialog("close");
             tempConstraintForm[0].reset();
@@ -610,8 +610,8 @@
         <div class="form-group">
           <label for="Events" class="col-sm-3 control-label">Events:</label>
           <div class="col-sm-9">
-            <button id="tempConstraintSelectEv1" class="eventSelectionButton btn btn-default" type="button">Event1</button>
-            <button id="tempConstraintSelectEv2" class="eventSelectionButton btn btn-default" type="button">Event2</button>
+            <button id="tempConstraintSelectEv1" class="eventSelectionButton btn btn-default" type="button">Select Event</button>
+            <button id="tempConstraintSelectEv2" class="eventSelectionButton btn btn-default" type="button">Select Event</button>
             <p class="hint">Click on an event to change the selection</p>
           </div>
         </div>

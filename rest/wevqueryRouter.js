@@ -10,7 +10,7 @@ var mongoDAO = require('../mongoDAO/mongoDAO.js')
 
 
 
-var router = express.Router()
+var router = express.Router();
 
 // middleware that is specific to this router
 router.use(function timeLog(req, res, next) {
@@ -111,7 +111,7 @@ router.route("/:queryname/:userid/")
     }
     else
       res.json({ "error": true, "message": "featureRouter /rightClick/:userid/ is missing variables" });
-  })
+  });
 
 /**
  * Given a response object and a query result collection name,

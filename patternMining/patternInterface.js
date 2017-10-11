@@ -279,7 +279,7 @@ PatternDatasetObject.prototype.prepareItemsetInput = function (mainCallback) {
       });
       dataOutput.write(`${textLine}\n`, asyncCallback);
     } else {
-      // callback so it doesn't get stuck
+      // callback so it doesn't get stuck if there is an empty item
       asyncCallback();
     }
   }, (asyncErr) => {
@@ -366,12 +366,14 @@ PatternDatasetObject.prototype.runItemPatternMining =
       },
       (asyncCallback) => {
         let supportVal = defaultSupport;
-        if (!minSupport) supportVal = defaultSupport;
+        if (minSupport && parseInt(minSupport, 10)) supportVal = parseInt(minSupport, 10);
+
         patternDataset.itemPatApriori(supportVal, asyncCallback);
       },
       (asyncCallback) => {
         let lengthVal = defaultMinLength;
-        if (!minLength) lengthVal = minLength;
+        if (minLength && parseInt(minLength, 10)) lengthVal = parseInt(minLength, 10);
+
         patternDataset.translateItemsetOutput(lengthVal, asyncCallback);
       },
     ], (err) => {
@@ -471,16 +473,16 @@ PatternDatasetObject.prototype.runItemRuleMining =
       },
       (asyncCallback) => {
         let supportVal = defaultSupport;
-        if (!minSupport) supportVal = defaultSupport;
+        if (minSupport && parseInt(minSupport, 10)) supportVal = parseInt(minSupport, 10);
 
         let confVal = defaultConf;
-        if (!minConf) confVal = defaultConf;
+        if (minConf && parseInt(minConf, 10)) confVal = parseInt(minConf, 10);
 
         patternDataset.itemRuleFPGrowth(supportVal, confVal, asyncCallback);
       },
       (asyncCallback) => {
         let lengthVal = defaultMinLength;
-        if (!minLength) lengthVal = minLength;
+        if (minLength && parseInt(minLength, 10)) lengthVal = parseInt(minLength, 10);
         patternDataset.translateItemRuleOutput(lengthVal, asyncCallback);
       },
     ], (err) => {
@@ -619,12 +621,12 @@ PatternDatasetObject.prototype.runSequencePatternMining =
       },
       (asyncCallback) => {
         let supportVal = defaultSupport;
-        if (!minSupport) supportVal = defaultSupport;
+        if (minSupport && parseInt(minSupport, 10)) supportVal = parseInt(minSupport, 10);
         patternDataset.seqPatPrefixSpan(supportVal, asyncCallback);
       },
       (asyncCallback) => {
         let lengthVal = defaultMinLength;
-        if (!minLength) lengthVal = minLength;
+        if (minLength && parseInt(minLength, 10)) lengthVal = parseInt(minLength, 10);
         patternDataset.translateSequenceOutput(lengthVal, asyncCallback);
       },
     ], (err) => {
@@ -640,6 +642,8 @@ PatternDatasetObject.prototype.runSequencePatternMining =
  */
 PatternDatasetObject.prototype.computeTemporalClashes = function (mainCallback) {
   // For each result input
+  // this.resultList
+  // const testResultList = [];
   async.eachSeries(this.resultList, (resultItem, resultCallback) => {
     // Get the eventKey corresponding to the result
     const targetKey = this.eventSet.indexOf(resultItem);
@@ -694,6 +698,7 @@ PatternDatasetObject.prototype.computeTemporalClashes = function (mainCallback) 
  */
 function createPatternDataset(patternOptions,
   callback, patternFinishedCallback) {
+
   const patternDataset = new PatternDatasetObject(new Date().getTime(),
     patternOptions.resultTitleList);
   // It might look like a callback hell, but I am just using nested async.each functions

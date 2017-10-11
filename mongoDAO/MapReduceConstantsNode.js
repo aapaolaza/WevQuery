@@ -89,10 +89,9 @@ function createNewConnection(callback) {
   // For authentication we add the parameter to the mongoPath
   // From http://mongodb.github.io/node-mongodb-native/2.0/tutorials/connecting/
   // Authentication > Indirectly Against Another Database
-  if (mongoUser !== '' && mongoUser !== 'DBUSERNAME')
-  { mongoConnectionPath = `${mongoUser  }:${  mongoPass  }@${  mongoPath
-       }?authSource=${  mongoAuthenticateDB}`;
- }
+  if (mongoUser !== '' && mongoUser !== 'DBUSERNAME') {
+    mongoConnectionPath = `${mongoUser}:${mongoPass}@${mongoPath}?authSource=${mongoAuthenticateDB}`;
+  }
 
   const options = {
     server: {
@@ -112,7 +111,7 @@ function createNewConnection(callback) {
   };
 
   // Open the connection to the server
-  mongoClient.connect(`mongodb://${  mongoConnectionPath}`, options, (err, dbConnection) => {
+  mongoClient.connect(`mongodb://${mongoConnectionPath}`, options, (err, dbConnection) => {
     if (err) { callback(err, null); }
     globalDbConnection = dbConnection;
     callback(err, dbConnection);
@@ -131,7 +130,7 @@ function closeConnection() {
 }
 
 function getCurrentConnectionOptions() {
-  return (`mongoTimeout = ${  mongoTimeout}`);
+  return (`mongoTimeout = ${mongoTimeout}`);
 }
 
 
@@ -303,11 +302,11 @@ function parseDateToMs2(input) {
  */
 function datestamp() {
   const currentDate = new Date();
-  return `${currentDate.getFullYear() }-${ completeDateVals(currentDate.getMonth() + 1) }-${
-    completeDateVals(currentDate.getDate()) },${completeDateVals(currentDate.getHours())
-  }:${completeDateVals(currentDate.getMinutes())
-  }:${ completeDateVals(currentDate.getSeconds())
-  }:${ completeDateValsMilliseconds(currentDate.getMilliseconds())}`;
+  return `${currentDate.getFullYear()}-${completeDateVals(currentDate.getMonth() + 1)}-${
+    completeDateVals(currentDate.getDate())},${completeDateVals(currentDate.getHours())
+    }:${completeDateVals(currentDate.getMinutes())
+    }:${completeDateVals(currentDate.getSeconds())
+    }:${completeDateValsMilliseconds(currentDate.getMilliseconds())}`;
 }
 
 /** Completes single-digit numbers by a "0"-prefix
@@ -334,11 +333,11 @@ function completeDateValsMilliseconds(dateVal) {
  */
 function datestampToReadable(datems) {
   const currentDate = new Date(datems);
-  return `${currentDate.getFullYear() }-${completeDateVals(currentDate.getMonth() + 1)}-${
-    completeDateVals(currentDate.getDate()) },${ completeDateVals(currentDate.getHours())
-  }:${completeDateVals(currentDate.getMinutes())
-  }:${completeDateVals(currentDate.getSeconds())
-  }:${completeDateValsMilliseconds(currentDate.getMilliseconds())}`;
+  return `${currentDate.getFullYear()}-${completeDateVals(currentDate.getMonth() + 1)}-${
+    completeDateVals(currentDate.getDate())},${completeDateVals(currentDate.getHours())
+    }:${completeDateVals(currentDate.getMinutes())
+    }:${completeDateVals(currentDate.getSeconds())
+    }:${completeDateValsMilliseconds(currentDate.getMilliseconds())}`;
 }
 
 

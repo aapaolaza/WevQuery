@@ -143,7 +143,7 @@ function startXmlQuery(resultTitle, queryDocument, isQueryStrict) {
     function (err, queryTitle, querydbTitle, processTime, isQueryStrict) {
       if (err) return console.error("startXmlQuery() ERROR in endCallback " + err);
 
-      xmlQueryFinished(queryTitle, processTime);
+      xmlQueryFinished(queryTitle, resultTitle, processTime);
     },
     function (err, queryTitle, querydbTitle, xmlQuery, isQueryStrict) {
       if (err) return console.error("startXmlQuery() ERROR in launchedCallback " + err);
@@ -200,9 +200,9 @@ function runningQueriesFinished(err, queryList) {
 /**
  * When the xmlQuery finishes, an email will be sent, and the Web interface will be notified
  */
-function xmlQueryFinished(queryTitle, processTime) {
+function xmlQueryFinished(queryTitle, resultTitle, processTime){
   console.log("xmlQueryFinished()");
-  mongoDAO.setQueryFinished(queryTitle, processTime);
+  mongoDAO.setQueryFinished(queryTitle, resultTitle, processTime);
   //Notify Web dashboard
   socketConnection.emit('clientXmlQueryFinished', { 'message': "The query called " + queryTitle + " finished without problems" });
 }

@@ -263,13 +263,13 @@ function traduceProgress(progressString) {
 /**
  * Once a query is completed, update its status, and the elapsed time
  */
-function setQueryFinished(queryTitle, timems) {
+function setQueryFinished(queryTitle, resultTitle, processTime) {
   constants.connectAndValidateNodeJs((err, db) => {
     if (err) return console.error(`updateQueryCatalog() ERROR connecting to DB${err}`);
     db.collection(constants.xmlQueryCatalog).update({ title: queryTitle },
-      { $set: { processtimems: timems } });
+      { $set: { processtimems: processTime } });
 
-    db.collection(constants.xmlQueryResults).update({ title: queryTitle },
+    db.collection(constants.xmlQueryResults).update({ resultTitle },
       {
         $set: {
           microsecs_running: -1,
@@ -280,10 +280,10 @@ function setQueryFinished(queryTitle, timems) {
 
     // Update the count of the found items, and the total
     // Update the number of usable elements
-    db.collection(queryCollectionPrefix + queryTitle)
+    db.collection(queryCollectionPrefix + resultTitle)
       .find({ 'value.xmlQueryCounter': { $gt: 0 } })
       .count((err, count) => {
-        db.collection(constants.xmlQueryResults).update({ title: queryTitle },
+        db.collection(constants.xmlQueryResults).update({ resultTitle },
           {
             $set: {
               count,
@@ -301,7 +301,7 @@ function setQueryFinished(queryTitle, timems) {
     db.collection(queryCollectionPrefix + queryTitle)
       .find()
       .count((err, count) => {
-        db.collection(constants.xmlQueryResults).update({ title: queryTitle },
+        db.collection(constants.xmlQueryResults).update({ resultTitle },
           {
             $set: {
               totalCount: count,
@@ -426,7 +426,7 @@ function getRunningQueries(callback) {
 function deleteCompletedQuery(resultTitle, callback) {
   constants.connectAndValidateNodeJs((err, db) => {
     if (err) return console.error(`deleteResultCollection() ERROR connecting to DB${err}`);
-    db.collection(constants.xmlQueryResults).remove({ resultTitle: resultTitle },
+    db.collection(constants.xmlQueryResults).remove({ resultTitle },
       (err, result) => {
         if (err) {
           console.log(err);

@@ -155,3 +155,7 @@ table.tablesorter thead tr .headerSortDown:after{
   min-height:30px;
   width:auto;
 }
+
+#tabPatternAnalysis h2{
+  margin-bottom: 10px;
+}

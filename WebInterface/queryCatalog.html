@@ -118,13 +118,12 @@
 
             <div id="tabPatternAnalysis" class="tab-pane fade">
               <h2 id="Pattern Matching">Pattern Matching</h2>
-              <h3>Template Inputs</h3>
               <p>Select the URLs to include in the analysis</p>
               <div id="urlMultiSelectorContainer">
                 <select name="urlList" id="urlMultiSelector" multiple="multiple">
               </select>
               </div>
-
+              <hr class=mainSep>
               <h3>Template Inputs</h3>
               <p> Select template inputs for the pattern matching algorithm</p>
               <h4> Event types to include</h4>
@@ -139,6 +138,8 @@
                   <input type="checkbox" name="options" value="yellow" autocomplete="off"> Yellow
                 </label>
               </div>
+              <hr class=secSep>
+              
               <h4> Node types to include</h4>
               <div id="patternTemplateNodeTypes" class="btn-group colors" data-toggle="buttons">
                 <label class="btn btn-primary active">
@@ -151,10 +152,13 @@
                   <input type="checkbox" name="options" value="yellow" autocomplete="off"> Yellow
                 </label>
               </div>
-              <h4> The following node IDs will always be included</h4>
+              <hr class=secSep>
+              
+              <h4> Node IDs (these will always be included)</h4>
               <ul id="patternTemplateNodeIds">
               </ul>
-
+              <hr class=mainSep>
+              
 
               <h3>Input</h3>
               <p> Select inputs for the pattern matching algorithm</p>
@@ -168,11 +172,12 @@
               <ul id="patternInputList" class="list-group">
               </ul>
               <p><i> If there is any temporal clash between the selected inputs, <br>larger overlapping events will have priority.</i></p>
-
+              <hr class=mainSep>
+              
               <h3>Algorithm type</h3>
               <div id="patternAlgoTypes" class="btn-group-vertical colors" data-toggle="buttons">
                 <label class="btn btn-primary">
-                    <input type="checkbox" name="algoType" value="freqItemSet" autocomplete="off">Frequent Itemset mining</label>
+                    <input type="checkbox" name="algoType" value="freqItemSet" autocomplete="off">Frequent Itemset Mining</label>
                 <label class="btn btn-primary">
                     <input type="checkbox" name="algoType" value="assocRule" autocomplete="off">Association Rule Mining</label>
                 <label class="btn btn-primary">

@@ -131,7 +131,7 @@ function createQueryCatalogLeftMenuFunctions() {
 
     $("#deleteResults", "#queryResultsOptions").click(function () {
       // Add code to delete the query from the DB
-      deleteQueryResults(
+      queryCatalogLeftMenu.deleteQueryResults(
         $("tr.active", "#queryResultsList").attr("queryTitle"));
     });
 
@@ -387,14 +387,14 @@ function createQueryCatalogLeftMenuFunctions() {
     $("p", "#dialog-confirm").text("To retrieve these results you will have to run the query again.");
 
     var confirmDialog = $("#dialog-confirm").dialog({
-      title: "Delete the results for " + queryTitle + "?",
+      title: "Delete the results for " + resultTitle + "?",
       resizable: false,
       height: "auto",
       width: 400,
       modal: true,
       buttons: {
         "Confirm": function () {
-          queryCatalogConnection.requestQueryResultsDeletion(queryTitle);
+          queryCatalogConnection.requestQueryResultsDeletion(resultTitle);
           confirmDialog.dialog("close");
         },
         Cancel: function () {

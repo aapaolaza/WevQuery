@@ -102,8 +102,10 @@ function createGenericFunctions() {
    * where the appropriate results will be stored
    */
   genericFunctionsObject.fillResultTabs = function () {
-    const resultTabList = genericFunctions.getActiveResultList();
+    let resultTabList = genericFunctions.getActiveResultList();
 
+    //resultTabList = resultTabList.concat(['eics_case1_10s', 'Q1']);
+    
     resultTabList.forEach((resultName) => {
       const $genericResultTab = $('<li>', { class: 'analysis closeable ' + resultName });
       // The order in which these elements are added is relevant!! the closeResults must go first
