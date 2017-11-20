@@ -565,26 +565,26 @@ function fixContextValues(contextInfo) {
   for (i = 0; i < contextInfo.typeList.length; i++) {
     switch (contextInfo.typeList[i]) {
       case "NodeID":
-        contextInfo.typeList[i] = "nodeInfo.nodeId";
+        contextInfo.typeList[i] = "node.id";
         break;
       case "NodeType":
-        contextInfo.typeList[i] = "nodeInfo.nodeType";
+        contextInfo.typeList[i] = "node.type";
         contextInfo.valueList[i] = contextInfo.valueList[i].toUpperCase();
         break;
       case "NodeDom":
-        contextInfo.typeList[i] = "nodeInfo.nodeDom";
+        contextInfo.typeList[i] = "node.dom";
         break;
       case "NodeImg":
-        contextInfo.typeList[i] = "nodeInfo.nodeImg";
+        contextInfo.typeList[i] = "node.img";
         break;
       case "NodeLink":
-        contextInfo.typeList[i] = "nodeInfo.nodeLink";
+        contextInfo.typeList[i] = "node.link";
         break;
       case "NodeTextContent":
-        contextInfo.typeList[i] = "nodeInfo.nodeTextContent";
+        contextInfo.typeList[i] = "node.textContent";
         break;
       case "NodeTextValue":
-        contextInfo.typeList[i] = "nodeInfo.nodeTextValue";
+        contextInfo.typeList[i] = "node.textValue";
         break;
       case "URL":
         contextInfo.typeList[i] = "url";
@@ -762,12 +762,12 @@ function finalizeFunction(key, reduceOutput) {
    * My first approach was going to be the following, but I think using this function is more secure
    * if (JSON.stringify(currentEvent.nodeInfo) == JSON.stringify(this.lackOfMousePrecisionList[i].nodeInfo)){
    */
-  function getNodeInfo(nodeInfo) {
-    return ("NodeInfo [nodeId=" + nodeInfo.nodeId + ", nodeName=" + nodeInfo.nodeName
-      + ", nodeDom=" + nodeInfo.nodeDom + ", nodeImg=" + nodeInfo.nodeImg
-      + ", nodeLink=" + nodeInfo.nodeLink + ", nodeText=" + nodeInfo.nodeText
-      + ", nodeType=" + nodeInfo.nodeType + ", nodeTextContent="
-      + nodeInfo.nodeTextContent + ", nodeTextValue=" + nodeInfo.nodeTextValue + "]");
+  function getNodeInfo(node) {
+    return ("NodeInfo [nodeId=" + node.id + ", nodeName=" + node.name
+      + ", nodeDom=" + node.dom + ", nodeImg=" + node.img
+      + ", nodeLink=" + node.link + ", nodeText=" + node.text
+      + ", nodeType=" + node.type + ", nodeTextContent="
+      + node.textContent + ", nodeTextValue=" + node.textValue + "]");
   }
 
   /**
