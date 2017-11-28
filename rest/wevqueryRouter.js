@@ -62,14 +62,13 @@ router.route("/:queryname/")
       queryOptions.userList = [req.query.userid];
 
     if (typeof req.query.starttime !== 'undefined')
-      queryOptions.startTimems = req.query.starttime.toString();
+      queryOptions.startTimems = parseInt(req.query.starttime.toString());
 
     if (typeof req.query.endtime !== 'undefined')
-      queryOptions.endTimems = req.query.endtime.toString();
+      queryOptions.endTimems = parseInt(req.query.endtime.toString());
 
     if (typeof req.query.strictMode !== 'undefined')
       queryOptions.isQueryStrict = req.query.strictMode.toLowerCase() == "true";
-
 
     if (typeof req.query.fillEventInfo !== 'undefined')
       queryOptions.fillEventInfo = req.query.fillEventInfo.toLowerCase() == "true";
