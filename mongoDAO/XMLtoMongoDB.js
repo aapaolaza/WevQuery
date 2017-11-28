@@ -1016,7 +1016,8 @@ function finalizeFunction(key, reduceOutput) {
 
 /**
  * Takes a query title as input, and replaces all the event results with the corresponding
- * data from the database
+ * data from the database.
+ * Is just an interface to feedQueryInformationByCollection()
  * @param {string} queryTitle with the name of the query results to feed back
  */
 function feedQueryResultsByTitle(queryTitle, callback) {
@@ -1032,6 +1033,7 @@ function feedQueryResultsByTitle(queryTitle, callback) {
  */
 function feedQueryInformationByCollection(queryCollName, callback) {
   console.log("Starting the feed of the information");
+  
   var startTimems = new Date();
 
   constants.connectAndValidateNodeJs(function (err, db) {
@@ -1091,11 +1093,13 @@ function updateXmlQueryDocument(docElem, db, queryCollName, callback) {
   }
 
   //For each result
-  for (var xmlQueryIndex in docElem.value.xmlQuery) {
+  for (let xmlQueryIndex in docElem.value.xmlQuery) {
     xmlQueryResult = docElem.value.xmlQuery[xmlQueryIndex];
 
     //For each event in the result, retrieve the corresponding information from the database
     xmlQueryResult.forEach(function (eventInQuery, eventIndexInResult) {
+      // console.log(`Retrieving information for event: ${eventInQuery._id}`);
+      
       //."toArray()" is necessary so the eventFullInfo is not a cursor, and can be used to update the database directly
       db.collection(constants.eventCollection).find({ _id: eventInQuery._id }).toArray(function (err, eventFullInfo) {
         //Once the event is retrieved, we need to update the correspoding object in the results collection
@@ -1105,7 +1109,7 @@ function updateXmlQueryDocument(docElem, db, queryCollName, callback) {
         //Create an index so we can access this particular occurrence
         //http://stackoverflow.com/questions/6702450/variable-with-mongodb-dotnotation
         //We are updating the specific use of a particular event inside that collection.
-        var xmlQueryEventIndex = {}
+        let xmlQueryEventIndex = {}
         for (objectIndex in docElem._id) {
           xmlQueryEventIndex['_id.' + objectIndex] = docElem._id[objectIndex];
         }
@@ -1116,7 +1120,7 @@ function updateXmlQueryDocument(docElem, db, queryCollName, callback) {
         //xmlQueryEventIndex["value.xmlQuery." + xmlQueryIndex + ".timestampms"] = eventInQuery.timestampms;
         //http://stackoverflow.com/questions/9200399/replacing-embedded-document-in-array-in-mongodb
 
-        var xmlQueryEventUpdatedValue = {};
+        let xmlQueryEventUpdatedValue = {};
         xmlQueryEventUpdatedValue["value.xmlQuery." + xmlQueryIndex + ".$"] = eventFullInfo;
         /*
         console.log("Finding ID:");

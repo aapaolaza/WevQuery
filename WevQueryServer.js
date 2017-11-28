@@ -27,7 +27,7 @@ var socketDataInfo = require("./socketHandlers/socketDataInfo.js");
 var app = express();
 var router = express.Router();
 
-const port = 2929;
+const port = 9090;// 2929;
 var logFile = "./wevQuery.log";
 
 //Start router
