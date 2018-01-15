@@ -6,17 +6,20 @@
 
 var express = require('express')
 var mongoDAO = require('../mongoDAO/mongoDAO.js')
+var jwt = require('jsonwebtoken'); // used to create, sign, and verify tokens
 
-
-
+const wevQueryOptions = require('../options');
+var userCredentials = require('../userCredentials.js');
 
 var router = express.Router()
+
+console.log(`WevQuery REST service running, REST secure: ${wevQueryOptions.secureRest}`);
 
 // middleware that is specific to this router
 router.use(function timeLog(req, res, next) {
   console.log('Wevquery router Time: ', Date.now())
   next()
-})
+});
 
 /**
  * The root of the router returns a list of available queries
@@ -33,7 +36,75 @@ router.get("/", function (req, res) {
 // define the about route
 router.get('/about', function (req, res) {
   res.send('MOVING interaction REST service')
-})
+});
+
+/** If the option has been set, the REST service will require a JSON Web Token */
+if (wevQueryOptions.secureRest) {
+  /**
+   * Given a username and password, returns the corresponding token
+   */
+  router.get('/authenticate', function (req, res) {
+    console.log(`Authentication triggered:${req.query.name},${req.query.pass}`);
+
+    // Given credentials must exist in the userCredentials file
+    if (userCredentials.restUsers[req.query.name] !== req.query.pass) {
+      res.json({ error: true, message: "Authentication failed." });
+    } else {
+      let tokenOptions = {};
+      if ((req.query && req.query.expiresIn) || (req.body && req.body.expiresIn)) tokenOptions.expiresIn = req.query.expiresIn || req.body.expiresIn;
+
+      console.log(tokenOptions);
+      // WARNING: if the payload (first parameter for jwt.sign) is a string, the expireIn fails
+      var token = jwt.sign({ name: req.query.name }, userCredentials.restSecret, tokenOptions);
+
+      // return the information including token as JSON
+      res.json({
+        error: false,
+        message: 'token created',
+        token: token
+      });
+    }
+  });
+
+  /**
+   * Middleware to ensure there is a token
+   * All the functions below this one are protected
+   */
+  router.use(function (req, res, next) {
+
+    // check header or url parameters or post parameters for token
+    let token = null;
+    try {
+      token = req.query.token || req.body.token || req.headers['x-access-token'];
+    } catch (e) {
+      // do nothing, no token was found
+    }
+
+    // decode token
+    if (token) {
+
+      // verifies secret and checks exp
+      jwt.verify(token, userCredentials.restSecret, function (err, decoded) {
+        if (err) {
+          return res.json({ success: false, message: 'Failed to authenticate token.' });
+        } else {
+          // if everything is good, save to request for use in other routes
+          req.decoded = decoded;
+          next();
+        }
+      });
+
+    } else {
+
+      // if there is no token
+      // return an error
+      return res.status(403).send({
+        success: false,
+        message: 'No token provided.'
+      });
+    }
+  });
+}
 
 /**
  * Retrieve the list of available queries
@@ -43,7 +114,7 @@ router.get('/catalog', function (req, res) {
     function (err, catalogQueries) {
       res.json(catalogQueries);
     });
-})
+});
 
 
 //For ucivitdb mock data, use the following rest query to test
@@ -93,12 +164,12 @@ router.route("/:queryname/")
                 mongoDAO.feedQueryInformationByCollection(queryCollName, function (err) {
                   if (err) return console.error("WevQueryRouter: feedQueryInformationByCollection() ERROR connecting to DB" + err);
                   //The collection has been fed, return the collection, which is now FULL
-                  returnResultsAndClean(res,queryCollName);
+                  returnResultsAndClean(res, queryCollName);
                 });
               }
               else {
                 //no need to fill in additional information, return collection as it is
-                returnResultsAndClean(res,queryCollName);
+                returnResultsAndClean(res, queryCollName);
               }
             },
             function (err, queryTitle, queryData) {
@@ -119,7 +190,7 @@ router.route("/:queryname/")
  * @param {Response} res 
  * @param {String} queryCollName 
  */
-function returnResultsAndClean(res,queryCollName) {
+function returnResultsAndClean(res, queryCollName) {
   //return the results, and delete the collection
   mongoDAO.getXmlQueryDataByCollection(queryCollName, function (err, title, itemList) {
     if (err) return console.error("WevQueryRouter: getXmlQueryData() ERROR connecting to DB" + err);

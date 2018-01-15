@@ -16,6 +16,9 @@ var express = require("express");
 var serveStatic = require('serve-static');
 var auth = require('basic-auth');
 
+const wevQueryOptions = require('./options');
+
+
 //Load external files
 var userCredentials = require('./userCredentials.js');
 var socketGeneric = require("./socketHandlers/socketGeneric.js");
@@ -27,16 +30,15 @@ var socketDataInfo = require("./socketHandlers/socketDataInfo.js");
 var app = express();
 var router = express.Router();
 
-const port = 2929;
 var logFile = "./wevQuery.log";
 
 //Start router
 var wevqueryRouter = require("./rest/wevqueryRouter.js");
 app.use('/wevqueryrest', wevqueryRouter);
 
-console.log(userCredentials.userList);
-console.log(userCredentials.email);
-console.log(userCredentials);
+// console.log(userCredentials.userList);
+// console.log(userCredentials.email);
+// console.log(userCredentials);
 
 //Only add authentication if there are users in the list (apart from default, if still there)
 if (Object.keys(userCredentials.userList).length > 1
@@ -46,8 +48,8 @@ if (Object.keys(userCredentials.userList).length > 1
 else
   console.log("AUTHENTICATION DISABLED");
 
-var httpServer = app.use(serveStatic(__dirname)).listen(port, function () {
-  console.log('WevQuery Server running on ' + port + '...');
+var httpServer = app.use(serveStatic(__dirname)).listen(wevQueryOptions.port, function () {
+  console.log('WevQuery Server running on ' + wevQueryOptions.port + '...');
 });
 
 var io = require('socket.io')(httpServer);
@@ -78,6 +80,7 @@ socketConnection.on('connection', function (socketInstance) {
 });
 
 function authFunction(req, res, next) {
+  console.log('Authentication triggered');
   var objUser = auth(req)
   if (objUser === undefined || userCredentials.userList[objUser.name] !== objUser.pass) {
     res.set("WWW-Authenticate", "Basic realm=Authorization Required")
