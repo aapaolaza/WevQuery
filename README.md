@@ -1,6 +1,7 @@
 # WevQuery
 
-Testing Hypotheses about  Web Interaction Patterns.
+Testing Hypotheses about  Web Interaction Patterns. If you make use or refer to this work, please cite our [paper](https://dl.acm.org/citation.cfm?id=3095806) <https://dl.acm.org/citation.cfm?id=3095806>.
+
 
 ## Database configuration
 
@@ -57,4 +58,4 @@ This interface is under construction, and instructions will come soon.
 
 ## Acknowledgements
 
-This work was supported by the EU's Horizon 2020 research and innovation programme under grant agreement H2020-693092 MOVING (\url{http://moving-project.eu}) and the Engineering and Physical Sciences Research Council [EP/I028099/1].
+This work was supported by the EU's Horizon 2020 research and innovation programme under grant agreement H2020-693092 MOVING (<http://moving-project.eu>) and the Engineering and Physical Sciences Research Council [EP/I028099/1].
