@@ -6,13 +6,16 @@ Testing Hypotheses about  Web Interaction Patterns. If you make use or refer to 
 
 ### Cite as:
 
-**Inline**
-```
+<details>
+ <summary><b>Inline</b></summary>
+  <pre>
 Aitor Apaolaza and Markel Vigo. 2017. WevQuery: Testing Hypotheses about Web Interaction Patterns. Proc. ACM Hum.-Comput. Interact. 1, EICS, Article 4 (June 2017), 17 pages. DOI: https://doi.org/10.1145/3095806
-```
-**[BibTeX](cite/WevQuery.bib)**
+ </pre>
+</details>
 
-```bib
+<details>
+ <summary><b>BibTeX</b> <a href="cite/WevQuery.bib">BibTex file</a></summary>
+ <pre>
 @article{Apaolaza:2017:WTH:3120954.3095806,
  author = {Apaolaza, Aitor and Vigo, Markel},
  title = {WevQuery: Testing Hypotheses About Web Interaction Patterns},
@@ -33,10 +36,13 @@ Aitor Apaolaza and Markel Vigo. 2017. WevQuery: Testing Hypotheses about Web Int
  address = {New York, NY, USA},
  keywords = {a/b testing, hypothesis testing, usability, user interface evaluation, web},
 }
-```
+</pre>
+</details>
 
-**[EndNote](cite/WevQuery.enw)**
-```enw
+
+<details>
+ <summary><b>EndNote</b> <a href="cite/WevQuery.enw">EndNote file</a></summary>
+ <pre>
 %0 Journal Article
 %1 3095806
 %A Aitor Apaolaza
@@ -50,7 +56,9 @@ Aitor Apaolaza and Markel Vigo. 2017. WevQuery: Testing Hypotheses about Web Int
 %D 2017
 %R 10.1145/3095806
 %I ACM
-```
+</pre>
+</details>
+
 
 ## Database configuration
 
