@@ -1,6 +1,64 @@
 # WevQuery
 
-Testing Hypotheses about  Web Interaction Patterns.
+## TERMS OF USE
+
+Testing Hypotheses about  Web Interaction Patterns. If you make use or refer to this work, please cite our [paper](https://dl.acm.org/citation.cfm?id=3095806) <https://dl.acm.org/citation.cfm?id=3095806>.
+
+### Cite as:
+
+<details>
+ <summary><b>Inline</b></summary>
+  <pre>
+Aitor Apaolaza and Markel Vigo. 2017. WevQuery: Testing Hypotheses about Web Interaction Patterns. Proc. ACM Hum.-Comput. Interact. 1, EICS, Article 4 (June 2017), 17 pages. DOI: https://doi.org/10.1145/3095806
+ </pre>
+</details>
+
+<details>
+ <summary><b>BibTeX</b> <a href="cite/WevQuery.bib">BibTex file</a></summary>
+ <pre>
+@article{Apaolaza:2017:WTH:3120954.3095806,
+ author = {Apaolaza, Aitor and Vigo, Markel},
+ title = {WevQuery: Testing Hypotheses About Web Interaction Patterns},
+ journal = {Proc. ACM Hum.-Comput. Interact.},
+ issue_date = {June 2017},
+ volume = {1},
+ number = {EICS},
+ month = jun,
+ year = {2017},
+ issn = {2573-0142},
+ pages = {4:1--4:17},
+ articleno = {4},
+ numpages = {17},
+ url = {http://doi.acm.org/10.1145/3095806},
+ doi = {10.1145/3095806},
+ acmid = {3095806},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ keywords = {a/b testing, hypothesis testing, usability, user interface evaluation, web},
+}
+</pre>
+</details>
+
+
+<details>
+ <summary><b>EndNote</b> <a href="cite/WevQuery.enw">EndNote file</a></summary>
+ <pre>
+%0 Journal Article
+%1 3095806
+%A Aitor Apaolaza
+%A Markel Vigo 
+%T WevQuery: Testing Hypotheses about Web Interaction Patterns
+%J Proc. ACM Hum.-Comput. Interact.
+%@ 2573-0142
+%V 1
+%N EICS
+%P 1-17
+%D 2017
+%R 10.1145/3095806
+%I ACM
+</pre>
+</details>
+
 
 ## Database configuration
 
@@ -57,4 +115,4 @@ This interface is under construction, and instructions will come soon.
 
 ## Acknowledgements
 
-This work was supported by the EU's Horizon 2020 research and innovation programme under grant agreement H2020-693092 MOVING (\url{http://moving-project.eu}) and the Engineering and Physical Sciences Research Council [EP/I028099/1].
+This work was supported by the EU's Horizon 2020 research and innovation programme under grant agreement H2020-693092 MOVING (<http://moving-project.eu>) and the Engineering and Physical Sciences Research Council [EP/I028099/1].
