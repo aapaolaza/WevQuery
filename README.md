@@ -6,12 +6,13 @@ Testing Hypotheses about  Web Interaction Patterns. If you make use or refer to 
 
 ### Cite as:
 
-<details>
- <summary><b>Inline</b></summary>
-  <pre>
-Aitor Apaolaza and Markel Vigo. 2017. WevQuery: Testing Hypotheses about Web Interaction Patterns. Proc. ACM Hum.-Comput. Interact. 1, EICS, Article 4 (June 2017), 17 pages. DOI: https://doi.org/10.1145/3095806
- </pre>
-</details>
+Inline
+```
+Aitor Apaolaza and Markel Vigo. 2017.
+WevQuery: Testing Hypotheses about Web Interaction Patterns. 
+Proc. ACM Hum.-Comput. Interact. 1, EICS, Article 4 (June 2017), 17 pages. 
+DOI: https://doi.org/10.1145/3095806
+```
 
 <details>
  <summary><b>BibTeX</b> <a href="cite/WevQuery.bib">BibTex file</a></summary>
