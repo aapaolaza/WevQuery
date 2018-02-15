@@ -6,7 +6,7 @@ Testing Hypotheses about  Web Interaction Patterns. If you make use or refer to 
 
 ### Cite as:
 
-Inline
+**Inline**
 ```
 Aitor Apaolaza and Markel Vigo. 2017.
 WevQuery: Testing Hypotheses about Web Interaction Patterns. 
