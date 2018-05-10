@@ -2,26 +2,27 @@
  * Serves as the interface to the mongoDB modules.
  */
 
-var databaseInfo = require("./databaseInfo.js");
-var queryDocument = require("./queryDocumentBean.js");
-var xmlToMongoDB = require("./XMLtoMongoDB.js");
-var analyseData = require("./analyseData.js");
+const databaseInfo = require('./databaseInfo.js');
+const queryDocument = require('./queryDocumentBean.js');
+const xmlToMongoDB = require('./XMLtoMongoDB.js');
+const analyseData = require('./analyseData.js');
 
-//The database connection is shared within the app, to reduce the number of opened connections
-var mapReduceConstants = require("./MapReduceConstantsNode.js");
-var mongoLogConstants = require("./mongoLog.js");
+// The database connection is shared within the app, to reduce the number of opened connections
+const mapReduceConstants = require('./MapReduceConstantsNode.js');
+const mongoLogConstants = require('./mongoLog.js');
 
 mongoLogConstants.setConstants(mapReduceConstants);
-xmlToMongoDB.setConstants(mapReduceConstants,mongoLogConstants);
-queryDocument.setConstants(mapReduceConstants,mongoLogConstants);
-analyseData.setConstants(mapReduceConstants,mongoLogConstants,this);
-databaseInfo.setConstants(mapReduceConstants,mongoLogConstants,this);
+xmlToMongoDB.setConstants(mapReduceConstants, mongoLogConstants);
+queryDocument.setConstants(mapReduceConstants, mongoLogConstants);
+analyseData.setConstants(mapReduceConstants, mongoLogConstants, this);
+databaseInfo.setConstants(mapReduceConstants, mongoLogConstants, this);
 
 module.exports.requestDBname = databaseInfo.requestDBname;
 module.exports.requestDBCollections = databaseInfo.requestDBCollections;
 module.exports.requestIndexes = databaseInfo.requestIndexes;
 module.exports.requestEventCountList = databaseInfo.requestEventCountList;
 module.exports.requestUserListWithEvents = databaseInfo.requestUserListWithEvents;
+module.exports.requestEvents = databaseInfo.requestEvents;
 
 module.exports.runXmlQuery = xmlToMongoDB.runXmlQuery;
 module.exports.runXmlTempQuery = xmlToMongoDB.runXmlTempQuery;
