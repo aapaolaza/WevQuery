@@ -169,13 +169,11 @@ function requestEventCountForEventAndUser(eventName, userId, callback) {
 function requestEvents(queryOptions, callback) {
   const searchParams = {};
 
-  if (!queryOptions.eventName) {
-    return callback('requestEvents() no event name was given');
-  }
-
   // Given the query options by the user, construct the search parameters
-  // searchParams.event = { $in: [queryOptions.eventName]};
-  searchParams.event = queryOptions.eventName;
+  if (!queryOptions.eventName) {
+    // searchParams.event = { $in: [queryOptions.eventName]};
+    searchParams.event = queryOptions.eventName;
+  }
 
   if (queryOptions.userList) {
     searchParams.sid = { $in: queryOptions.userList };
@@ -201,7 +199,9 @@ function requestEvents(queryOptions, callback) {
         }
         return callback(null, eventList);
       });
+    return null;
   });
+  return null;
 }
 
 module.exports.setConstants = setConstants;

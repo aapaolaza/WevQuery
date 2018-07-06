@@ -135,11 +135,40 @@ router.route('/event/:eventname/')
       // Retrieve the results for that event with the given options.
       mongoDAO.requestEvents(queryOptions, (err, eventList) => {
         if (err) return res.json({ error: true, message: 'wevqueryRouter /event/:eventname/ error', err });
-        res.json(eventList);
+        return res.json(eventList);
       });
     } else {
       res.json({ error: true, message: 'wevqueryRouter /event/:eventname/ is missing variables' });
     }
+  });
+
+/**
+ * Returns the result of searching for all events for a particular user ID with a set of options,
+ * as indicated in the tutorial:
+ */
+router.route('/user/:userid/')
+  .get((req, res) => {
+    const queryOptions = {};
+    queryOptions.userid = req.params.userid;
+
+    // Provides access to the parameters following the conventional ?name=value&name2=value2
+    // If any of the following parameters is provided, store them as queryOptions
+
+    if (typeof req.query.starttime !== 'undefined') { queryOptions.startTimems = parseInt(req.query.starttime.toString(), 10); }
+
+    if (typeof req.query.endtime !== 'undefined') { queryOptions.endTimems = parseInt(req.query.endtime.toString(), 10); }
+
+    // If any of the compulsory variables has not been defined, return an error
+    if (queryOptions.userid) {
+      // Retrieve the results for that event with the given options.
+      mongoDAO.requestEvents(queryOptions, (err, eventList) => {
+        if (err) return res.json({ error: true, message: 'wevqueryRouter /user/:userid/ error', err });
+        return res.json(eventList);
+      });
+    } else {
+      return res.json({ error: true, message: 'wevqueryRouter /user/:userid/ is missing variables' });
+    }
+    return null;
   });
 
 /**
