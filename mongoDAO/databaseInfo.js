@@ -170,7 +170,7 @@ function requestEvents(queryOptions, callback) {
   const searchParams = {};
 
   // Given the query options by the user, construct the search parameters
-  if (!queryOptions.eventName) {
+  if (queryOptions.eventName) {
     // searchParams.event = { $in: [queryOptions.eventName]};
     searchParams.event = queryOptions.eventName;
   }
