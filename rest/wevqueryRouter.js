@@ -149,7 +149,7 @@ router.route('/event/:eventname/')
 router.route('/user/:userid/')
   .get((req, res) => {
     const queryOptions = {};
-    queryOptions.userid = req.params.userid;
+    queryOptions.userList = [req.params.userid];
 
     // Provides access to the parameters following the conventional ?name=value&name2=value2
     // If any of the following parameters is provided, store them as queryOptions
@@ -159,7 +159,7 @@ router.route('/user/:userid/')
     if (typeof req.query.endtime !== 'undefined') { queryOptions.endTimems = parseInt(req.query.endtime.toString(), 10); }
 
     // If any of the compulsory variables has not been defined, return an error
-    if (queryOptions.userid) {
+    if (queryOptions.userList) {
       // Retrieve the results for that event with the given options.
       mongoDAO.requestEvents(queryOptions, (err, eventList) => {
         if (err) return res.json({ error: true, message: 'wevqueryRouter /user/:userid/ error', err });
