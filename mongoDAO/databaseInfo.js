@@ -226,9 +226,19 @@ function requestMovingSearchHistory(queryOptions, callback) {
 
   constants.connectAndValidateNodeJs((connectErr, db) => {
     if (connectErr) return callback(connectErr);
+    /**
+     * The $project has been added to minimise the amount of data, 
+     * as well as to tackle the problem mentioned in https://jira.mongodb.org/browse/SERVER-7568
+     * 
+     * The first $sort makes sure that the selection with $first inside $group works correctly
+     * (cannot rely on the natural order in the database)
+     * The second $sort ensure we can select the latest results with the following $limit,
+     * as the output from $group is not ordered
+     */
     db.collection(constants.eventCollection).aggregate([
       { $match: { sid: searchParams.sid, event: 'resultLoaded' } },
       { $project: { sid: 1, timestampms: 1, episodeCount: 1, result: 1, urlFull: 1 } },
+      { $sort: { timestampms: -1 } },
       {
         $group: {
           _id: { episodeCount: '$episodeCount', searchID: '$result.searchID' },
