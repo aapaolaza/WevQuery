@@ -204,6 +204,54 @@ function requestEvents(queryOptions, callback) {
   return null;
 }
 
+/**
+ * Given an object with a userID and a length, computes and returns the search history,
+ * by retrieving the 'resultLoaded' events
+ * @param {*} queryOptions
+ */
+function requestMovingSearchHistory(queryOptions, callback) {
+  const searchParams = {};
+
+  // Given the query options by the user, construct the search parameters
+  if (queryOptions.length) {
+    // searchParams.event = { $in: [queryOptions.eventName]};
+    searchParams.length = queryOptions.length;
+  } else {
+    searchParams.length = 10;
+  }
+
+  if (queryOptions.userID) {
+    searchParams.sid = queryOptions.userID;
+  }
+
+  constants.connectAndValidateNodeJs((connectErr, db) => {
+    if (connectErr) return callback(connectErr);
+    db.collection(constants.eventCollection).aggregate([
+      { $match: { sid: searchParams.sid, event: 'resultLoaded' } },
+      { $project: { sid: 1, timestampms: 1, episodeCount: 1, result: 1, urlFull: 1 } },
+      { $sort: { timestampms: -1 } },
+      {
+        $group: {
+          _id: { episodeCount: '$episodeCount', searchID: '$result.searchID' },
+          timestampms: { $first: '$timestampms' },
+          query: { $first: '$result.query' },
+          episodeCount: { $first: '$episodeCount' },
+          urlFull: { $first: '$urlFull' },
+        },
+      },
+      { $limit: searchParams.length },
+    ]).toArray((findErr, eventList) => {
+      if (findErr) {
+        findErr.params = searchParams;
+        return callback(findErr);
+      }
+      return callback(null, eventList);
+    });
+    return null;
+  });
+  return null;
+}
+
 module.exports.setConstants = setConstants;
 module.exports.requestDBname = requestDBname;
 module.exports.requestDBCollections = requestDBCollections;
@@ -211,3 +259,4 @@ module.exports.requestIndexes = requestIndexes;
 module.exports.requestEventCountList = requestEventCountList;
 module.exports.requestUserListWithEvents = requestUserListWithEvents;
 module.exports.requestEvents = requestEvents;
+module.exports.requestMovingSearchHistory = requestMovingSearchHistory;

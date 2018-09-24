@@ -23,6 +23,7 @@ module.exports.requestIndexes = databaseInfo.requestIndexes;
 module.exports.requestEventCountList = databaseInfo.requestEventCountList;
 module.exports.requestUserListWithEvents = databaseInfo.requestUserListWithEvents;
 module.exports.requestEvents = databaseInfo.requestEvents;
+module.exports.requestMovingSearchHistory = databaseInfo.requestMovingSearchHistory;
 
 module.exports.runXmlQuery = xmlToMongoDB.runXmlQuery;
 module.exports.runXmlTempQuery = xmlToMongoDB.runXmlTempQuery;

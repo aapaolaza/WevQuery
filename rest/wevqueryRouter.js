@@ -171,6 +171,36 @@ router.route('/user/:userid/')
     return null;
   });
 
+
+/**
+ * Returns the list of latest results with their corresponding counts for a specific user.
+ * The number of latest results to return can be set with 'length', and defaults to 10
+ * as indicated in the tutorial:
+ */
+router.route('/searchhistory/:userid/')
+  .get((req, res) => {
+    const queryOptions = {};
+    queryOptions.userID = req.params.userid;
+
+    // Provides access to the parameters following the conventional ?name=value&name2=value2
+    // If any of the following parameters is provided, store them as queryOptions
+
+    if (typeof req.query.length !== 'undefined') { queryOptions.length = parseInt(req.query.length.toString(), 10); }
+
+    // If any of the compulsory variables has not been defined, return an error
+    if (queryOptions.userID) {
+      // Retrieve the results for that event with the given options.
+      mongoDAO.requestMovingSearchHistory(queryOptions, (err, eventList) => {
+        if (err) return res.json({ error: true, message: 'wevqueryRouter /searchhistory/:userid/ error', err });
+        return res.json(eventList);
+      });
+    } else {
+      return res.json({ error: true, message: 'wevqueryRouter /searchhistory/:userid/ is missing variables' });
+    }
+    return null;
+  });
+
+
 /**
  * Given a response object and a query result collection name,
  * sends the results to the client and deletes the temporary collection.
