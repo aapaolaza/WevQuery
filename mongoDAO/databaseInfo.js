@@ -229,16 +229,16 @@ function requestMovingSearchHistory(queryOptions, callback) {
     db.collection(constants.eventCollection).aggregate([
       { $match: { sid: searchParams.sid, event: 'resultLoaded' } },
       { $project: { sid: 1, timestampms: 1, episodeCount: 1, result: 1, urlFull: 1 } },
-      { $sort: { timestampms: -1 } },
       {
         $group: {
           _id: { episodeCount: '$episodeCount', searchID: '$result.searchID' },
           timestampms: { $first: '$timestampms' },
           query: { $first: '$result.query' },
-          episodeCount: { $first: '$episodeCount' },
+          docCount: { $first: '$result.docCount' },
           urlFull: { $first: '$urlFull' },
         },
       },
+      { $sort: { timestampms: -1 } },
       { $limit: searchParams.length },
     ]).toArray((findErr, eventList) => {
       if (findErr) {
