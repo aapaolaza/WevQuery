@@ -47,9 +47,12 @@ if (wevQueryOptions.secureRest) {
   router.get('/authenticate', (req, res) => {
     console.log(`Authentication triggered:${req.query.name},${req.query.pass}`);
 
-    // Given credentials must exist in the userCredentials file
-    if (userCredentials.restUsers[req.query.name] !== req.query.pass) {
+    // Given credentials must: be part of the request, have different user and pass (not weak), and exist in the userCredentials file
+    if ((typeof req.query.pass === 'undefined' || typeof req.query.name === 'undefined')
+      || req.query.pass === req.query.name
+      || userCredentials.restUsers[req.query.name] !== req.query.pass) {
       res.json({ error: true, message: 'Authentication failed.' });
+      console.log('Authentication rejected');
     } else {
       const tokenOptions = {};
       if ((req.query && req.query.expiresIn) || (req.body && req.body.expiresIn)) tokenOptions.expiresIn = req.query.expiresIn || req.body.expiresIn;
