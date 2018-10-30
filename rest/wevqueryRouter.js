@@ -7,6 +7,7 @@
 const express = require('express');
 const mongoDAO = require('../mongoDAO/mongoDAO.js');
 const jwt = require('jsonwebtoken'); // used to create, sign, and verify tokens
+const async = require('async');
 
 const wevQueryOptions = require('../options');
 const userCredentials = require('../userCredentials.js');
@@ -133,6 +134,9 @@ router.route('/event/:eventname/')
 
     if (typeof req.query.endtime !== 'undefined') { queryOptions.endTimems = parseInt(req.query.endtime.toString(), 10); }
 
+    if (typeof req.query.url !== 'undefined') { queryOptions.url = req.query.url; }
+
+
     // If any of the compulsory variables has not been defined, return an error
     if (queryOptions.eventName) {
       // Retrieve the results for that event with the given options.
@@ -160,6 +164,8 @@ router.route('/user/:userid/')
     if (typeof req.query.starttime !== 'undefined') { queryOptions.startTimems = parseInt(req.query.starttime.toString(), 10); }
 
     if (typeof req.query.endtime !== 'undefined') { queryOptions.endTimems = parseInt(req.query.endtime.toString(), 10); }
+
+    if (typeof req.query.url !== 'undefined') { queryOptions.url = req.query.url; }
 
     // If any of the compulsory variables has not been defined, return an error
     if (queryOptions.userList) {
@@ -200,6 +206,55 @@ router.route('/searchhistory/:userid/')
     } else {
       return res.json({ error: true, message: 'wevqueryRouter /searchhistory/:userid/ is missing variables' });
     }
+    return null;
+  });
+
+/**
+ * Testing functions to ensure events are being captured.
+ * By default it looks for the information for the previous day (optional days parameter equal to one).
+ * Optionally, the number of days to go back can be specified.
+ */
+router.route('/test/')
+  .get((req, res) => {
+    // Create the time constraints for the query
+    const queryParams = {};
+
+    if (typeof req.query.days === 'undefined') {
+      // The starting date is a day before today
+      queryParams.startTimems = new Date().getTime() - 86400000;
+      queryParams.endTimems = new Date().getTime();
+    } else {
+      queryParams.startTimems = new Date().getTime() -
+        (parseInt(req.query.days.toString(), 10) * 86400000);
+      queryParams.endTimems = new Date().getTime() -
+        ((parseInt(req.query.days.toString(), 10) - 1) * 86400000);
+    }
+
+    // Return number of events
+    async.parallel(
+      [
+        (callback) => {
+          mongoDAO.getEventCount(queryParams, callback);
+        },
+        (callback) => {
+          mongoDAO.getUniqueUserCount(queryParams, callback);
+        },
+        (callback) => {
+          mongoDAO.getUniqueEpisodes(queryParams, callback);
+        },
+      ],
+      (err, results) => {
+        if (err) return res.json({ error: true, message: 'wevqueryRouter /test/ error' });
+        return res.json({
+          error: false,
+          startTimems: queryParams.startTimems,
+          endTimems: queryParams.endTimems,
+          eventNumber: results[0],
+          uniqueUserNumber: results[1],
+          uniqueEpiNumber: results[2],
+        });
+      }
+    );
     return null;
   });
 
@@ -250,6 +305,8 @@ router.route('/:queryname/')
     if (typeof req.query.starttime !== 'undefined') { queryOptions.startTimems = parseInt(req.query.starttime.toString(), 10); }
 
     if (typeof req.query.endtime !== 'undefined') { queryOptions.endTimems = parseInt(req.query.endtime.toString(), 10); }
+
+    if (typeof req.query.url !== 'undefined') { queryOptions.url = req.query.url; }
 
     if (typeof req.query.strictMode !== 'undefined') { queryOptions.isQueryStrict = req.query.strictMode.toLowerCase() === 'true'; }
 

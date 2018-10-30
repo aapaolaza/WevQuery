@@ -179,6 +179,10 @@ function requestEvents(queryOptions, callback) {
     searchParams.sid = { $in: queryOptions.userList };
   }
 
+  if (queryOptions.url) {
+    searchParams.url = queryOptions.url;
+  }
+
   if (queryOptions.startTimems || queryOptions.endTimems) {
     searchParams.timestampms = {};
   }
@@ -262,6 +266,73 @@ function requestMovingSearchHistory(queryOptions, callback) {
   return null;
 }
 
+
+/**
+ * Returns the count of all events stored in the database
+ * @param {callback} callback
+ */
+function getEventCount(queryParams, callback) {
+  const queryOptions = {};
+
+  if (queryParams.startTimems || queryParams.endTimems) {
+    queryOptions.timestampms = {};
+  }
+  if (queryParams.startTimems) {
+    queryOptions.timestampms.$gte = queryParams.startTimems;
+  }
+  if (queryParams.endTimems) {
+    queryOptions.timestampms.$lte = queryParams.endTimems;
+  }
+
+  constants.connectAndValidateNodeJs((connectErr, db) => {
+    db.collection(constants.eventCollection).find(queryOptions).count((e, count) => callback(e, count));
+  });
+}
+
+/**
+ * Returns the count of all unique users
+ * @param {callback} callback
+ */
+function getUniqueUserCount(queryParams, callback) {
+  const queryOptions = {};
+
+  if (queryParams.startTimems || queryParams.endTimems) {
+    queryOptions.timestampms = {};
+  }
+  if (queryParams.startTimems) {
+    queryOptions.timestampms.$gte = queryParams.startTimems;
+  }
+  if (queryParams.endTimems) {
+    queryOptions.timestampms.$lte = queryParams.endTimems;
+  }
+
+  constants.connectAndValidateNodeJs((connectErr, db) => {
+    db.collection(constants.eventCollection).distinct('sid', queryOptions, (e, userList) => callback(e, userList.length));
+  });
+}
+
+/**
+ * Returns the count of all unique episodes
+ * @param {callback} callback
+ */
+function getUniqueEpisodes(queryParams, callback) {
+  const queryOptions = {};
+
+  if (queryParams.startTimems || queryParams.endTimems) {
+    queryOptions.timestampms = {};
+  }
+  if (queryParams.startTimems) {
+    queryOptions.timestampms.$gte = queryParams.startTimems;
+  }
+  if (queryParams.endTimems) {
+    queryOptions.timestampms.$lte = queryParams.endTimems;
+  }
+
+  constants.connectAndValidateNodeJs((connectErr, db) => {
+    db.collection(constants.eventCollection).distinct('episodeCount', queryOptions, (e, epiList) => callback(e, epiList.length));
+  });
+}
+
 module.exports.setConstants = setConstants;
 module.exports.requestDBname = requestDBname;
 module.exports.requestDBCollections = requestDBCollections;
@@ -270,3 +341,7 @@ module.exports.requestEventCountList = requestEventCountList;
 module.exports.requestUserListWithEvents = requestUserListWithEvents;
 module.exports.requestEvents = requestEvents;
 module.exports.requestMovingSearchHistory = requestMovingSearchHistory;
+
+module.exports.getEventCount = getEventCount;
+module.exports.getUniqueUserCount = getUniqueUserCount;
+module.exports.getUniqueEpisodes = getUniqueEpisodes;

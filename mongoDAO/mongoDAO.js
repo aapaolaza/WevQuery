@@ -25,6 +25,10 @@ module.exports.requestUserListWithEvents = databaseInfo.requestUserListWithEvent
 module.exports.requestEvents = databaseInfo.requestEvents;
 module.exports.requestMovingSearchHistory = databaseInfo.requestMovingSearchHistory;
 
+module.exports.getEventCount = databaseInfo.getEventCount;
+module.exports.getUniqueUserCount = databaseInfo.getUniqueUserCount;
+module.exports.getUniqueEpisodes = databaseInfo.getUniqueEpisodes;
+
 module.exports.runXmlQuery = xmlToMongoDB.runXmlQuery;
 module.exports.runXmlTempQuery = xmlToMongoDB.runXmlTempQuery;
 module.exports.getXmlQueryData = xmlToMongoDB.getXmlQueryData;

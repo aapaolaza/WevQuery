@@ -1,11 +1,12 @@
-var constants;
+let constants;
+const wevQueryOptions = require('../options');
 
-function setConstants(mapReduceConstants){
+function setConstants(mapReduceConstants) {
   constants = mapReduceConstants;
 }
 
 
-const APPNAME = "WevQuery";
+const APPNAME = 'WevQuery';
 
 /**
  *  * Given a message and a timestamp, it logs the operation,
@@ -18,9 +19,10 @@ const APPNAME = "WevQuery";
  * @param {*} endTimems  if given, the end of the operation to store
  */
 function logMessage(type, operation, sd, message, startTimems, endTimems) {
-  constants.connectAndValidateNodeJs(function (err, db) {
-    if (err) return console.error("initialiseDB() ERROR connecting to DB" + err);
-    logDocument = {
+  if (!wevQueryOptions.logMode) return;
+  constants.connectAndValidateNodeJs((err, db) => {
+    if (err) return console.error(`initialiseDB() ERROR connecting to DB${err}`);
+    const logDocument = {
       application: APPNAME,
       type,
       operation,
@@ -30,11 +32,11 @@ function logMessage(type, operation, sd, message, startTimems, endTimems) {
       startTimems,
       startTime: constants.datestampToReadable(startTimems),
       endTimems,
-      endTime: constants.datestampToReadable(endTimems)
+      endTime: constants.datestampToReadable(endTimems),
     };
-    db.collection(constants.mongoLogCollection).insert(logDocument, function (err, records) {
-      if (err) return console.error("logMessage() ERROR INSERTING LOG DOCUMENT " + err);
-      else console.log("logMessage() new Log document stored correctly");
+    db.collection(constants.mongoLogCollection).insert(logDocument, (insertErr) => {
+      if (insertErr) return console.error(`logMessage() ERROR INSERTING LOG DOCUMENT ${insertErr}`);
+      return console.log('logMessage() new Log document stored correctly');
     });
   });
 }

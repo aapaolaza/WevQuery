@@ -304,6 +304,8 @@ function runXmlTempQuery(title, xmlQuery, queryOptions, endCallback, launchedCal
     queryOptions.endTimems : null;
   mapReduceVars.userList = typeof queryOptions.userList !== 'undefined' ?
     queryOptions.userList : null;
+  mapReduceVars.url = typeof queryOptions.url !== 'undefined' ?
+    queryOptions.url : null;
 
   prepareXml(xmlQuery, xmlDoc, mapReduceVars, endCallback, launchedCallback);
 }
@@ -381,6 +383,10 @@ function executeXmlMapReduce(xmlQuery, xmlDoc, mapReduceVars, endCallback, launc
 
   if (mapReduceVars.userList) {
     queryObject.sid = { $in: mapReduceVars.userList };
+  }
+
+  if (mapReduceVars.url) {
+    queryObject.url = mapReduceVars.url;
   }
 
   if (mapReduceVars.startTimems || mapReduceVars.endTimems) {
@@ -650,7 +656,7 @@ function mapFunction() {
       //Only emit this field if the event contains it
       if (eventToEmit[mainField]) {
         var contentToEmit = eventToEmit[mainField][nestedField];
-        
+
         //check again if the nested field exists
         if (contentToEmit) {
           //Does the nested field contain additional nest levels AND the field still exists?
@@ -675,9 +681,9 @@ function mapFunction() {
   emit({ sid: this.sid, url: this.url, episodeCount: this[episodeField] },
     {
       "episodeEvents":
-      [
-        emitData
-      ]
+        [
+          emitData
+        ]
     }
   );
   //}
@@ -1033,7 +1039,7 @@ function feedQueryResultsByTitle(queryTitle, callback) {
  */
 function feedQueryInformationByCollection(queryCollName, callback) {
   console.log("Starting the feed of the information");
-  
+
   var startTimems = new Date();
 
   constants.connectAndValidateNodeJs(function (err, db) {
@@ -1099,7 +1105,7 @@ function updateXmlQueryDocument(docElem, db, queryCollName, callback) {
     //For each event in the result, retrieve the corresponding information from the database
     xmlQueryResult.forEach(function (eventInQuery, eventIndexInResult) {
       // console.log(`Retrieving information for event: ${eventInQuery._id}`);
-      
+
       //."toArray()" is necessary so the eventFullInfo is not a cursor, and can be used to update the database directly
       db.collection(constants.eventCollection).find({ _id: eventInQuery._id }).toArray(function (err, eventFullInfo) {
         //Once the event is retrieved, we need to update the correspoding object in the results collection
