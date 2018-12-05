@@ -24,6 +24,7 @@ module.exports.requestEventCountList = databaseInfo.requestEventCountList;
 module.exports.requestUserListWithEvents = databaseInfo.requestUserListWithEvents;
 module.exports.requestEvents = databaseInfo.requestEvents;
 module.exports.requestMovingSearchHistory = databaseInfo.requestMovingSearchHistory;
+module.exports.requestMovingResultClickList = databaseInfo.requestMovingResultClickList;
 
 module.exports.getEventCount = databaseInfo.getEventCount;
 module.exports.getUniqueUserCount = databaseInfo.getUniqueUserCount;

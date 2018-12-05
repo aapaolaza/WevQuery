@@ -266,6 +266,36 @@ function requestMovingSearchHistory(queryOptions, callback) {
   return null;
 }
 
+/**
+ * Returns the list of result IDs ever clicked by any user
+
+ */
+function requestMovingResultClickList(queryOptions, callback) {
+  const searchParams = {};
+
+  searchParams.event = 'mouseup';
+  searchParams['node.class'] = 'result-item';
+  searchParams['node.id'] = { $nin: ['main', 'main-visualization-container'] };
+
+  if (queryOptions.userList) searchParams.sid = { $in: queryOptions.userList };
+
+  if (queryOptions.url) searchParams.url = queryOptions.url;
+
+  if (queryOptions.startTimems || queryOptions.endTimems) {
+    searchParams.timestampms = {};
+  }
+  if (queryOptions.startTimems) {
+    searchParams.timestampms.$gte = queryOptions.startTimems;
+  }
+  if (queryOptions.endTimems) {
+    searchParams.timestampms.$lte = queryOptions.endTimems;
+  }
+
+  constants.connectAndValidateNodeJs((connectErr, db) => {
+    db.collection(constants.eventCollection).find(searchParams, { _id: 0, 'node.id': 1 })
+      .toArray((findErr, eventList) => callback(findErr, eventList));
+  });
+}
 
 /**
  * Returns the count of all events stored in the database
@@ -341,6 +371,7 @@ module.exports.requestEventCountList = requestEventCountList;
 module.exports.requestUserListWithEvents = requestUserListWithEvents;
 module.exports.requestEvents = requestEvents;
 module.exports.requestMovingSearchHistory = requestMovingSearchHistory;
+module.exports.requestMovingResultClickList = requestMovingResultClickList;
 
 module.exports.getEventCount = getEventCount;
 module.exports.getUniqueUserCount = getUniqueUserCount;

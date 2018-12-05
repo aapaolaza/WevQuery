@@ -210,6 +210,29 @@ router.route('/searchhistory/:userid/')
   });
 
 /**
+* Returns the list of results ever clicked by any user.
+*/
+router.route('/resultclicklist')
+  .get((req, res) => {
+    const queryOptions = {};
+
+    // Provides access to the parameters following the conventional ?name=value&name2=value2
+    // If any of the following parameters is provided, store them as queryOptions
+    if (typeof req.query.userList !== 'undefined') { queryOptions.userList = req.query.userList; }
+    if (typeof req.query.starttime !== 'undefined') { queryOptions.startTimems = parseInt(req.query.starttime.toString(), 10); }
+    if (typeof req.query.endtime !== 'undefined') { queryOptions.endTimems = parseInt(req.query.endtime.toString(), 10); }
+    if (typeof req.query.url !== 'undefined') { queryOptions.url = req.query.url; }
+
+    if (typeof req.query.length !== 'undefined') { queryOptions.length = parseInt(req.query.length.toString(), 10); }
+
+    mongoDAO.requestMovingResultClickList(queryOptions, (err, eventList) => {
+      if (err) return res.json({ error: true, message: 'wevqueryRouter /resultclicklist error', err });
+      return res.json(eventList);
+    });
+    return null;
+  });
+
+/**
  * Testing functions to ensure events are being captured.
  * By default it looks for the information for the previous day (optional days parameter equal to one).
  * Optionally, the number of days to go back can be specified.

@@ -573,6 +573,9 @@ function fixContextValues(contextInfo) {
       case "NodeID":
         contextInfo.typeList[i] = "node.id";
         break;
+      case "NodeClass":
+        contextInfo.typeList[i] = "node.class";
+        break;
       case "NodeType":
         contextInfo.typeList[i] = "node.type";
         contextInfo.valueList[i] = contextInfo.valueList[i].toUpperCase();
@@ -739,7 +742,6 @@ function skinnyReduceFunction(key, values) {
  * This is the function that has access to ALL data, and this is the step in which events can be ordered and processed
  */
 function finalizeFunction(key, reduceOutput) {
-  print("STARTING FINALIZE");
 
   //////////////////////////START OF Auxiliary Functions/////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////
@@ -1006,8 +1008,6 @@ function finalizeFunction(key, reduceOutput) {
 
     xmlQuery.processEvent(valueObject);
   }
-
-  //debugLog +=
 
   xmlQuery.endBehaviour();
 
