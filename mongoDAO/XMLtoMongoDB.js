@@ -978,7 +978,15 @@ function finalizeFunction(key, reduceOutput) {
 
   function matchContextInfo(currentEvent, contextInfo) {
     for (i = 0; i < contextInfo.typeList.length; i++) {
-      if (currentEvent[contextInfo.typeList[i]] != contextInfo.valueList[i])
+      // The value contained in the event could be a list, if that's the case, check if its list contain the context value from the query
+      // Split the list of values, and check if the current event's value is in that list
+      // The first condition is just checking that the event to be processed contains the actual value
+      if (currentEvent[contextInfo.typeList[i]]
+        && currentEvent[contextInfo.typeList[i]].indexOf(',') !== -1
+        && currentEvent[contextInfo.typeList[i]].split(',').indexOf(contextInfo.valueList[i]) === -1) {
+        return false;
+      }
+      else if (currentEvent[contextInfo.typeList[i]] != contextInfo.valueList[i])
         return false;
     }
     return true;
@@ -1007,6 +1015,17 @@ function finalizeFunction(key, reduceOutput) {
     valueObject = valuesArraySorted[i];
 
     xmlQuery.processEvent(valueObject);
+  }
+
+  // for (i = 0; i < Object.keys(valueObject).length; i++) {
+  //   print(Object.keys(valueObject)[i]);
+  //   print(valueObject[Object.keys(valueObject)[i]]);
+  // }
+
+  if (valueObject['node.class']
+    && valueObject['node.class'].indexOf(',') !== -1
+    && valueObject['node.class'].split(',').indexOf('result-item') !== -1) {
+    print(valueObject['node.class']);
   }
 
   xmlQuery.endBehaviour();

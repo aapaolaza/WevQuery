@@ -20,6 +20,7 @@
 //////We need to load the constants file
 var constants;
 var mongoLog;
+var fs = require('fs');
 
 function setConstants(mapReduceConstants, mongoLogConstants) {
   constants = mapReduceConstants;
@@ -35,6 +36,25 @@ function initialiseDB() {
     if (err) return console.error("initialiseDB() ERROR connecting to DB" + err);
     db.collection(constants.xmlQueryResults).createIndex({ "resultTitle": 1 }, { unique: true });
     db.collection(constants.xmlQueryCatalog).createIndex({ "title": 1 }, { unique: true });
+    restoreQueries();
+  });
+}
+
+/**
+ * If there is a restoreQueries.json file, restore the queries contained in that file
+ * into the xmlQueryCatalog collection
+ */
+
+function restoreQueries() {
+  fs.readFile('./restoreQueries.json', 'utf8', function (err, data) {
+    if (err) return console.log(err);
+    // console.log(data);
+    var json = JSON.parse(data);
+    constants.connectAndValidateNodeJs(function (err, db) {
+      db.collection(constants.xmlQueryCatalog).insertMany(json, { ordered: false }, function (err, doc) {
+        if (err) console.log('Error restoring queries, one or more queries might already exist');
+      });
+    });
   });
 }
 
@@ -249,7 +269,7 @@ function updateQueryStatus(callback) {
  */
 function traduceProgress(progressString) {
   //Extraction is hardcoded to this particular kind of report. Return empty if no message is provided
-  if (progressString=="")
+  if (progressString == "")
     return progressString;
   //retrieve step number
   var step = progressString.split("(")[1][0];
@@ -378,12 +398,12 @@ function getCatalogQueryInfo(queryTitle, callback) {
  * Given a query Title, returns all the results associated with it
  */
 
-function getResultsForCatalogQuery(queryTitle, callback){
-   constants.connectAndValidateNodeJs(function (err, db) {
+function getResultsForCatalogQuery(queryTitle, callback) {
+  constants.connectAndValidateNodeJs(function (err, db) {
     if (err) return console.error("getResultsForCatalogQuery() ERROR connecting to DB" + err);
     console.log("getResultsForCatalogQuery() Successfully connected to DB");
-    
-    db.collection(constants.xmlQueryResults).find({title:queryTitle}).toArray(function (err, queryResultList) {
+
+    db.collection(constants.xmlQueryResults).find({ title: queryTitle }).toArray(function (err, queryResultList) {
       callback(null, queryTitle, queryResultList);
     });
   });

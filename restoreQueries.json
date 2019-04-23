@@ -1,0 +1,128 @@
+[
+  {
+    "title": "LoadToScroll3s",
+    "queryXML": "<eql><event id=\"event1\" pre=\"null\" occurrences=\"1\"><eventList>load</eventList></event><event id=\"event2\" pre=\"event1\" occurrences=\"1\"><eventList>scroll</eventList><eventList>mousewheel</eventList></event><temporalconstraintList><temporalconstraint type=\"within\" value=\"3\" unit=\"sec\"><eventref id=\"event1\"/><eventref id=\"event2\"/></temporalconstraint></temporalconstraintList></eql>",
+    "operationID": "",
+    "processtimems": -1,
+    "datems": 1497449119846,
+    "readableDate": "2017-06-14T14:05:19.846Z"
+  },
+  {
+    "count": 24,
+    "datems": 1510064914687,
+    "description": null,
+    "operationID": "",
+    "processtimems": 1104,
+    "queryXML": "<eql><event id=\"event1\" pre=\"null\" occurrences=\"1\"><eventList>mouseup</eventList><context type=\"NodeID\" value=\"search-tab-concept-graph\"/></event><temporalconstraintList/></eql>",
+    "readableDate": "2017-11-07T14:28:34.687Z",
+    "title": "moving_concept_graph",
+    "totalCount": 1833
+  },
+  {
+    "count": 17,
+    "datems": 1510064797001,
+    "description": null,
+    "operationID": "",
+    "processtimems": 1093,
+    "queryXML": "<eql><event id=\"event1\" pre=\"null\" occurrences=\"1\"><eventList>mouseup</eventList><context type=\"NodeID\" value=\"search-tab-results\"/></event><temporalconstraintList/></eql>",
+    "readableDate": "2017-11-07T14:26:37.001Z",
+    "title": "moving_result_list",
+    "totalCount": 1833
+  },
+  {
+    "count": 327,
+    "datems": 1510064981757,
+    "description": null,
+    "operationID": "",
+    "processtimems": 5335,
+    "queryXML": "<eql><event id=\"event3\" pre=\"null\" occurrences=\"1\"><eventList>mouseup</eventList><context type=\"NodeID\" value=\"search-button\"/></event><event id=\"event2\" pre=\"event3\" occurrences=\"1\"><eventList>submit</eventList></event><temporalconstraintList/></eql>",
+    "readableDate": "2017-11-07T14:29:41.757Z",
+    "title": "moving_search_submit",
+    "totalCount": 2780
+  },
+  {
+    "count": 197,
+    "datems": 1521701648735,
+    "description": null,
+    "operationID": "",
+    "processtimems": 6338,
+    "queryXML": "<eql><event id=\"event1\" pre=\"null\" occurrences=\"1\"><eventList>mouseup</eventList><context type=\"NodeID\" value=\"search-tab-urank\"/></event><temporalconstraintList/></eql>",
+    "readableDate": "2018-03-22T06:54:08.735Z",
+    "title": "moving_urank",
+    "totalCount": 7301
+  },
+  {
+    "title": "moving_topconcepts",
+    "description": null,
+    "queryXML": "<eql><event id=\"event1\" pre=\"null\" occurrences=\"1\"><eventList>mouseup</eventList><context type=\"NodeID\" value=\"search-tab-top-concepts\"/></event><temporalconstraintList/></eql>",
+    "operationID": "",
+    "processtimems": -1,
+    "datems": 1521701880247,
+    "readableDate": "2018-03-22T06:58:00.247Z"
+  },
+  {
+    "title": "moving_topsources",
+    "description": null,
+    "queryXML": "<eql><event id=\"event1\" pre=\"null\" occurrences=\"1\"><eventList>mouseup</eventList><context type=\"NodeID\" value=\"search-tab-top-sources\"/></event><temporalconstraintList/></eql>",
+    "operationID": "",
+    "processtimems": -1,
+    "datems": 1521701944334,
+    "readableDate": "2018-03-22T06:59:04.334Z"
+  },
+  {
+    "count": 162,
+    "datems": 1521701765425,
+    "description": null,
+    "operationID": "",
+    "processtimems": 4680,
+    "queryXML": "<eql><event id=\"event1\" pre=\"null\" occurrences=\"1\"><eventList>mouseup</eventList><context type=\"NodeID\" value=\"search-tab-tag-cloud\"/></event><temporalconstraintList/></eql>",
+    "readableDate": "2018-03-22T06:56:05.425Z",
+    "title": "moving_tagcloud",
+    "totalCount": 7301
+  },
+  {
+    "title": "moving_search_submit_rs",
+    "description": null,
+    "queryXML": "<eql><event id=\"event1\" pre=\"null\" occurrences=\"1\"><eventList>submit</eventList></event><temporalconstraintList/></eql>",
+    "operationID": "",
+    "processtimems": -1,
+    "datems": 1542704609163,
+    "readableDate": "2018-11-20T09:03:29.163Z"
+  },
+  {
+    "title": "moving_top_properties",
+    "description": null,
+    "queryXML": "<eql><event id=\"event1\" pre=\"null\" occurrences=\"1\"><eventList>mouseup</eventList><context type=\"NodeID\" value=\"search-tab-top-properties\"/></event><temporalconstraintList/></eql>",
+    "operationID": "",
+    "processtimems": -1,
+    "datems": 1550155944531,
+    "readableDate": "2019-02-14T14:52:24.531Z"
+  },
+  {
+    "title": "simple_search_submit",
+    "description": null,
+    "queryXML": "<eql><event id=\"event1\" pre=\"null\" occurrences=\"1\"><eventList>submit</eventList><context type=\"NodeID\" value=\"search_form\"/></event><temporalconstraintList/></eql>",
+    "operationID": "",
+    "processtimems": -1,
+    "datems": 1550155987006,
+    "readableDate": "2019-02-14T14:53:07.006Z"
+  },
+  {
+    "title": "advanced_search_submit",
+    "description": null,
+    "queryXML": "<eql><event id=\"event1\" pre=\"null\" occurrences=\"1\"><eventList>submit</eventList><context type=\"NodeID\" value=\"advanced_search_Form\"/></event><temporalconstraintList/></eql>",
+    "operationID": "",
+    "processtimems": -1,
+    "datems": 1550156035640,
+    "readableDate": "2019-02-14T14:53:55.640Z"
+  },
+  {
+    "title": "faceted_search_submit",
+    "description": null,
+    "queryXML": "<eql><event id=\"event1\" pre=\"null\" occurrences=\"1\"><eventList>submit</eventList><context type=\"NodeID\" value=\"facets-form\"/></event><temporalconstraintList/></eql>",
+    "operationID": "",
+    "processtimems": -1,
+    "datems": 1550156060365,
+    "readableDate": "2019-02-14T14:54:20.365Z"
+  }
+]
